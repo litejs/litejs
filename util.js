@@ -2,6 +2,7 @@
 exports.lineEmitter = lineEmitter
 exports.uuid4 = uuid4
 exports.rand = rand
+exports.round = round
 exports.wait = wait
 exports.Storage = Storage
 
@@ -58,6 +59,17 @@ function rand(len) {
 	}
 	return out.slice(-len)
 }
+
+// Rounding Errors
+// Number((1.005).toFixed(2)); // 1 instead of 1.01
+// Math.round(1.005*100)/100;  // 1 instead of 1.01
+// http://www.jacklmoore.com/notes/rounding-in-javascript/
+// The rounding problem can be avoided by using numbers represented in exponential notation:
+
+function round(value, decimals) {
+	return +(Math.round(value + "e" + decimals) + "e-" + decimals)
+}
+
 
 function wait(fn, _pending) {
 	var pending = _pending || 0
