@@ -31,7 +31,7 @@ function lineEmitter(emitter, opts) {
 		leftover = lines.pop()
 
 		for (var i = 0, len = lines.length; i < len; ) {
-			this.emit(emit, lines[i++])
+			this.emit(emit, lines[i++], len)
 		}
 	}
 	function lineEmitterEnd() {

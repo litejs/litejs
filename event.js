@@ -8,7 +8,9 @@
 		on: on,
 		off: off,
 		one: one,
-		emit: emit
+		emit: emit,
+		listen: listen,
+		unlisten: unlisten
 	}
 
 	function on(type, fn, scope, _origin) {
@@ -55,6 +57,26 @@
 		return emitter
 	}
 
+	function listen(emitter, ev, fn, scope, _origin) {
+		if (emitter) {
+			emitter.on(ev, fn, scope)
+			;(this._l || (this._l = [])).push([emitter, ev, fn, scope, _origin])
+		}
+		return this
+	}
+
+	function unlisten(key) {
+		var a, i
+		, listening = this._l
+		if (listening) for (i = listening.length; i--; ) {
+			a = listening[i]
+			if (key === "*" || key === a[0] || key === a[1] || key === a[2] || key === a[3] || key === a[4]) {
+				listening.splice(i, 1)
+				a[0].off(a[1], a[2], a[3])
+			}
+		}
+		return this
+	}
 // `this` refers to the `window` in browser and to the `exports` in Node.js.
 }(this)
 
