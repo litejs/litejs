@@ -3,6 +3,7 @@
 
 !function(exports) {
 	var Event = exports.Event || (exports.Event = {})
+	, empty = []
 
 	Event.Emitter = {
 		on: on,
@@ -48,10 +49,11 @@
 	function emit(type) {
 		var args, i
 		, emitter = this
-		if (type = (emitter._e && emitter._e[type])) {
-			type = type.slice()
-			for (i = type.length, args = type.slice.call(arguments, 1); i--; ) {
-				type[i--].apply(type[--i] || emitter, args)
+		, _e = emitter._e
+		, arr = _e ? (_e[type] || empty).concat(_e["*"] || empty) : empty
+		if (i = arr.length) {
+			for (args = arr.slice.call(arguments, 1); i--; ) {
+				arr[i--].apply(arr[--i] || emitter, args)
 			}
 		}
 		return emitter
