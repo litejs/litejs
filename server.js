@@ -131,10 +131,12 @@ function initRequest(req, res, next, opts) {
 function send(body) {
 	var res = this
 
-	// Content-Type: application/my-media-type+json; profile=http://example.com/my-hyper-schema#
+	// Line and Paragraph separator needing to be escaped in JavaScript but not in JSON,
+	// escape those so the JSON can be evaluated or directly utilized within JSONP.
+	body = JSON.stringify(body).replace(/\u2028/g, "\\u2028").replace(/\u2029/g, "\\u2029")
 
 	res.setHeader("Content-Type", "application/json")
-	body = JSON.stringify(body)
+	// Content-Type: application/my-media-type+json; profile=http://example.com/my-hyper-schema#
 	//res.setHeader("Content-Length", body.length)
 
 	res.end(body)
@@ -254,3 +256,4 @@ function setLink(url, rel) {
 
 	res.setHeader("Link", existing)
 }
+
