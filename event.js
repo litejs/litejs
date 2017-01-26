@@ -15,7 +15,7 @@
 	}
 
 	function on(type, fn, scope, _origin) {
-		var emitter = this
+		var emitter = this === exports ? empty : this
 		, events = emitter._e || (emitter._e = {})
 		;(events[type] || (events[type] = [])).unshift(scope, _origin, fn)
 		return emitter
@@ -23,7 +23,7 @@
 
 	function off(type, fn, scope) {
 		var i
-		, emitter = this
+		, emitter = this === exports ? empty : this
 		, events = emitter._e && emitter._e[type]
 		if (events) {
 			if (fn) for (i = events.length; i--; i--) {
@@ -39,7 +39,7 @@
 	}
 
 	function one(type, fn, scope) {
-		var emitter = this
+		var emitter = this === exports ? empty : this
 		function remove() {
 			emitter.off(type, fn, scope).off(type, remove, scope)
 		}
@@ -48,7 +48,7 @@
 
 	function emit(type) {
 		var args, i
-		, emitter = this
+		, emitter = this === exports ? empty : this
 		, _e = emitter._e
 		, arr = _e ? (_e[type] || empty).concat(_e["*"] || empty) : empty
 		if (i = arr.length) {
