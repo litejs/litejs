@@ -131,15 +131,15 @@ function initRequest(req, res, next, opts) {
 function send(body) {
 	var res = this
 
-	// Line and Paragraph separator needing to be escaped in JavaScript but not in JSON,
-	// escape those so the JSON can be evaluated or directly utilized within JSONP.
-	body = JSON.stringify(body).replace(/\u2028/g, "\\u2028").replace(/\u2029/g, "\\u2029")
+	if (typeof body !== "string") body = JSON.stringify(body)
 
 	res.setHeader("Content-Type", "application/json")
 	// Content-Type: application/my-media-type+json; profile=http://example.com/my-hyper-schema#
 	//res.setHeader("Content-Length", body.length)
 
-	res.end(body)
+	// Line and Paragraph separator needing to be escaped in JavaScript but not in JSON,
+	// escape those so the JSON can be evaluated or directly utilized within JSONP.
+	res.end(body.replace(/\u2028/g, "\\u2028").replace(/\u2029/g, "\\u2029"))
 }
 
 function sendStatus(code, message) {
