@@ -32,6 +32,7 @@ function createApp(options) {
 	app.catchErrors = catchErrors
 	app.readBody = readBody
 	app.static = require("./static.js")
+	app.initProcess = require("./init-process.js")
 
 	addMethod("get", "GET")
 	addMethod("post", "POST")
