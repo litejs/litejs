@@ -93,7 +93,7 @@ function catchErrors(req, res, next, opts) {
 	try {
 		next()
 	} catch(e) {
-		var map = opts.errors && opts.errors[e.name] || opts.errors["any"] || {}
+		var map = opts.errors && (opts.errors[e.name] || opts.errors["any"]) || {}
 		res.statusCode = map.code || 500
 		res.end(map.message || e.message)
 		console.error(e.stack)
