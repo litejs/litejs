@@ -85,7 +85,7 @@ function createApp(options) {
 	}
 
 	function end(req, res) {
-		res.end()
+		res.sendStatus(404)
 	}
 }
 
