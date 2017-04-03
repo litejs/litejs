@@ -2,6 +2,7 @@
 var statusCodes = require("http").STATUS_CODES
 , url = require("url")
 , qs = require("querystring")
+, zlib = require("zlib")
 
 
 module.exports = createApp
@@ -93,10 +94,7 @@ function catchErrors(req, res, next, opts) {
 	try {
 		next()
 	} catch(e) {
-		var map = opts.errors && (opts.errors[e.name] || opts.errors["any"]) || {}
-		res.statusCode = map.code || 500
-		res.end(map.message || e.message)
-		console.error(e.stack)
+		res.sendError(e, opts)
 	}
 }
 
@@ -121,6 +119,7 @@ function initRequest(req, res, next, opts) {
 	req.res = res
 
 	res.sendStatus = sendStatus
+	res.sendError = sendError
 	res.send = send
 	res.cookie = setCookie
 	res.link = setLink
@@ -158,8 +157,16 @@ function sendStatus(code, message) {
 	res.end()
 }
 
+function sendError(e, opts) {
+	var res = this
+	, map = opts.errors && (opts.errors[e.name] || opts.errors["any"]) || {}
+	res.statusCode = map.code || e.code || 500
+	res.end(map.message || e.message)
+	console.error(e.stack)
+}
 
-function readBody(req, res, next) {
+
+function readBody(req, res, next, opts) {
 	var body = ""
 	//TODO: implement query["$method"]
 	, method = req.method
@@ -167,20 +174,21 @@ function readBody(req, res, next) {
 
 	req.body = {}
 
-
 	if (method == "POST" || method == "PUT" || method == "PATCH") {
-		req.on("data", function handleData(data) {
+		;(head["content-encoding"] ? req.pipe(zlib.createUnzip()) : req)
+		.on("data", function handleData(data) {
 			body += data
 			// FLOOD ATTACK OR FAULTY CLIENT, NUKE REQUEST
 			if (body.length > 1e6) {
-				req.removeListener("end", handleEnd)
-				req.removeListener("data", handleData)
 				req.abort()
 				res.sendStatus(413)
 			}
 		})
-
-		req.on("end", handleEnd)
+		.on("end", handleEnd)
+		.on("error", function(e) {
+			e.code = 400
+			res.sendError(e, opts)
+		})
 
 		function handleEnd() {
 			var type = (head["content-type"] || "").split(";")[0]
@@ -188,8 +196,8 @@ function readBody(req, res, next) {
 				req.body = (type == "application/json") ? JSON.parse(body||"{}") : qs.parse(body)
 				next()
 			} catch (e) {
-				console.error("Invalid input", e)
-				res.sendStatus(400, e.message || "Invalid input")
+				e.code = 400
+				res.sendError(e, opts)
 			}
 		}
 	} else {
