@@ -94,7 +94,7 @@ function catchErrors(req, res, next, opts) {
 	try {
 		next()
 	} catch(e) {
-		res.sendError(e, opts)
+		sendError(res, opts, e)
 	}
 }
 
@@ -119,7 +119,6 @@ function initRequest(req, res, next, opts) {
 	req.res = res
 
 	res.sendStatus = sendStatus
-	res.sendError = sendError
 	res.send = send
 	res.cookie = setCookie
 	res.link = setLink
@@ -157,10 +156,9 @@ function sendStatus(code, message) {
 	res.end()
 }
 
-function sendError(e, opts) {
-	var res = this
-	, map = opts.errors && (opts.errors[e.name] || opts.errors["any"]) || {}
-	res.statusCode = map.code || e.code || 500
+function sendError(res, opts, e, code) {
+	var map = opts.errors && (opts.errors[e.name] || opts.errors["any"]) || {}
+	res.statusCode = code || map.code || e.code || 500
 	res.end(map.message || e.message)
 	console.error(e.stack)
 }
@@ -186,8 +184,7 @@ function readBody(req, res, next, opts) {
 		})
 		.on("end", handleEnd)
 		.on("error", function(e) {
-			e.code = 400
-			res.sendError(e, opts)
+			sendError(res, opts, e, 400)
 		})
 	} else {
 		next()
@@ -199,8 +196,7 @@ function readBody(req, res, next, opts) {
 			req.body = (type == "application/json") ? JSON.parse(body||"{}") : qs.parse(body)
 			next()
 		} catch (e) {
-			e.code = 400
-			res.sendError(e, opts)
+			sendError(res, opts, e, 400)
 		}
 	}
 }
