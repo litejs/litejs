@@ -220,7 +220,7 @@ function getCookie(name, opts) {
 				}
 			}
 		})
-		throw new Error("Cookie fixation detected: " + req.headers.cookie)
+		throw "Error: Cookie fixation detected: " + req.headers.cookie
 	}
 
 	return decodeURIComponent((junks[1] || "").split(";")[0])
