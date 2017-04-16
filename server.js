@@ -189,19 +189,19 @@ function readBody(req, res, next, opts) {
 			e.code = 400
 			res.sendError(e, opts)
 		})
-
-		function handleEnd() {
-			var type = (head["content-type"] || "").split(";")[0]
-			try {
-				req.body = (type == "application/json") ? JSON.parse(body||"{}") : qs.parse(body)
-				next()
-			} catch (e) {
-				e.code = 400
-				res.sendError(e, opts)
-			}
-		}
 	} else {
 		next()
+	}
+
+	function handleEnd() {
+		try {
+			var type = (head["content-type"] || "").split(";")[0]
+			req.body = (type == "application/json") ? JSON.parse(body||"{}") : qs.parse(body)
+			next()
+		} catch (e) {
+			e.code = 400
+			res.sendError(e, opts)
+		}
 	}
 }
 
