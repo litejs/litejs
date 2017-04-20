@@ -159,8 +159,8 @@ function sendStatus(code, message) {
 function sendError(res, opts, e, code) {
 	var map = opts.errors && (opts.errors[e.name] || opts.errors["any"]) || {}
 	res.statusCode = code || map.code || e.code || 500
-	res.end(map.message || e.message)
-	console.error(e.stack)
+	res.end(map.message || e.message || e)
+	;(opts.errorLog || console.error)(e.stack || "Error: " + e)
 }
 
 
