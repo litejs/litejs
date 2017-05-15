@@ -159,7 +159,11 @@ function sendStatus(code, message) {
 function sendError(res, opts, e, code) {
 	var map = opts.errors && (opts.errors[e.name] || opts.errors["any"]) || {}
 	res.statusCode = code || map.code || e.code || 500
-	res.end(map.message || e.message || e)
+	res.send({
+		code: res.statusCode,
+		name: e.name,
+		message: map.message || e.message || e
+	})
 	;(opts.errorLog || console.error)(e.stack || "Error: " + e)
 }
 
@@ -196,7 +200,7 @@ function readBody(req, res, next, opts) {
 			req.body = (type == "application/json") ? JSON.parse(body||"{}") : qs.parse(body)
 			next()
 		} catch (e) {
-			sendError(res, opts, e, 400)
+			sendError(res, opts, e)
 		}
 	}
 }
