@@ -168,6 +168,31 @@ function createStatic(root, options) {
 
 
 /*
+
+300 Multiple Choices
+--------------------
+// https://www.w3.org/Style/Examples/007/figures.h
+
+The document name you requested (/Style/Examples/007/figures.) could not be found on this server. However, we found documents with names similar to the one you requested.
+Available documents:
+ - /Style/Examples/007/figures.it.html.redirect (common basename)
+
+Please consider informing the owner of the __referring page__ about the broken link.
+
+ - It is possible to communicate the list using a set of Link header fields [RFC5988],
+   each with a relationship of "alternate".
+ - https://tools.ietf.org/html/rfc2295 Transparent Content Negotiation in HTTP
+   https://tools.ietf.org/html/draft-ietf-http-alternates-01
+   Alternates: {"http://x.org/paper.1" 0.9 {type text/html} {language en}}, {"http://x.org/paper.2" 0.7 {type text/html} {language fr}}
+
+
+406 Not Acceptable
+------------------
+
+It is not what anyone would expect, but if you're sure:
+you can for example use a custom header like Accept-confirm: confirm-delete, and return 406 Not Acceptable if the Accept-confirm header is not what you expect.
+
+
 This is done through the following code:
 
 <a href="javascript:void(0);"

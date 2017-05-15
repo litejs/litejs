@@ -3,14 +3,32 @@ var statusCodes = require("http").STATUS_CODES
 , url = require("url")
 , qs = require("querystring")
 , zlib = require("zlib")
+, json = require("../lib/json.js")
+, defaultOptions = {
+	errors: {
+		// new Error([message[, fileName[, lineNumber]]])
+		//   - EvalError - The EvalError object indicates an error regarding the global eval() function.
+		//     This exception is not thrown by JavaScript anymore,
+		//     however the EvalError object remains for compatibility.
+		//   - RangeError - a value is not in the set or range of allowed values.
+		//   - ReferenceError - a non-existent variable is referenced
+		//   - SyntaxError - trying to interpret syntactically invalid code
+		//   - TypeError - a value is not of the expected type
+		//   - URIError - a global URI handling function was used in a wrong way
+		"URIError": { code: 400 }
+	}
+}
 
 
 module.exports = createApp
 
-function createApp(options) {
+function createApp(_options) {
 	var uses = []
+	, options = {}
 
-	options = options || {}
+	json.mergePatch(options, defaultOptions)
+	json.mergePatch(options, _options)
+
 
 	app.use = function appUse(method, path, fn) {
 		var argi = arguments.length
@@ -130,6 +148,10 @@ function initRequest(req, res, next, opts) {
 
 function send(body) {
 	var res = this
+
+	// Safari 5 and IE9 and below drop the original URI's fragment if a HTTP/3xx redirect occurs.
+	// If the Location header on the response specifies a fragment, it is used.
+	// IE10+, Chrome 11+, Firefox 4+, and Opera will all "reattach" the original URI's fragment after following a 3xx redirection.
 
 	if (typeof body !== "string") body = JSON.stringify(body)
 
