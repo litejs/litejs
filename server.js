@@ -3,7 +3,9 @@ var statusCodes = require("http").STATUS_CODES
 , url = require("url")
 , qs = require("querystring")
 , zlib = require("zlib")
+, util = require("../lib/util.js")
 , json = require("../lib/json.js")
+, empty = {}
 , defaultOptions = {
 	errors: {
 		// new Error([message[, fileName[, lineNumber]]])
@@ -19,6 +21,11 @@ var statusCodes = require("http").STATUS_CODES
 	}
 }
 
+Object.keys(statusCodes).forEach(function(code) {
+	if (code >= 400) {
+		this[statusCodes[code]] = { code: code }
+	}
+}, defaultOptions.errors)
 
 module.exports = createApp
 
@@ -28,7 +35,6 @@ function createApp(_options) {
 
 	json.mergePatch(options, defaultOptions)
 	json.mergePatch(options, _options)
-
 
 	app.use = function appUse(method, path, fn) {
 		var argi = arguments.length
@@ -178,15 +184,23 @@ function sendStatus(code, message) {
 	res.end()
 }
 
-function sendError(res, opts, e, code) {
-	var map = opts.errors && (opts.errors[e.name] || opts.errors["any"]) || {}
-	res.statusCode = code || map.code || e.code || 500
-	res.send({
-		code: res.statusCode,
-		name: e.name,
-		message: map.message || e.message || e
-	})
-	;(opts.errorLog || console.error)(e.stack || "Error: " + e)
+function sendError(res, opts, e) {
+	var message = typeof e === "string" ? e : e.message
+	, map = opts.errors && (opts.errors[message] || opts.errors[e.name]) || empty
+	, error = {
+		id: util.rand(16),
+		time: res.req.date,
+		code: map.code || e.code || 500,
+		message: map.message || message
+	}
+	res.statusCode = error.code
+	res.statusMessage = statusCodes[error.code] || message
+
+	res.send(error)
+
+	;(opts.errorLog || console.error)(
+		(e.stack || (e.name || "Error") + ": " + error.message).replace(":", ":" + error.id)
+	)
 }
 
 
@@ -210,7 +224,7 @@ function readBody(req, res, next, opts) {
 		})
 		.on("end", handleEnd)
 		.on("error", function(e) {
-			sendError(res, opts, e, 400)
+			sendError(res, opts, e)
 		})
 	} else {
 		next()
