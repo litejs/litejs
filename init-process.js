@@ -11,8 +11,11 @@ function initProcess(opts) {
 	var app = this
 	if (!opts) opts = {}
 
-	process.on("uncaughtException", function(err) {
-		console.error("\nCaught exception: " + err.stack)
+	process.on("uncaughtException", function(e) {
+		;(opts.errorLog || console.error)(
+			"\nUNCAUGHT EXCEPTION!\n" +
+			(e.stack || (e.name || "Error") + ": " + (e.message || e))
+		)
 		;(opts.exit || exit).call(app, 1)
 	})
 
