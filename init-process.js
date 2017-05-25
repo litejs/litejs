@@ -8,7 +8,8 @@ module.exports = initProcess
 
 
 function initProcess(opts) {
-	var app = this
+	var exiting
+	, app = this
 	if (!opts) opts = {}
 
 	process.on("uncaughtException", function(e) {
@@ -20,6 +21,8 @@ function initProcess(opts) {
 	})
 
 	process.on("SIGINT", function() {
+		if (exiting) exit(0)
+		exiting = true
 		console.log("\nGracefully shutting down from SIGINT (Ctrl-C)")
 		;(opts.exit || exit).call(app, 0)
 	})
