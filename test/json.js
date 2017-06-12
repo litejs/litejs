@@ -184,13 +184,13 @@ test("it clones objects", function(assert) {
 	delete Object.prototype.dummy
 }).
 
-it("should be V8 friendly").
-isOptimized(util.pointer, [{}, "/a/b/c"]).
-isOptimized(util.mergePatch, [{a:1}, {b:2}]).
-isOptimized(util.clone, [{a:1}]).
-isOptimized(util.merge, [{a:1}, {b:2}]).
-isOptimized(util.isObject, [{a:1}]).
-isOptimized(util.isObject, ["a"]).
+//it("should be V8 friendly").
+//isOptimized(util.pointer, [{}, "/a/b/c"]).
+//isOptimized(util.mergePatch, [{a:1}, {b:2}]).
+//isOptimized(util.clone, [{a:1}]).
+//isOptimized(util.merge, [{a:1}, {b:2}]).
+//isOptimized(util.isObject, [{a:1}]).
+//isOptimized(util.isObject, ["a"]).
 done()
 
 
