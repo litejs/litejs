@@ -182,7 +182,7 @@ test("it clones objects", function(assert) {
 	assert.deepEqual(re5, re5Clone)
 
 	delete Object.prototype.dummy
-}).
+})
 
 //it("should be V8 friendly").
 //isOptimized(util.pointer, [{}, "/a/b/c"]).
@@ -191,7 +191,6 @@ test("it clones objects", function(assert) {
 //isOptimized(util.merge, [{a:1}, {b:2}]).
 //isOptimized(util.isObject, [{a:1}]).
 //isOptimized(util.isObject, ["a"]).
-done()
 
 
 function addTest(method, a, b, c, d, e) {
