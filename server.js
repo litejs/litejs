@@ -3,6 +3,7 @@ var statusCodes = require("http").STATUS_CODES
 , url = require("url")
 , qs = require("querystring")
 , zlib = require("zlib")
+, mime = require("./mime.js").mimeTypes
 , util = require("../lib/util.js")
 , json = require("../lib/json.js")
 , empty = {}
@@ -152,16 +153,25 @@ function initRequest(req, res, next, opts) {
 }
 
 
-function send(body) {
+function send(body, format) {
 	var res = this
 
 	// Safari 5 and IE9 and below drop the original URI's fragment if a HTTP/3xx redirect occurs.
 	// If the Location header on the response specifies a fragment, it is used.
 	// IE10+, Chrome 11+, Firefox 4+, and Opera will all "reattach" the original URI's fragment after following a 3xx redirection.
 
-	if (typeof body !== "string") body = JSON.stringify(body)
+	if (typeof body !== "string") {
+		if (!format) {
+			format = negotiate(res.req.headers.accept, ["json", "csv"])
+		}
+		if (format == "csv") {
+			body = require("../lib/csv.js").encode(body, res.req.query.$select)
+		} else {
+			body = JSON.stringify(body)
+		}
+	}
 
-	res.setHeader("Content-Type", "application/json")
+	res.setHeader("Content-Type", mime[format || "json"])
 	// Content-Type: application/my-media-type+json; profile=http://example.com/my-hyper-schema#
 	//res.setHeader("Content-Length", body.length)
 
@@ -301,5 +311,16 @@ function setLink(url, rel) {
 	existing.push('<' + encodeURI(url) + '>; rel="' + rel + '"')
 
 	res.setHeader("Link", existing)
+}
+
+function negotiate(header, accepted) {
+	// Multiple types, weighted with the quality value syntax:
+	// Accept: text/html, application/xhtml+xml, application/xml;q=0.9, */*;q=0.8
+	// Accept: text/*, text/plain, text/plain;format=flowed, */*, application/vnd.example-com.foo+json; version=1.0
+	// Accept: application/vnd.steveklabnik-v2+json
+	// Accept: vnd.example-com.foo+json; version=1.0
+	// The default value for q is 1, with the same quality, more specific values have priority over less specific ones
+	var match = header && header.split(/[\/,\s;]+/)[1]
+	return match && accepted.indexOf(match) > -1 ? match : accepted[0]
 }
 

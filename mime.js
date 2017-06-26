@@ -16,6 +16,7 @@ exports.mimeTypes = {
   "cpt": "application/mac-compactpro",
   "csh": "application/x-csh",
   "css": "text/css",
+  "csv": "text/csv",
   "cur": "image/vnd.microsoft.icon",
   "deb": "application/x-debian-package",
   "dl": "video/dl",
