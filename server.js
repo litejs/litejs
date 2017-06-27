@@ -6,6 +6,7 @@ var statusCodes = require("http").STATUS_CODES
 , mime = require("./mime.js").mimeTypes
 , util = require("../lib/util.js")
 , json = require("../lib/json.js")
+, events = require("../events").Event
 , empty = {}
 , defaultOptions = {
 	errors: {
@@ -32,10 +33,11 @@ module.exports = createApp
 
 function createApp(_options) {
 	var uses = []
-	, options = {}
+	, options = app.options = {}
 
 	json.mergePatch(options, defaultOptions)
 	json.mergePatch(options, _options)
+	Object.assign(app, events.Emitter)
 
 	app.use = function appUse(method, path, fn) {
 		var argi = arguments.length

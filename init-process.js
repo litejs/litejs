@@ -1,5 +1,6 @@
 
-var server
+var httpServer, httpsServer
+, util = require("../lib/util")
 
 
 
@@ -43,23 +44,63 @@ function initProcess(opts) {
 }
 
 function start(reload) {
-	var port = process.env.PORT || 8080
+	var app = this
+	, options = app.options
+	, httpPort = process.env.PORT || 8080
+	, httpsPort = process.env.HTTPS_PORT || 8443
 
-	if (server) {
-		server.close()
+	if (httpServer)  httpServer.close()
+	if (httpsServer) httpsServer.close()
+	httpServer = httpsServer = null
+
+	console.log("START", app, options)
+
+	if (options.https) {
+		httpsServer = require("https").createServer(options.https, this)
+		.listen(httpsPort, listening)
+		.on("connection", setNoDelay)
 	}
 
-	server = require("http").createServer(this)
-	.listen(port, function() {
-		var addr = server.address()
-		console.log("Listening at " + addr.address + ":" + addr.port)
-	})
-	.on("connection", function (socket) {
-		socket.setNoDelay(true)
-	})
+	httpServer = require("http")
+	.createServer(options.https && options.forceHttpsthis ? forceHttps : this)
+	.listen(httpPort, listening)
+	.on("connection", setNoDelay)
 }
 
 function exit(code) {
-	process.exit(code)
+	var app = this
+	, softKill = util.wait(kill.ttl(5000, kill), 1)
+
+	app.emit("beforeExit", softKill)
+
+	try {
+		if (httpServer)  httpServer.close(softKill.wait())
+		if (httpsServer) httpsServer.close(softKill.wait())
+	} catch(e) {}
+
+	softKill()
+
+	function kill() {
+		process.exit(code)
+	}
 }
+
+function listening() {
+	var addr = this.address()
+	console.log("Listening at " + addr.address + ":" + addr.port)
+}
+
+function setNoDelay(socket) {
+	socket.setNoDelay(true)
+}
+
+function forceHttps(req, res) {
+	var port = process.env.HTTPS_PORT || 8443
+	, host = (req.headers.host || "localhost").split(":")[0]
+	, url = "https://" + (port == 443 ? host : host + ":" + port) + req.url
+
+	res.writeHead(301, {"Content-Type": "text/html", "Location": url})
+	res.end('Redirecting to <a href="' + url + '">' + url + '</a>')
+}
+
 
