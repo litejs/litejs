@@ -3,68 +3,64 @@ var httpServer, httpsServer
 , util = require("../lib/util")
 
 
-
 module.exports = initProcess
 
 
-
-function initProcess(opts) {
+function initProcess() {
 	var exiting
 	, app = this
-	if (!opts) opts = {}
+	, options = app.options
 
 	process.on("uncaughtException", function(e) {
-		;(opts.errorLog || console.error)(
+		;(options.errorLog || console.error)(
 			"\nUNCAUGHT EXCEPTION!\n" +
 			(e.stack || (e.name || "Error") + ": " + (e.message || e))
 		)
-		;(opts.exit || exit).call(app, 1)
+		;(options.exit || exit).call(app, 1)
 	})
 
 	process.on("SIGINT", function() {
 		if (exiting) exit(0)
 		exiting = true
 		console.log("\nGracefully shutting down from SIGINT (Ctrl-C)")
-		;(opts.exit || exit).call(app, 0)
+		;(options.exit || exit).call(app, 0)
 	})
 
 	process.on("SIGTERM", function() {
 		console.log("\nGracefully shutting down from SIGTERM (kill)")
-		;(opts.exit || exit).call(app, 0)
+		;(options.exit || exit).call(app, 0)
 	})
 
 	process.on("SIGHUP", function() {
 		console.log("\nReloading configuration from SIGHUP")
-		;(opts.start || start).call(app, true)
+		;(options.listen || listen).call(app, true)
 	})
 
-	app.start = opts.start || start
+	app.listen = options.listen || listen
 
 	return app
 }
 
-function start(reload) {
+function listen(port) {
 	var app = this
 	, options = app.options
-	, httpPort = process.env.PORT || 8080
+	, httpPort = process.env.PORT || port || 8080
 	, httpsPort = process.env.HTTPS_PORT || 8443
 
 	if (httpServer)  httpServer.close()
 	if (httpsServer) httpsServer.close()
 	httpServer = httpsServer = null
 
-	console.log("START", app, options)
+	httpServer = require("http")
+	.createServer(options.https && options.forceHttpsthis ? forceHttps : this)
+	.listen(httpPort, listening)
+	.on("connection", setNoDelay)
 
 	if (options.https) {
 		httpsServer = require("https").createServer(options.https, this)
 		.listen(httpsPort, listening)
 		.on("connection", setNoDelay)
 	}
-
-	httpServer = require("http")
-	.createServer(options.https && options.forceHttpsthis ? forceHttps : this)
-	.listen(httpPort, listening)
-	.on("connection", setNoDelay)
 }
 
 function exit(code) {

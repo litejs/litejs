@@ -23,6 +23,9 @@ var statusCodes = require("http").STATUS_CODES
 	}
 }
 
+require("../format")
+require("../timing")
+
 Object.keys(statusCodes).forEach(function(code) {
 	if (code >= 400) {
 		this[statusCodes[code]] = { code: code }
