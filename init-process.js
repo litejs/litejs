@@ -20,7 +20,10 @@ function initProcess() {
 	})
 
 	process.on("SIGINT", function() {
-		if (exiting) exit(0)
+		if (exiting) {
+			console.log("\nKilling from SIGINT (got Ctrl-C twice)")
+			return process.exit()
+		}
 		exiting = true
 		console.log("\nGracefully shutting down from SIGINT (Ctrl-C)")
 		;(options.exit || exit).call(app, 0)
@@ -77,7 +80,8 @@ function exit(code) {
 	softKill()
 
 	function kill() {
-		process.exit(code)
+		console.log("\nKill (timeout)")
+		process.exit()
 	}
 }
 
