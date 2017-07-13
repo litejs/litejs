@@ -1,6 +1,5 @@
 
-var httpServer, httpsServer
-, util = require("../lib/util")
+var util = require("../lib/util")
 
 
 module.exports = initProcess
@@ -50,17 +49,17 @@ function listen(port) {
 	, httpPort = process.env.PORT || port || 8080
 	, httpsPort = process.env.HTTPS_PORT || 8443
 
-	if (httpServer)  httpServer.close()
-	if (httpsServer) httpsServer.close()
-	httpServer = httpsServer = null
+	if (app.httpServer)  app.httpServer.close()
+	if (app.httpsServer) app.httpsServer.close()
+	app.httpServer = app.httpsServer = null
 
-	httpServer = require("http")
+	app.httpServer = require("http")
 	.createServer(options.https && options.forceHttpsthis ? forceHttps : this)
 	.listen(httpPort, listening)
 	.on("connection", setNoDelay)
 
 	if (options.https) {
-		httpsServer = require("https").createServer(options.https, this)
+		app.httpsServer = require("https").createServer(options.https, this)
 		.listen(httpsPort, listening)
 		.on("connection", setNoDelay)
 	}
@@ -73,8 +72,8 @@ function exit(code) {
 	app.emit("beforeExit", softKill)
 
 	try {
-		if (httpServer)  httpServer.close(softKill.wait())
-		if (httpsServer) httpsServer.close(softKill.wait())
+		if (app.httpServer)  app.httpServer.close(softKill.wait())
+		if (app.httpsServer) app.httpsServer.close(softKill.wait())
 	} catch(e) {}
 
 	softKill()
