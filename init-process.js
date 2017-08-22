@@ -48,18 +48,23 @@ function listen(port) {
 	, options = app.options
 	, httpPort = process.env.PORT || port || 8080
 	, httpsPort = process.env.HTTPS_PORT || 8443
+	, secure = options.https || options.http2
 
 	if (app.httpServer)  app.httpServer.close()
 	if (app.httpsServer) app.httpsServer.close()
 	app.httpServer = app.httpsServer = null
 
 	app.httpServer = require("http")
-	.createServer(options.https && options.forceHttpsthis ? forceHttps : this)
+	.createServer(secure && options.forceHttps ? forceHttps : this)
 	.listen(httpPort, listening)
 	.on("connection", setNoDelay)
 
-	if (options.https) {
-		app.httpsServer = require("https").createServer(options.https, this)
+	if (secure) {
+		app.httpsServer = (
+			options.http2 ?
+			require("http2").createSecureServer(secure, this) :
+			require("https").createServer(secure, this)
+		)
 		.listen(httpsPort, listening)
 		.on("connection", setNoDelay)
 	}
