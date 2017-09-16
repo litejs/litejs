@@ -7,52 +7,8 @@
 
 	exports.clone = clone
 	exports.merge = merge
-	exports.pointer = pointer
 	exports.mergePatch = mergePatch
 	exports.isObject = isObject
-
-	/**
-	 * JSON Pointer
-	 * @see https://tools.ietf.org/html/rfc6901
-	 */
-
-	function pointerSplit(path) {
-		var arr = pointerCache[path] = path.split("/")
-		, len = arr.length
-		for (; --len; ) {
-			arr[len] = arr[len].replace(/~1/g, "/").replace(/~0/g, "~")
-		}
-		return arr
-	}
-
-	function pointer(_obj, _path, value) {
-		var obj = _obj
-		if (_path) {
-			for (
-				var key
-				, path = pointerCache[_path] || pointerSplit(_path)
-				, _set = arguments.length > 2
-				, i = 1
-				, len = path.length
-				; obj && i < len
-				; ) {
-				key = path[i++]
-				if (_set) {
-					if (i == len) {
-						// Reuse _set to keep existing value
-						_set = obj[key]
-						obj[key] = value
-						return _set
-					}
-					if (!obj[key] || typeof obj[key] != "object") {
-						obj[key] = {}
-					}
-				}
-				obj = obj[key]
-			}
-		}
-		return obj
-	}
 
 	/**
 	 * JSON Merge Patch

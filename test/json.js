@@ -16,6 +16,9 @@ var undef, a, b, c
 	, "m~n": 8
 	}
 , clone1 = util.clone(obj)
+, obj2 = {
+	"m.n": 9
+}
 , tests =
 	[ {"a":"b"}         , {"a":"c"}                 , {"a":"c"}         , ["/a"], {"/a":"b"}
 	, {"a":"b"}         , {"b":"c"}                 , {"a":"b","b":"c"} , ["/b"], {"/b":undef}
@@ -56,49 +59,6 @@ var undef, a, b, c
 
 
 var test = require("testman").
-describe ("JSON.pointer").
-it("should resolve pointers").
-	equal(util.pointer(obj, ""       ), obj).
-	equal(util.pointer(obj, "/foo"   ), obj.foo).
-	equal(util.pointer(obj, "/foo/0" ), "bar").
-	equal(util.pointer(obj, "/foo/1" ), "baz").
-	equal(util.pointer(obj, "/"      ), 0).
-	equal(util.pointer(obj, "/a~1b"  ), 1).
-	equal(util.pointer(obj, "/c%d"   ), 2).
-	equal(util.pointer(obj, "/e^f"   ), 3).
-	equal(util.pointer(obj, "/g|h"   ), 4).
-	equal(util.pointer(obj, "/i\\j"  ), 5).
-	equal(util.pointer(obj, "/k\"l"  ), 6).
-	equal(util.pointer(obj, "/ "     ), 7).
-	equal(util.pointer(obj, "/m~0n"  ), 8).
-
-
-it("should set values by pointers and return old values").
-	equal(util.pointer(obj, "/"      , 1), 0).
-	equal(util.pointer(obj, "/"         ), 1).
-	equal(util.pointer(obj, "/a~1b"  , 2), 1).
-	equal(util.pointer(obj, "/a~1b"     ), 2).
-	equal(util.pointer(obj, "/c%d"   , 3), 2).
-	equal(util.pointer(obj, "/c%d"      ), 3).
-	equal(util.pointer(obj, "/e^f"   , 4), 3).
-	equal(util.pointer(obj, "/e^f"      ), 4).
-	equal(util.pointer(obj, "/g|h"   , 5), 4).
-	equal(util.pointer(obj, "/g|h"      ), 5).
-	equal(util.pointer(obj, "/i\\j"  , 6), 5).
-	equal(util.pointer(obj, "/i\\j"     ), 6).
-	equal(util.pointer(obj, "/k\"l"  , 7), 6).
-	equal(util.pointer(obj, "/k\"l"     ), 7).
-	equal(util.pointer(obj, "/ "     , 8), 7).
-	equal(util.pointer(obj, "/ "        ), 8).
-	equal(util.pointer(obj, "/m~0n"  , 9), 8).
-	equal(util.pointer(obj, "/m~0n"     ), 9).
-	equal(util.pointer(obj, "/foo/0" , 1), "bar").
-	equal(util.pointer(obj, "/foo/0"    ), 1).
-	equal(util.pointer(obj, "/foo/1"    ), "baz").
-	deepEqual(util.pointer(obj, "/foo", 2), [1, "baz"]).
-	equal(util.pointer(obj, "/foo"      ), 2).
-	equal(util.pointer(obj, "/a/b/c" , 3), undef).
-	equal(util.pointer(obj, "/a/b/c"    ), 3).
 
 describe ("JSON.mergePatch").
 it("should apply merge patches")
