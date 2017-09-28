@@ -6,7 +6,7 @@ var statusCodes = require("http").STATUS_CODES
 , mime = require("./mime.js").mimeTypes
 , util = require("../lib/util.js")
 , json = require("../lib/json.js")
-, events = require("../events").Event
+, events = require("../lib/events")
 , empty = {}
 , defaultOptions = {
 	errors: {
@@ -23,8 +23,8 @@ var statusCodes = require("http").STATUS_CODES
 	}
 }
 
-require("../format")
-require("../timing")
+require("../lib/format")
+require("../lib/timing")
 
 Object.keys(statusCodes).forEach(function(code) {
 	if (code >= 400) {
@@ -40,7 +40,7 @@ function createApp(_options) {
 
 	json.mergePatch(options, defaultOptions)
 	json.mergePatch(options, _options)
-	Object.assign(app, events.Emitter)
+	events.asEmitter(app)
 
 	app.use = function appUse(method, path, fn) {
 		var argi = arguments.length

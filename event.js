@@ -1,38 +1,41 @@
 
-
-
 !function(exports) {
-	var Event = exports.Event || (exports.Event = {})
-	, empty = []
+	var empty = []
 
-	Event.Emitter = {
-		on: on,
-		off: off,
-		one: one,
-		emit: emit,
-		listen: listen,
-		unlisten: unlisten
+	exports.Emitter = EventEmitter
+	exports.asEmitter = asEmitter
+
+	function EventEmitter() {}
+
+	function asEmitter(obj) {
+		obj.on = on
+		obj.off = off
+		obj.one = one
+		obj.emit = emit
+		obj.listen = listen
+		obj.unlisten = unlisten
 	}
+	asEmitter(EventEmitter.prototype)
 
 	function on(type, fn, scope, _origin) {
 		var emitter = this === exports ? empty : this
-		, events = emitter._e || (emitter._e = {})
+		, events = emitter._e || (emitter._e = Object.create(null))
+		emit.call(emitter, "newListener", type, fn, scope, _origin)
 		;(events[type] || (events[type] = [])).unshift(scope, _origin, fn)
 		return emitter
 	}
 
 	function off(type, fn, scope) {
-		var i
+		var i, args
 		, emitter = this === exports ? empty : this
 		, events = emitter._e && emitter._e[type]
 		if (events) {
-			if (fn) for (i = events.length; i--; i--) {
-				if ((events[i--] === fn || events[i] === fn) && events[i - 1] == scope) {
-					events.splice(i - 1, 3)
-					break
+			for (i = events.length - 2; i > 0; i -= 3) {
+				if ((events[i + 1] === fn || events[i] === fn) && events[i - 1] == scope) {
+					args = events.splice(i - 1, 3)
+					emit.call(emitter, "removeListener", type, args[2], args[0], args[1])
+					if (fn) break
 				}
-			} else {
-				events.length = 0
 			}
 		}
 		return emitter
@@ -79,8 +82,7 @@
 		}
 		return this
 	}
+
 // `this` refers to the `window` in browser and to the `exports` in Node.js.
-}(this)
-
-
+}(this.Event || this)
 
