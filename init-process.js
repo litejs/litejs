@@ -49,6 +49,8 @@ function listen(port) {
 	, httpPort = process.env.PORT || port || 8080
 	, httpsPort = process.env.HTTPS_PORT || 8443
 	, secure = options.https || options.http2
+	, msg = "Listening"
+	, listenCount = 0
 
 	if (app.httpServer)  app.httpServer.close()
 	if (app.httpsServer) app.httpsServer.close()
@@ -56,8 +58,9 @@ function listen(port) {
 
 	app.httpServer = require("http")
 	.createServer(secure && options.forceHttps ? forceHttps : this)
-	.listen(httpPort, listening)
+	.listen(httpPort, addMsg("http"))
 	.on("connection", setNoDelay)
+	.on("close", logClose("http"))
 
 	if (secure) {
 		app.httpsServer = (
@@ -65,14 +68,34 @@ function listen(port) {
 			require("http2").createSecureServer(secure, this) :
 			require("https").createServer(secure, this)
 		)
-		.listen(httpsPort, listening)
+		.listen(httpsPort, options.http2 ? addMsg("http2") : addMsg("https"))
 		.on("connection", setNoDelay)
+		.on("close", logClose(options.http2 ? "http2" : "https"))
+	}
+
+	function addMsg(proto) {
+		listenCount++
+		return function() {
+			var addr = this.address()
+			msg += " " + proto + " at " + addr.address + ":" + addr.port
+			if (!--listenCount) {
+				console.log(msg)
+			}
+		}
+	}
+	function logClose(proto) {
+		return function() {
+			console.log("Stop listening " + proto)
+		}
 	}
 }
 
 function exit(code) {
 	var app = this
-	, softKill = util.wait(kill.ttl(5000, kill), 1)
+	, softKill = util.wait(function() {
+		console.log("Everything closed cleanly")
+		process.exit(code)
+	}, 1)
 
 	app.emit("beforeExit", softKill)
 
@@ -81,17 +104,12 @@ function exit(code) {
 		if (app.httpsServer) app.httpsServer.close(softKill.wait())
 	} catch(e) {}
 
-	softKill()
-
-	function kill() {
+	setTimeout(function() {
 		console.log("\nKill (timeout)")
-		process.exit()
-	}
-}
+		process.exit(code)
+	}, 5000).unref()
 
-function listening() {
-	var addr = this.address()
-	console.log("Listening at " + addr.address + ":" + addr.port)
+	softKill()
 }
 
 function setNoDelay(socket) {
