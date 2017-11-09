@@ -9,6 +9,8 @@ var statusCodes = require("http").STATUS_CODES
 , events = require("../lib/events")
 , empty = {}
 , defaultOptions = {
+	maxURILength: 255,
+	maxBodySize: 1e6,
 	errors: {
 		// new Error([message[, fileName[, lineNumber]]])
 		//   - EvalError - The EvalError object indicates an error regarding the global eval() function.
@@ -28,7 +30,7 @@ require("../lib/timing")
 
 Object.keys(statusCodes).forEach(function(code) {
 	if (code >= 400) {
-		this[statusCodes[code]] = { code: code }
+		this[statusCodes[code]] = { code: +code }
 	}
 }, defaultOptions.errors)
 
@@ -130,29 +132,29 @@ function catchErrors(req, res, next, opts) {
 
 
 function initRequest(req, res, next, opts) {
+	var forwarded = req.headers[opts.ipHeader || "x-forwarded-for"]
+	req.ip = forwarded ? forwarded.split(/[\s,]+/)[0] : req.connection.remoteAddress
+	req.res = res
+	res.req = req
+	req.date = new Date()
+	res.send = send
 
 	// IE8-10 accept 2083 chars in URL
 	// Sitemaps protocol has a limit of 2048 characters in a URL
 	// Google SERP tool wouldn't cope with URLs longer than 1855 chars
-	if (req.url.length > 255) {
-		sendStatus.call(req, 414) // 414 URI Too Long
-		return
+	if (req.url.length > opts.maxURILength) {
+		//return sendStatus.call(res, 414) // 414 URI Too Long
+		throw "URI Too Long"
 	}
 
-	var forwarded = req.headers[opts.ipHeader || "x-forwarded-for"]
-	req.ip = forwarded ? forwarded.split(/[\s,]+/)[0] : req.connection.remoteAddress
 	req.originalUrl = req.url
 	req.path = req.url.split("?")[0]
-	req.date = new Date()
 	req.query = url.parse(req.url, true).query || {}
 	req.cookie = getCookie
-	req.res = res
 
 	res.sendStatus = sendStatus
-	res.send = send
 	res.cookie = setCookie
 	res.link = setLink
-	res.req = req
 
 	next()
 }
@@ -232,7 +234,7 @@ function readBody(req, res, next, opts) {
 		.on("data", function handleData(data) {
 			body += data
 			// FLOOD ATTACK OR FAULTY CLIENT, NUKE REQUEST
-			if (body.length > 1e6) {
+			if (body.length > opts.maxBodySize) {
 				req.abort()
 				res.sendStatus(413)
 			}
