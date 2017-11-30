@@ -66,6 +66,7 @@ function createApp(_options) {
 	app.readBody = readBody
 	app.static = require("./static.js")
 	app.initProcess = require("./init-process.js")
+	app.ratelimit = require("./ratelimit.js")
 
 	addMethod("get", "GET")
 	addMethod("post", "POST")

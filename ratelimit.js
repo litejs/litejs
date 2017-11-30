@@ -8,13 +8,6 @@ var debug = require("../lib/debug.js")
 //
 // 14.37 Retry-After
 //
-// The Retry-After response-header field can be used with a 503 (Service Unavailable) response
-// to indicate how long the service is expected to be unavailable to the requesting client.
-// This field MAY also be used with any 3xx (Redirection) response
-// to indicate the minimum time the user-agent is asked wait before issuing the redirected request.
-// The value of this field can be either an HTTP-date
-// or an integer number of seconds (in decimal) after the time of the response.
-//
 // Retry-After  = "Retry-After" ":" ( HTTP-date | delta-seconds )
 //
 //        Retry-After: Fri, 31 Dec 1999 23:59:59 GMT
@@ -23,19 +16,21 @@ var debug = require("../lib/debug.js")
 
 module.exports = createRatelimit
 
-function createRatelimit(options) {
-	options = options || {}
+function createRatelimit(opts) {
+	opts = opts || {}
 
-	var counters = options.counters || {}
-	, limit = options.limit || 1000
-	, time = options.time || 60*60
-	, steps = options.steps || 60
+	var counters = {}
+	, nulls = 0
+	, limit = opts.limit || 1000
+	, time = opts.time || 60*60*1000
+	, steps = opts.steps || 60
+	, field = opts.field || "ip"
+	, penalty = opts.penalty || 5000
 	, tickTime = (time/steps)|0
 	, leak = Math.ceil(limit/steps)
-	, field = options.field || "ip"
 
-	log("created", options)
-	setInterval(tick, tickTime * 1000)
+	log("created", opts)
+	setInterval(tick, tickTime)
 
 	return ratelimit
 
@@ -49,32 +44,49 @@ function createRatelimit(options) {
 			res.setHeader("Rate-Limit", limit)
 
 			if (remaining < 0) {
-				res.statusCode = 429
-				res.setHeader("Retry-After", tickTime * Math.ceil(-remaining/leak))
 				logBlock(field, key)
-				return res.end("Too Many Requests")
+				setTimeout(block, penalty, res, remaining)
+			} else {
+				res.setHeader("Rate-Limit-Remaining", remaining)
+				setTimeout(next, Math.ceil((leak - remaining) / leak * penalty))
 			}
-			res.setHeader("Rate-Limit-Remaining", remaining)
-			setTimeout(next, 5000)
 		} else {
 			next()
 		}
 	}
 
+	function block(res, remaining) {
+		res.statusCode = 429
+		res.setHeader("Retry-After", tickTime * Math.ceil(-remaining/leak))
+		res.end("Too Many Requests")
+	}
+
 	function tick() {
-		var key
+		var key, counter, next
 		, count = 0
 		, clean = 0
-		for (key in counters) {
-			if (counters[key] > leak) {
+
+		if (nulls > 1000) {
+			next = {}
+			for (key in counters) if (counters[key] > leak) {
 				count++
-				counters[key] -= leak
-			} else {
-				clean++
-				delete counters[key]
+				next[key] = counters[key] - leak
+			} else clean++
+			nulls = 0
+			counters = next
+		} else {
+			for (key in counters) if (null !== (counter = counters[key])) {
+				if (counter > leak) {
+					count++
+					counters[key] -= leak
+				} else {
+					clean++
+					counters[key] = null
+				}
 			}
+			nulls += clean
 		}
-		logLeak("leak", leak, "clean", clean, "size", count)
+		logLeak("leak:" + leak, "clean:" + clean, "size:" + count)
 	}
 }
 
