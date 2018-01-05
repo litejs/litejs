@@ -21,21 +21,25 @@
 	exports.encode = encode
 	exports.decode = decode
 
-	function encode(obj, fields) {
-		var re = /[",\r\n]/
-		, keys = fields ? fields.split(",") : Object.keys(arr[0])
-		, arr = (Array.isArray(obj) ? obj : [ obj ]).map(function(obj) {
+	function encode(obj, opts) {
+		var re = opts.re || /[",\r\n]/
+		, arr = Array.isArray(obj) ? obj : [ obj ]
+		, keys = opts.select ? opts.select.split(",") : Object.keys(arr[0])
+
+		arr = arr.map(function(obj) {
 			return keys.map(function(key) {
 				var value = obj[key]
 				return (
-					value == null ? "" :
+					value == null ? opts.NULL :
 					re.test(value) ? '"' + value.replace(/"/g, '""') + '"' :
 					value
 				)
-			}).join(",")
+			}).join(opts.delimiter)
 		})
-		arr.unshift(keys.join(","))
-		return arr.join("\r\n")
+		if (opts.headers === "on") {
+			arr.unshift(keys.join(opts.delimiter))
+		}
+		return (opts.prefix || "") + arr.join(opts.br) + (opts.postfix || "")
 	}
 
 	function decode(str, fields) {

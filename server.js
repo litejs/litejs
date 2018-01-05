@@ -11,6 +11,32 @@ var statusCodes = require("http").STATUS_CODES
 , defaultOptions = {
 	maxURILength: 255,
 	maxBodySize: 1e6,
+	negotiateAccept: require("./accept.js")([
+		{
+			accept: "text/csv",
+			params: {
+				headers: "no",
+				delimiter: ",",
+				NULL: "",
+				br: "\r\n"
+			}
+		},
+		{
+			accept: "application/sql",
+			params: {
+				NULL: "NULL",
+				table: "table",
+				fields: ""
+			}
+		},
+		{
+			match: "json",
+			accept: "*/*",
+			params: {
+				space: ""
+			}
+		}
+	]),
 	errors: {
 		// new Error([message[, fileName[, lineNumber]]])
 		//   - EvalError - The EvalError object indicates an error regarding the global eval() function.
@@ -24,6 +50,8 @@ var statusCodes = require("http").STATUS_CODES
 		"URIError": { code: 400 }
 	}
 }
+
+mime.sql = "application/sql"
 
 require("../lib/format")
 require("../lib/timing")
@@ -139,6 +167,7 @@ function initRequest(req, res, next, opts) {
 	res.req = req
 	req.date = new Date()
 	res.send = send
+	res.opts = opts
 
 	// IE8-10 accept 2083 chars in URL
 	// Sitemaps protocol has a limit of 2048 characters in a URL
@@ -161,31 +190,46 @@ function initRequest(req, res, next, opts) {
 }
 
 
-function send(body, format) {
+function send(body) {
 	var res = this
+	, opts = res.opts.negotiateAccept((res.req.headers.accept||"").toLowerCase())
+	, format = opts.match
 
 	// Safari 5 and IE9 and below drop the original URI's fragment if a HTTP/3xx redirect occurs.
 	// If the Location header on the response specifies a fragment, it is used.
 	// IE10+, Chrome 11+, Firefox 4+, and Opera will all "reattach" the original URI's fragment after following a 3xx redirection.
 
+	if (!format) {
+		return res.sendStatus(406)
+	}
+
 	if (typeof body !== "string") {
-		if (!format) {
-			format = negotiate(res.req.headers.accept, ["json", "csv"])
-		}
 		if (format == "csv") {
-			body = require("../lib/csv.js").encode(body, res.req.query.$select)
+			opts.select = res.req.query.$select
+			body = require("../lib/csv.js").encode(body, opts)
+		} else if (format == "sql") {
+			opts.select = res.req.query.$select
+			opts.re = /\D/
+			opts.br = "),\n("
+			opts.prefix = "INSERT INTO " +
+			opts.table + (opts.fields ? " (" + opts.fields + ")" : "") + " VALUES ("
+			opts.postfix = ");"
+			body = require("../lib/csv.js").encode(body, opts)
 		} else {
-			body = JSON.stringify(body)
+			body = JSON.stringify(body, null, opts.space)
 		}
 	}
 
-	res.setHeader("Content-Type", mime[format || "json"])
+	res.setHeader("Content-Type", mime[format])
 	// Content-Type: application/my-media-type+json; profile=http://example.com/my-hyper-schema#
 	//res.setHeader("Content-Length", body.length)
 
 	// Line and Paragraph separator needing to be escaped in JavaScript but not in JSON,
 	// escape those so the JSON can be evaluated or directly utilized within JSONP.
-	res.end(body.replace(/\u2028/g, "\\u2028").replace(/\u2029/g, "\\u2029"))
+	res.end(
+		format === "json" ? body.replace(/\u2028/g, "\\u2028").replace(/\u2029/g, "\\u2029") :
+		body
+	)
 }
 
 function sendStatus(code, message) {
@@ -321,14 +365,4 @@ function setLink(url, rel) {
 	res.setHeader("Link", existing)
 }
 
-function negotiate(header, accepted) {
-	// Multiple types, weighted with the quality value syntax:
-	// Accept: text/html, application/xhtml+xml, application/xml;q=0.9, */*;q=0.8
-	// Accept: text/*, text/plain, text/plain;format=flowed, */*, application/vnd.example-com.foo+json; version=1.0
-	// Accept: application/vnd.steveklabnik-v2+json
-	// Accept: vnd.example-com.foo+json; version=1.0
-	// The default value for q is 1, with the same quality, more specific values have priority over less specific ones
-	var match = header && header.split(/[\/,\s;]+/)[1]
-	return match && accepted.indexOf(match) > -1 ? match : accepted[0]
-}
 
