@@ -12,30 +12,9 @@ var statusCodes = require("http").STATUS_CODES
 	maxURILength: 255,
 	maxBodySize: 1e6,
 	negotiateAccept: require("./accept.js")([
-		{
-			accept: "text/csv",
-			params: {
-				headers: "no",
-				delimiter: ",",
-				NULL: "",
-				br: "\r\n"
-			}
-		},
-		{
-			accept: "application/sql",
-			params: {
-				NULL: "NULL",
-				table: "table",
-				fields: ""
-			}
-		},
-		{
-			match: "json",
-			accept: "*/*",
-			params: {
-				space: ""
-			}
-		}
+		'application/json;space=""',
+		'text/csv;headers=no;delimiter=",";NULL="";br="\r\n"',
+		'application/sql;NULL=NULL;table=table;fields=""'
 	]),
 	errors: {
 		// new Error([message[, fileName[, lineNumber]]])
@@ -192,8 +171,8 @@ function initRequest(req, res, next, opts) {
 
 function send(body) {
 	var res = this
-	, opts = res.opts.negotiateAccept((res.req.headers.accept||"").toLowerCase())
-	, format = opts.match
+	, opts = res.opts.negotiateAccept((res.req.headers.accept||"*").toLowerCase())
+	, format = opts.subtype
 
 	// Safari 5 and IE9 and below drop the original URI's fragment if a HTTP/3xx redirect occurs.
 	// If the Location header on the response specifies a fragment, it is used.
@@ -216,7 +195,7 @@ function send(body) {
 			opts.postfix = ");"
 			body = require("../lib/csv.js").encode(body, opts)
 		} else {
-			body = JSON.stringify(body, null, opts.space)
+			body = JSON.stringify(body, null, +opts.space||opts.space)
 		}
 	}
 
