@@ -20,8 +20,10 @@
 	function on(type, fn, scope, _origin) {
 		var emitter = this === exports ? empty : this
 		, events = emitter._e || (emitter._e = Object.create(null))
-		emit.call(emitter, "newListener", type, fn, scope, _origin)
-		;(events[type] || (events[type] = [])).unshift(scope, _origin, fn)
+		if (type && fn) {
+			emit.call(emitter, "newListener", type, fn, scope, _origin)
+			;(events[type] || (events[type] = [])).unshift(scope, _origin, fn)
+		}
 		return emitter
 	}
 
