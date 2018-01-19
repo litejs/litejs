@@ -171,7 +171,8 @@ function initRequest(req, res, next, opts) {
 
 function send(body) {
 	var res = this
-	, opts = res.opts.negotiateAccept((res.req.headers.accept||"*").toLowerCase())
+	, head = res.req.headers
+	, opts = res.opts.negotiateAccept(head.accept || head["content-type"] || "*")
 	, format = opts.subtype
 
 	// Safari 5 and IE9 and below drop the original URI's fragment if a HTTP/3xx redirect occurs.
