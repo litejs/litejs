@@ -3,6 +3,7 @@ var statusCodes = require("http").STATUS_CODES
 , url = require("url")
 , qs = require("querystring")
 , zlib = require("zlib")
+, package = require("../package.json")
 , mime = require("./mime.js").mimeTypes
 , util = require("../lib/util.js")
 , json = require("../lib/json.js")
@@ -30,6 +31,8 @@ var statusCodes = require("http").STATUS_CODES
 	}
 }
 
+process.versions.litejs = package.version
+
 mime.sql = "application/sql"
 
 require("../lib/format")
@@ -51,18 +54,22 @@ function createApp(_options) {
 	json.mergePatch(options, _options)
 	events.asEmitter(app)
 
-	app.use = function appUse(method, path, fn) {
-		var argi = arguments.length
-		if (argi === 1) {
-			fn = method
+	app.use = function appUse(method, path) {
+		var fn
+		, arr = Array.from(arguments)
+		, len = arr.length
+		, i = 2
+		if (typeof method === "function") {
 			method = path = null
-		} else if (argi === 2) {
-			fn = path
+			i = 0
+		} else if (typeof path === "function") {
 			path = method
 			method = null
+			i = 1
 		}
-		if (fn) {
-			uses.push(method, path, fn)
+		for (; i < len; ) {
+			if (typeof arr[i] !== "function") throw Error("Not a function")
+			uses.push(method, path, arr[i++])
 		}
 		return app
 	}
@@ -146,6 +153,7 @@ function initRequest(req, res, next, opts) {
 	res.req = req
 	req.date = new Date()
 	res.send = send
+	res.sendStatus = sendStatus
 	res.opts = opts
 
 	// IE8-10 accept 2083 chars in URL
@@ -161,7 +169,6 @@ function initRequest(req, res, next, opts) {
 	req.query = url.parse(req.url, true).query || {}
 	req.cookie = getCookie
 
-	res.sendStatus = sendStatus
 	res.cookie = setCookie
 	res.link = setLink
 
@@ -173,7 +180,7 @@ function send(body) {
 	var res = this
 	, head = res.req.headers
 	, opts = res.opts.negotiateAccept(head.accept || head["content-type"] || "*")
-	, format = opts.subtype
+	, format = opts.subtype || "json"
 
 	// Safari 5 and IE9 and below drop the original URI's fragment if a HTTP/3xx redirect occurs.
 	// If the Location header on the response specifies a fragment, it is used.
@@ -275,7 +282,11 @@ function readBody(req, res, next, opts) {
 	function handleEnd() {
 		try {
 			var type = (head["content-type"] || "").split(";")[0]
-			req.body = (type == "application/json") ? JSON.parse(body||"{}") : qs.parse(body)
+			req.body = (
+				type == "application/json" ? JSON.parse(body||"{}") :
+				type == "application/x-www-form-urlencoded" ? qs.parse(body) :
+				body
+			)
 			next()
 		} catch (e) {
 			sendError(res, opts, e)
