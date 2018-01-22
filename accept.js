@@ -17,26 +17,17 @@ function accept(choices) {
 		if (rule === ",") {
 			return ")|("
 		}
-		fnStr += (offset ? "}:m[" : "m[") + (++seq) + ']?{rule:"' + rule + '"'
-		fnStr += ",match:m[" + seq + "]"
+		fnStr += (offset ? '}:m[' : 'm[') + (++seq) + ']?{rule:"' + rule + '",match:m[' + seq + ']'
 
-		var junks = rule.split(/\/|\+/)
+		key = rule.match(/^(.+?)\/(.+?)(?:\+(.+))?$/)
 		rule = rule.replace(escapeRe, "\\$&")
-		// tag
-		if (junks[1]) {
+		if (key) {
 			// type / [ tree. ] subtype [ +suffix ] [ ; parameters ]
-			/*
-			fnStr += ",type:m[" + (++seq) + "]"
-			fnStr += ",subtype:m[" + (++seq) + "]"
-			fnStr += ",suffix:" + (junks[2] ? "m[" + (++seq) + "]" : '""')
-			rule = "(" + rule.replace(/\\[\/+]/g, ")$&(") + ")"
-			/*/
-			fnStr += ",type:" +    (wildRe.test(junks[0])&&(rule = "(" + rule.replace("\\/", ")$&")) ? "m[" + (++seq) + "]" : '"' + junks[0] + '"')
-			fnStr += ",subtype:" + (wildRe.test(junks[1])&&(rule = rule.replace(/\/(.+?)(?=\\\+|$)/, "/($1)")) ? "m[" + (++seq) + "]" : '"' + junks[1] + '"')
-			fnStr += ",suffix:" +  (wildRe.test(junks[2])&&(rule = rule.replace("\\+(.+)", "\\+($1)")) ? "m[" + (++seq) + "]" : '"' + (junks[2] || "") + '"')
-			//*/
+			fnStr += ",type:" +    (wildRe.test(key[1])&&(rule = "(" + rule.replace("\\/", ")$&")) ? "m[" + (++seq) + "]" : '"' + key[1] + '"')
+			fnStr += ",subtype:" + (wildRe.test(key[2])&&(rule = rule.replace(/\/(.+?)(?=\\\+|$)/, "/($1)")) ? "m[" + (++seq) + "]" : '"' + key[2] + '"')
+			fnStr += ",suffix:" +  (wildRe.test(key[3])&&(rule = rule.replace(/\+(.+)/, "+($1)")) ? "m[" + (++seq) + "]" : '"' + (key[3] || "") + '"')
 		}
-		rule = rule.replace(/\*/g, "[^,;\\s]+?")
+		rule = rule.replace(/\*/g, "[^,;\\s\\/+]+?")
 
 		return (offset ? rule : "(?:" + rule + "|[*\\/]+)") + a(0,"q","1")
 	}) + '))\\s*(?=,|;|$)(?:"[^"]*"|[^,])*/gi;'
@@ -45,7 +36,6 @@ function accept(choices) {
 	console.log("reStr", reStr)
 	console.log("fnStr", fnStr)
 	//*/
-
 	return Function(
 		reStr +
 		"return function(i){" + fnStr.replace(/m\[\d+\]\?(?!.*m\[\d+\]\?)/, "") +

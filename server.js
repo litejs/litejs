@@ -10,7 +10,7 @@ var statusCodes = require("http").STATUS_CODES
 , events = require("../lib/events")
 , empty = {}
 , defaultOptions = {
-	maxURILength: 255,
+	maxURILength: 2000,
 	maxBodySize: 1e6,
 	negotiateAccept: require("./accept.js")([
 		'application/json;space=""',
