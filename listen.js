@@ -73,6 +73,20 @@ function _listen(port) {
 		.listen(httpsPort, options.http2 ? addMsg("http2") : addMsg("https"))
 		.on("connection", setNoDelay)
 		.on("close", logClose(options.http2 ? "http2" : "https"))
+
+		if (secure.sessionReuse) {
+			var sessionStore = {}
+			, timeout = secure.sessionTimeout || 300
+
+			app.httpsServer
+			.on("newSession", function(id, data, cb) {
+				sessionStore[id] = data
+				cb()
+			})
+			.on("resumeSession", function(id, cb) {
+				cb(null, sessionStore[id] || null)
+			})
+		}
 	}
 
 	function addMsg(proto) {
