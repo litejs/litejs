@@ -2,10 +2,10 @@
 var util = require("../lib/util")
 
 
-module.exports = initProcess
+module.exports = listen
 
 
-function initProcess() {
+function listen(port) {
 	var exiting
 	, app = this
 	, options = app.options
@@ -35,15 +35,17 @@ function initProcess() {
 
 	process.on("SIGHUP", function() {
 		console.log("\nReloading configuration from SIGHUP")
-		;(options.listen || listen).call(app, true)
+		app.listen(port, true)
 	})
 
-	app.listen = options.listen || listen
+	app.listen = options.listen || _listen
+
+	app.listen(port)
 
 	return app
 }
 
-function listen(port) {
+function _listen(port) {
 	var app = this
 	, options = app.options
 	, httpPort = process.env.PORT || port || 8080

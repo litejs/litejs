@@ -79,7 +79,7 @@ function createApp(_options) {
 	app.catchErrors = catchErrors
 	app.readBody = readBody
 	app.static = require("./static.js")
-	app.initProcess = require("./init-process.js")
+	app.listen = require("./listen.js")
 	app.ratelimit = require("./ratelimit.js")
 
 	addMethod("get", "GET")
