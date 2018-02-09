@@ -6,6 +6,10 @@ exports.round = round
 exports.wait = wait
 exports.Storage = Storage
 
+exports.ip2int = ip2int
+exports.int2ip = int2ip
+exports.ipInNet = ipInNet
+
 // Usage:
 // var client = net.connect(soc)
 // .on("line", function(line) {})
@@ -95,6 +99,26 @@ function wait(fn, _pending) {
 	return resume
 }
 
+function ip2int(str) {
+	var t = str.split(".")
+	return ((t[0] << 24) | (t[1] << 16) | (t[2] << 8 ) | (t[3]))>>>0
+}
+
+function int2ip(i) {
+	return [i>>>24, (i>>>16)&255, (i>>>8)&255, i&255].join(".")
+}
+
+// var re = /^((\d|[1-9]\d|1\d\d|2[0-4]\d|25[0-5])(?:\.(?=.)|$)){4}$/
+function ipInNet(ip, cidr) {
+	var junks = cidr.split("/")
+	, bits = junks[1] || 8 * junks[0].split(".").length
+	, mask = bits < 31 ? (-1 << (32 - bits)) >>> 0 : ip2int(bits)
+	//, netInt = (ip2int(cidr) & mask) >>> 0
+	//, size = 1 << (32 - bits)
+	//, last = netInt + size - 1
+
+	return (ip2int(ip) & mask) >>> 0 === (ip2int(junks[0]) & mask) >>> 0
+}
 
 function Storage() {
 	this.data = {}
