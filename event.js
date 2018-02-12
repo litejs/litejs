@@ -51,6 +51,9 @@
 		return emitter.on(type, remove, scope).on(type, fn, scope)
 	}
 
+	// emitNext
+	// emitLate
+
 	function emit(type) {
 		var args, i
 		, emitter = this === exports ? empty : this
