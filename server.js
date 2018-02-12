@@ -35,7 +35,7 @@ process.versions.litejs = package.version
 
 mime.sql = "application/sql"
 
-require("../lib/format")
+require("../lib/fn")
 require("../lib/timing")
 
 Object.keys(statusCodes).forEach(function(code) {
