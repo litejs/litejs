@@ -6,6 +6,8 @@ exports.round = round
 exports.wait = wait
 exports.Storage = Storage
 
+exports.ipv4Re = /^(?:(?:25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(?:\.(?=.)|$)){4}$/
+exports.ipv6Re = /^((?=.*::)(([1-9a-f][\da-f]{0,3}|0|)(:(?=[^:])|::(?!.*::)|$)){1,8}|([\da-f]{1,4}(:(?=[^:])|$)){8})$/i
 exports.ip2int = ip2int
 exports.int2ip = int2ip
 exports.ipInNet = ipInNet
