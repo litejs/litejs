@@ -58,7 +58,7 @@ var undef, a, b, c
 
 
 
-var test = require("testman").
+var test = require("..").
 
 describe ("JSON.mergePatch").
 it("should apply merge patches")
@@ -67,28 +67,29 @@ for (var x = 0; x < tests.length; )
 	addTest("mergePatch", tests[x++], tests[x++], tests[x++], tests[x++], tests[x++])
 
 test.
-it ("should work with old Object.deepMerge tests").
-	run(function(){
-		a = { a:"A"
-			, b:null
-			, c:"C"
-			, d:null
-			, e:{ea:"EA", eb:null, ec:"EC", ed:null}
-			, f:null
-			, g:{ga:1}
-		}
-		b = { b:"B"
-			, c:null
-			, e: {eb:"EB", ec:null}
-			, f: {fa:1}
-			, g: null
-		}
-		c = []
-		util.mergePatch(a, b, c)
-	}).
-	deepEqual(a, {"a":"A","b":"B","d":null,"e":{"ea":"EA","eb":"EB","ed":null},"f":{"fa":1}}).
-	deepEqual(b, {"b":"B","c":null,"e":{"eb":"EB","ec":null},"f":{"fa":1},"g":null}).
-	deepEqual(c, ["/b","/c","/e/eb","/e/ec","/e","/f/fa","/f","/g"]).
+test ("it should work with old Object.deepMerge tests", function(t) {
+	a = { a:"A"
+		, b:null
+		, c:"C"
+		, d:null
+		, e:{ea:"EA", eb:null, ec:"EC", ed:null}
+		, f:null
+		, g:{ga:1}
+	}
+	b = { b:"B"
+		, c:null
+		, e: {eb:"EB", ec:null}
+		, f: {fa:1}
+		, g: null
+	}
+	c = []
+	util.mergePatch(a, b, c)
+
+	t.deepEqual(a, {"a":"A","b":"B","d":null,"e":{"ea":"EA","eb":"EB","ed":null},"f":{"fa":1}})
+	.deepEqual(b, {"b":"B","c":null,"e":{"eb":"EB","ec":null},"f":{"fa":1},"g":null})
+	.deepEqual(c, ["/b","/c","/e/eb","/e/ec","/e","/f/fa","/f","/g"])
+	.end()
+}).
 
 it ("merges objects").
 equal(util.merge({a: 1}, {b: 2}), {a: 1, b: 2}).
@@ -142,6 +143,8 @@ test("it clones objects", function(assert) {
 	assert.deepEqual(re5, re5Clone)
 
 	delete Object.prototype.dummy
+
+	assert.end()
 })
 
 //it("should be V8 friendly").
