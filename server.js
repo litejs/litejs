@@ -176,7 +176,7 @@ function initRequest(req, res, next, opts) {
 }
 
 
-function send(body) {
+function send(body, _opts) {
 	var res = this
 	, head = res.req.headers
 	, opts = res.opts.negotiateAccept(head.accept || head["content-type"] || "*")
@@ -191,11 +191,10 @@ function send(body) {
 	}
 
 	if (typeof body !== "string") {
+		opts.select = _opts && _opts.select || res.req.query.$select
 		if (format == "csv") {
-			opts.select = res.req.query.$select
 			body = require("../lib/csv.js").encode(body, opts)
 		} else if (format == "sql") {
-			opts.select = res.req.query.$select
 			opts.re = /\D/
 			opts.br = "),\n("
 			opts.prefix = "INSERT INTO " +
@@ -203,7 +202,7 @@ function send(body) {
 			opts.postfix = ");"
 			body = require("../lib/csv.js").encode(body, opts)
 		} else {
-			body = JSON.stringify(body, null, +opts.space||opts.space)
+			body = JSON.stringify(body, null, +opts.space || opts.space)
 		}
 	}
 

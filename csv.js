@@ -21,17 +21,20 @@
 	exports.encode = encode
 	exports.decode = decode
 
+	var Item = require("../model").Item
+
 	function encode(obj, opts) {
 		var re = opts.re || /[",\r\n]/
 		, arr = Array.isArray(obj) ? obj : [ obj ]
-		, keys = opts.select ? opts.select.split(",") : Object.keys(arr[0])
+		, keys = opts.select ? opts.select.replace(/\[[^\]]+?\]/g, "").split(",") : Object.keys(arr[0])
 
 		arr = arr.map(function(obj) {
 			return keys.map(function(key) {
-				var value = obj[key]
+				var value = Item.get(obj, key)
+				if (Array.isArray(value)) value = value.join(";")
 				return (
 					value == null ? opts.NULL :
-					re.test(value) ? '"' + value.replace(/"/g, '""') + '"' :
+					re.test(value+="") ? '"' + value.replace(/"/g, '""') + '"' :
 					value
 				)
 			}).join(opts.delimiter)
@@ -42,7 +45,7 @@
 		return (opts.prefix || "") + arr.join(opts.br) + (opts.postfix || "")
 	}
 
-	function decode(str, fields) {
+	function decode(str, opts) {
 		var lines = str.match(/(("(""|[^"])*"|[^",\n\r]+),?)+/g)
 		, arr = []
 
