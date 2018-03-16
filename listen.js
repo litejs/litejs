@@ -1,5 +1,6 @@
 
 var util = require("../lib/util")
+, log = require("../lib/log")("app")
 
 
 module.exports = listen
@@ -11,7 +12,7 @@ function listen(port) {
 	, options = app.options
 
 	process.on("uncaughtException", function(e) {
-		;(options.errorLog || console.error)(
+		;(options.errorLog || log.error)(
 			"\nUNCAUGHT EXCEPTION!\n" +
 			(e.stack || (e.name || "Error") + ": " + (e.message || e))
 		)
@@ -20,21 +21,21 @@ function listen(port) {
 
 	process.on("SIGINT", function() {
 		if (exiting) {
-			console.log("\nKilling from SIGINT (got Ctrl-C twice)")
+			log.info("Killing from SIGINT (got Ctrl-C twice)")
 			return process.exit()
 		}
 		exiting = true
-		console.log("\nGracefully shutting down from SIGINT (Ctrl-C)")
+		log.info("Gracefully shutting down from SIGINT (Ctrl-C)")
 		;(options.exit || exit).call(app, 0)
 	})
 
 	process.on("SIGTERM", function() {
-		console.log("\nGracefully shutting down from SIGTERM (kill)")
+		log.info("Gracefully shutting down from SIGTERM (kill)")
 		;(options.exit || exit).call(app, 0)
 	})
 
 	process.on("SIGHUP", function() {
-		console.log("\nReloading configuration from SIGHUP")
+		log.info("Reloading configuration from SIGHUP")
 		app.listen(port, true)
 	})
 
@@ -95,13 +96,13 @@ function _listen(port) {
 			var addr = this.address()
 			msg += " " + proto + " at " + addr.address + ":" + addr.port
 			if (!--listenCount) {
-				console.log(msg)
+				log.info(msg)
 			}
 		}
 	}
 	function logClose(proto) {
 		return function() {
-			console.log("Stop listening " + proto)
+			log.info("Stop listening " + proto)
 		}
 	}
 }
@@ -109,7 +110,7 @@ function _listen(port) {
 function exit(code) {
 	var app = this
 	, softKill = util.wait(function() {
-		console.log("Everything closed cleanly")
+		log.info("Everything closed cleanly")
 		process.exit(code)
 	}, 1)
 
@@ -121,7 +122,7 @@ function exit(code) {
 	} catch(e) {}
 
 	setTimeout(function() {
-		console.log("\nKill (timeout)")
+		log.warn("Kill (timeout)")
 		process.exit(code)
 	}, 5000).unref()
 

@@ -4,7 +4,7 @@
 var path = require("path")
 , fs = require("fs")
 , mime = require("./mime.js").mimeTypes
-, debug = require("../lib/debug.js")
+, debug = require("../lib/log.js")
 , flvMagic = "FLV" + String.fromCharCode(1,5,0,0,0,9,0,0,0,9)
 , logRange = debug("app:static:range")
 

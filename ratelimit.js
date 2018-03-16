@@ -1,5 +1,5 @@
 
-var debug = require("../lib/debug.js")
+var debug = require("../lib/log.js")
 , log = debug("app:ratelimit")
 , logBlock = debug("app:ratelimit:block")
 , logLeak = debug("app:ratelimit:leak")
