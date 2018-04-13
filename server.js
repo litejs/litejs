@@ -4,6 +4,7 @@ var statusCodes = require("http").STATUS_CODES
 , qs = require("querystring")
 , zlib = require("zlib")
 , package = require("../package.json")
+, accept = require("./accept.js")
 , mime = require("./mime.js").mimeTypes
 , util = require("../lib/util.js")
 , json = require("../lib/json.js")
@@ -12,10 +13,15 @@ var statusCodes = require("http").STATUS_CODES
 , defaultOptions = {
 	maxURILength: 2000,
 	maxBodySize: 1e6,
-	negotiateAccept: require("./accept.js")([
-		'application/json;space=""',
-		'text/csv;headers=no;delimiter=",";NULL="";br="\r\n"',
-		'application/sql;NULL=NULL;table=table;fields=""'
+	negotiateAccept: accept([
+		'application/json;space=',
+		'text/csv;headers=no;delimiter=",";NULL=;br="\r\n"',
+		'application/sql;NULL=NULL;table=table;fields='
+	]),
+	negotiateContent: accept([
+		'application/json',
+		'application/x-www-form-urlencoded',
+		'multipart/form-data;boundary='
 	]),
 	errors: {
 		// new Error([message[, fileName[, lineNumber]]])

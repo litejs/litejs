@@ -9,7 +9,7 @@ function accept(choices) {
 	, escapeRe = /[.+?^!:${}()|\[\]\/\\]/g
 	, wildRe = /\*/
 
-	reStr += ("" + choices).replace(/[^,;]+|\s*;\s*(\w+)=("([^"]*)"|[^,;\s]+)|,/ig, function a(rule, key, token, qstr, offset) {
+	reStr += ("" + choices).replace(/[^,;]+|\s*;\s*(\w+)=("([^"]*)"|[^,;\s]*)|,/ig, function a(rule, key, token, qstr, offset) {
 		if (key) {
 			fnStr += ',' + key + ':unescape(m[' + (++seq + 1) + ']||m[' + (seq++) + ']||"' + escape(qstr == null ? token : qstr ) + '")'
 			return '(?=(?:"[^"]*"|[^,])*;\\s*' + key + '=("([^"]*)"|[^\\s,;]+)|)'
