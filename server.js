@@ -3,7 +3,6 @@ var statusCodes = require("http").STATUS_CODES
 , url = require("url")
 , qs = require("querystring")
 , zlib = require("zlib")
-, package = require("../package.json")
 , accept = require("./accept.js")
 , mime = require("./mime.js").mimeTypes
 , util = require("../lib/util.js")
@@ -37,7 +36,6 @@ var statusCodes = require("http").STATUS_CODES
 	}
 }
 
-process.versions.litejs = package.version
 
 mime.sql = "application/sql"
 
