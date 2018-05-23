@@ -1,49 +1,50 @@
-//, tokenRe = /[\w!#$%&'*+-.^`|~]/
 
-module.exports = accept
 
-function accept(choices) {
-	var reStr = "var r=/(?:^|,\\s*)(?:("
-	, fnStr = "for(var m,n={};(m=r.exec(i))&&(m="
-	, seq = 0
-	, escapeRe = /[.+?^!:${}()|\[\]\/\\]/g
+module.exports = function accept(choices) {
+	var i = 0
+	, ruleSeq = 0
+	, rules = choices.constructor === Object ? Object.keys(choices) : choices
 	, wildRe = /\*/
-
-	reStr += ("" + choices).replace(/[^,;]+|\s*;\s*(\w+)=("([^"]*)"|[^,;\s]*)|,/ig, function a(rule, key, token, qstr, offset) {
+	, escapeRe = /[.+?^!:${}()|\[\]\/\\]/g
+	, fnStr = 'return function(i){for(var m,n={};(m=r.exec(i))&&(m='
+	, reStr = 'var r=/(?:^|,\\s*)(?:('
+	+ ('' + rules).replace(/[^,;]+|\s*;\s*(\w+)=("([^"]*)"|[^,;\s]*)|,/ig, function a(rule, key, token, qstr, offset) {
 		if (key) {
-			fnStr += ',' + key + ':unescape(m[' + (++seq + 1) + ']||m[' + (seq++) + ']||"' + escape(qstr == null ? token : qstr ) + '")'
+			fnStr += ',' + key + ':unescape(m[' + (++i + 1) + ']||m[' + (i++) + ']||"' + escape(qstr == null ? token : qstr ) + '")'
 			return '(?=(?:"[^"]*"|[^,])*;\\s*' + key + '=("([^"]*)"|[^\\s,;]+)|)'
 		}
-		if (rule === ",") {
-			return ")|("
+		if (rule === ',') {
+			return ')|('
 		}
-		fnStr += (offset ? '}:m[' : 'm[') + (++seq) + ']?{rule:"' + rule + '",match:m[' + seq + ']'
+		fnStr += (offset ? '}:m[' : 'm[') + (++i) + ']?{rule:"' + rule + '",match:m[' + i + ']'
+		if (choices !== rules) {
+			fnStr += ',fn:c[R[' + (ruleSeq++) + ']]'
+		}
 
 		key = rule.match(/^(.+?)\/(.+?)(?:\+(.+))?$/)
-		rule = rule.replace(escapeRe, "\\$&")
+		rule = rule.replace(escapeRe, '\\$&')
 		if (key) {
 			// type / [ tree. ] subtype [ +suffix ] [ ; parameters ]
-			fnStr += ",type:" +    (wildRe.test(key[1])&&(rule = "(" + rule.replace("\\/", ")$&")) ? "m[" + (++seq) + "]" : '"' + key[1] + '"')
-			fnStr += ",subtype:" + (wildRe.test(key[2])&&(rule = rule.replace(/\/(.+?)(?=\\\+|$)/, "/($1)")) ? "m[" + (++seq) + "]" : '"' + key[2] + '"')
-			fnStr += ",suffix:" +  (wildRe.test(key[3])&&(rule = rule.replace(/\+(.+)/, "+($1)")) ? "m[" + (++seq) + "]" : '"' + (key[3] || "") + '"')
+			fnStr += ',type:'    + (wildRe.test(key[1])&&(rule = '(' + rule.replace('\\/', ')$&')) ? 'm[' + (++i) + ']' : '"' + key[1] + '"')
+			fnStr += ',subtype:' + (wildRe.test(key[2])&&(rule = rule.replace(/\/(.+?)(?=\\\+|$)/, '/($1)')) ? 'm[' + (++i) + ']' : '"' + key[2] + '"')
+			fnStr += ',suffix:'  + (wildRe.test(key[3])&&(rule = rule.replace(/\+(.+)/, '+($1)')) ? 'm[' + (++i) + ']' : '"' + (key[3] || '') + '"')
 		}
-		rule = rule.replace(/\*/g, "[^,;\\s\\/+]+?")
+		rule = rule.replace(/\*/g, '[^,;\\s\\/+]+?')
 
-		return (offset ? rule : "(?:" + rule + "|[*\\/]+)") + a(0,"q","1")
-	}) + '))\\s*(?=,|;|$)(?:"[^"]*"|[^,])*/gi;'
+		return (offset ? rule : '(?:' + rule + '|[*\\/]+)') + a(0, 'q', '1')
+	})
+	+ '))\\s*(?=,|;|$)(?:"[^"]*"|[^,])*/gi;'
 
-	/*
-	console.log("reStr", reStr)
-	console.log("fnStr", fnStr)
-	//*/
 	return Function(
+		'c,R',
 		reStr +
-		"return function(i){" + fnStr.replace(/m\[\d+\]\?(?!.*m\[\d+\]\?)/, "") +
-		"});){m.q=parseFloat(m.q)||1;if(!n.q||m.q>n.q||m.q==n.q&&n.match.length>m.match.length)n=m}return n}"
-	)()
+		fnStr.replace(/m\[\d+\]\?(?!.*m\[\d+\]\?)/, '') +
+		'});){m.q=parseFloat(m.q)||1;if(!n.q||m.q>n.q||m.q==n.q&&n.match.length>m.match.length)n=m}return n}'
+	)(choices, rules)
 }
 
 
+//, tokenRe = /[\w!#$%&'*+-.^`|~]/
 // The HTTP/1.1 standard defines list of the standard headers that start server-driven negotiation:
 //  - Accept, Accept-Charset, Accept-Encoding, Accept-Language
 //
