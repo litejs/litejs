@@ -17,11 +17,17 @@ var statusCodes = require("http").STATUS_CODES
 		'text/csv;headers=no;delimiter=",";NULL=;br="\r\n"',
 		'application/sql;NULL=NULL;table=table;fields='
 	]),
-	negotiateContent: accept([
-		'application/json',
-		'application/x-www-form-urlencoded',
-		'multipart/form-data;boundary='
-	]),
+	negotiateContent: accept({
+		'application/json': function(str) {
+			return JSON.parse(str || "{}")
+		},
+		'application/x-www-form-urlencoded': function(str) {
+			return qs.parse(str)
+		},
+		'multipart/form-data;boundary=': function(str) {
+			throw "Not Implemented"
+		}
+	}),
 	errors: {
 		// new Error([message[, fileName[, lineNumber]]])
 		//   - EvalError - The EvalError object indicates an error regarding the global eval() function.
@@ -183,8 +189,8 @@ function initRequest(req, res, next, opts) {
 function send(body, _opts) {
 	var res = this
 	, head = res.req.headers
-	, opts = res.opts.negotiateAccept(head.accept || head["content-type"] || "*")
-	, format = opts.subtype || "json"
+	, negod = res.opts.negotiateAccept(head.accept || head["content-type"] || "*")
+	, format = negod.subtype || "json"
 
 	// Safari 5 and IE9 and below drop the original URI's fragment if a HTTP/3xx redirect occurs.
 	// If the Location header on the response specifies a fragment, it is used.
@@ -195,18 +201,18 @@ function send(body, _opts) {
 	}
 
 	if (typeof body !== "string") {
-		opts.select = _opts && _opts.select || res.req.query.$select
+		negod.select = _opts && _opts.select || res.req.query.$select
 		if (format == "csv") {
-			body = require("../lib/csv.js").encode(body, opts)
+			body = require("../lib/csv.js").encode(body, negod)
 		} else if (format == "sql") {
-			opts.re = /\D/
-			opts.br = "),\n("
-			opts.prefix = "INSERT INTO " +
-			opts.table + (opts.fields ? " (" + opts.fields + ")" : "") + " VALUES ("
-			opts.postfix = ");"
-			body = require("../lib/csv.js").encode(body, opts)
+			negod.re = /\D/
+			negod.br = "),\n("
+			negod.prefix = "INSERT INTO " +
+			negod.table + (negod.fields ? " (" + negod.fields + ")" : "") + " VALUES ("
+			negod.postfix = ");"
+			body = require("../lib/csv.js").encode(body, negod)
 		} else {
-			body = JSON.stringify(body, null, +opts.space || opts.space)
+			body = JSON.stringify(body, null, +negod.space || negod.space)
 		}
 	}
 
@@ -284,12 +290,8 @@ function readBody(req, res, next, opts) {
 
 	function handleEnd() {
 		try {
-			var type = (head["content-type"] || "").split(";")[0]
-			req.body = (
-				type == "application/json" ? JSON.parse(body||"{}") :
-				type == "application/x-www-form-urlencoded" ? qs.parse(body) :
-				body
-			)
+			var negod = opts.negotiateContent(head["content-type"] || head.accept || "*")
+			req.body = negod.fn(body)
 			next()
 		} catch (e) {
 			sendError(res, opts, e)
