@@ -1,19 +1,12 @@
 
 
-
 var path = require("path")
-, fs = require("fs")
-, mime = require("./mime.js").mimeTypes
-, debug = require("../lib/log.js")
-, flvMagic = "FLV" + String.fromCharCode(1,5,0,0,0,9,0,0,0,9)
-, logRange = debug("app:static:range")
 
 
-module.exports = createStatic
-
-
-function createStatic(root, options) {
+module.exports = function createStatic(root, options) {
 	options = options || {}
+	options.root = root
+	if (!options.cacheTime) options.cacheTime = 3600
 
 	root = path.resolve(root)
 
@@ -36,131 +29,16 @@ function createStatic(root, options) {
 			return res.sendStatus(400)
 		}
 
-		if (file.slice(0, root.length) != root) {
+		if (file.slice(0, root.length) !== root) {
 			return res.sendStatus(403)
 		}
-
-
-		function sendFile(err, stat) {
-
-			if (err) {
-				return next()
-			}
-
-			if (stat.isDirectory()) {
-				return res.sendStatus(403)
-			}
-
-			var headers = {}
-			, reqMtime = Date.parse(req.headers["if-modified-since"])
-			/**
-			, etag = [stat.ino, stat.size, stat.mtime.getTime()].join("-")
-
-			if ( req.headers["if-none-match"] === etag || (reqMtime && reqMtime >= stat.mtime)) {
-				return sendStatus(res, 304)
-			}
-			// If the server finds that its version of the resource is different than that demanded by the client,
-			// it will return a HTTP/412 Precondition Failed response.
-			// If the client sent its ETag using an If-Range header instead of the If-Match,
-			// the server would instead return the full response body if the client’s ETag didn’t match.
-			// Using If-Range saves one network request in the event that the client needs the complete file.
-			headers["ETag"]          = etag
-			/*/
-			if (reqMtime && reqMtime >= stat.mtime) {
-				return res.sendStatus(304)
-			}
-			//*/
-
-			/*
-			* It is important to specify
-			* one of Expires or Cache-Control max-age, and
-			* one of Last-Modified or ETag, for all cacheable resources.
-			* It is redundant to specify both Expires and Cache-Control: max-age,
-			* or to specify both Last-Modified and ETag.
-			*/
-
-			headers["Last-Modified"] = stat.mtime.toUTCString()
-			headers["Cache-Control"] = "public, max-age=" + (options.cacheTime || "3600")
-
-			headers["Content-Type"] = mime[ file.split(".").pop() ] || mime["_default"]
-			if (headers["Content-Type"].slice(0, 5) == "text/") {
-				headers["Content-Type"] += "; charset=UTF-8"
-			}
-
-			/*
-			// http://tools.ietf.org/html/rfc3803 Content Duration MIME Header
-			headers["Content-Duration"] = 30
-			Content-Disposition: Attachment; filename=example.html
-			*/
-
-
-			// https://tools.ietf.org/html/rfc7233 HTTP/1.1 Range Requests
-
-			headers["Accept-Ranges"] = "bytes"
-
-			var info = {
-				code: 200,
-				start: 0,
-				end: stat.size,
-				size: stat.size
-			}
-			, range = req.headers.range
-
-			if (range = range && range.match(/bytes=(\d+)-(\d*)/)) {
-				// If-Range
-				// If the entity tag does not match,
-				// then the server SHOULD return the entire entity using a 200 (OK) response.
-				info.start = +range[1]
-				info.end = +range[2]
-
-				if (info.start > info.end || info.end > info.size) {
-					res.statusCode = 416
-					res.setHeader("Content-Range", "bytes */" + info.size)
-					return res.end()
-				}
-				info.code = 206
-				info.size = info.end - info.start + 1
-				headers["Content-Range"] = "bytes " + info.start + "-" + info.end + "/" + info.size
-
-				logRange(req.headers.range, info)
-			}
-
-
-
-
-			//**
-			headers["Content-Length"] = info.size
-			res.writeHead(info.code, headers)
-
-			if (method == "HEAD") {
-				return res.end()
-			}
-
-			/*
-			* if (cache && qzip) headers["Vary"] = "Accept-Encoding,User-Agent"
-			*/
-
-			// Flash videos seem to need this on the front,
-			// even if they start part way through. (JW Player does anyway)
-			if (info.start > 0 && info.mime === "video/x-flv") {
-				res.write(flvMagic)
-			}
-
-
-			fs.createReadStream(file, { flags: "r", start: info.start, end: info.end }).pipe(res)
-
-			/*/
-			if ( (""+req.headers["accept-encoding"]).indexOf("gzip") > -1) {
-				// Only send a Vary: Accept-Encoding header when you have compressed the content (e.g. Content-Encoding: gzip).
-				res.useChunkedEncodingByDefault = false
-				res.setHeader("Content-Encoding", "gzip")
-				fs.createReadStream(file).pipe(zlib.createGzip()).pipe(res)
+		res.sendFile(file, options, function(err) {
+			if (err && (err.name === "EISDIR" || err.name === "ERANGE" )) {
+				res.sendStatus(err.code)
 			} else {
-				fs.createReadStream(file).pipe(res)
+				next()
 			}
-			//*/
-		}
-		fs.stat(file, sendFile)
+		})
 	}
 }
 
