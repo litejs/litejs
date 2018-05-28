@@ -11,7 +11,12 @@ var statusCodes = require("http").STATUS_CODES
 , empty = {}
 , defaultOptions = {
 	maxURILength: 2000,
-	maxBodySize: 1e6,
+	maxBodySize:  1e6,
+	memBodySize:  1e6,
+	maxFields:    1000,
+	maxFiles:     1000,
+	maxFieldSize: 1000,
+	maxFileSize:  Infinity,
 	negotiateAccept: accept([
 		'application/json;space=',
 		'text/csv;headers=no;delimiter=",";NULL=;br="\r\n"',
@@ -164,7 +169,7 @@ function initRequest(req, res, next, opts) {
 	req.date = new Date()
 	res.send = send
 	res.sendStatus = sendStatus
-	res.opts = opts
+	res.opts = req.opts = opts
 
 	// IE8-10 accept 2083 chars in URL
 	// Sitemaps protocol has a limit of 2048 characters in a URL
@@ -178,6 +183,7 @@ function initRequest(req, res, next, opts) {
 	req.path = req.url.split("?")[0]
 	req.query = url.parse(req.url, true).query || {}
 	req.cookie = getCookie
+	req.content = getContent
 
 	res.cookie = setCookie
 	res.link = setLink
@@ -261,41 +267,59 @@ function sendError(res, opts, e) {
 	)
 }
 
-
-function readBody(req, res, next, opts) {
-	var body = ""
-	//TODO: implement query["$method"]
-	, method = req.method
+function getContent(next) {
+	var i, tmp
+	, req = this
 	, head = req.headers
+	, negod = req.opts.negotiateContent(head["content-type"] || head.accept || "*")
+	, stream = req
 
-	req.body = {}
-
-	if (method == "POST" || method == "PUT" || method == "PATCH") {
-		;(head["content-encoding"] ? req.pipe(zlib.createUnzip()) : req)
-		.on("data", function handleData(data) {
-			body += data
-			// FLOOD ATTACK OR FAULTY CLIENT, NUKE REQUEST
-			if (body.length > opts.maxBodySize) {
-				req.abort()
-				res.sendStatus(413)
+	if (head["content-encoding"]) {
+		tmp = head["content-encoding"].split(/\W+/)
+		for (i = tmp.length; i--; ) {
+			if (tmp[i] === "gzip" || tmp[i] === "deflate") {
+				// Decompress Gzip or Deflate by auto-detecting the header
+				stream = stream.pipe(zlib.createUnzip())
+			} else if (tmp[i] && tmp[i] !== "identity") {
+				throw "Unsupported Media Type"
 			}
-		})
-		.on("end", handleEnd)
-		.on("error", function(e) {
-			sendError(res, opts, e)
-		})
-	} else {
-		next()
+		}
 	}
+
+	if (negod.type === "multipart") {
+		// stream = stream.pipe(multipart(negod.boundary))
+	}
+
+	tmp = ""
+	stream.on("data", function handleData(data) {
+		tmp += data
+		// FLOOD ATTACK OR FAULTY CLIENT, NUKE REQUEST
+		if (tmp.length > req.opts.maxBodySize) {
+			req.abort()
+			req.res.sendStatus(413)
+		}
+	})
+	.on("end", handleEnd)
+	.on("error", function(e) {
+		sendError(res, opts, e)
+	})
 
 	function handleEnd() {
 		try {
-			var negod = opts.negotiateContent(head["content-type"] || head.accept || "*")
-			req.body = negod.fn(body)
-			next()
+			req.body = negod.fn(tmp)
+			next(null, req.body, req.parts)
 		} catch (e) {
-			sendError(res, opts, e)
+			next(e)
 		}
+	}
+}
+
+function readBody(req, res, next, opts) {
+	req.body = {}
+	if (req.method === "POST" || req.method === "PUT" || req.method === "PATCH") {
+		req.content(next)
+	} else {
+		next()
 	}
 }
 
