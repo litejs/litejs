@@ -1,6 +1,5 @@
 
 var statusCodes = require("http").STATUS_CODES
-, url = require("url")
 , qs = require("querystring")
 , zlib = require("zlib")
 , accept = require("./accept.js")
@@ -180,8 +179,6 @@ function initRequest(req, res, next, opts) {
 	}
 
 	req.originalUrl = req.url
-	req.path = req.url.split("?")[0]
-	req.query = url.parse(req.url, true).query || {}
 	req.cookie = getCookie
 	req.content = getContent
 
@@ -207,7 +204,7 @@ function send(body, _opts) {
 	}
 
 	if (typeof body !== "string") {
-		negod.select = _opts && _opts.select || res.req.query.$select
+		negod.select = _opts && _opts.select || res.req.url.split("$select")[1] || ""
 		if (format == "csv") {
 			body = require("../lib/csv.js").encode(body, negod)
 		} else if (format == "sql") {
