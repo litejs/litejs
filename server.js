@@ -141,8 +141,13 @@ function createApp(_options) {
 	}
 
 	function addMethod(method, methodString) {
-		app[method] = function(path, fn) {
-			return app.use(methodString, path, fn)
+		app[method] = function() {
+			var arr = uses.slice.call(arguments)
+			if (typeof arr[0] === "function") {
+				arr.unshift(null)
+			}
+			arr.unshift(methodString)
+			return app.use.apply(app, arr)
 		}
 	}
 
