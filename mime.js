@@ -103,6 +103,7 @@ exports.mimeTypes = {
   "snd": "audio/basic",
   "sol": "application/solids",
   "spl": "application/x-futuresplash",
+  "sql": "application/sql",
   "src": "application/x-wais-source",
   "stl": "application/SLA",
   "stp": "application/STEP",
@@ -142,3 +143,4 @@ exports.mimeTypes = {
   "xyz": "chemical/x-pdb",
   "zip": "application/zip"
 }
+

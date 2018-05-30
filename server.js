@@ -47,9 +47,6 @@ var statusCodes = require("http").STATUS_CODES
 	}
 }
 
-
-mime.sql = "application/sql"
-
 require("../lib/fn")
 require("../lib/timing")
 
