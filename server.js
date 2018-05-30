@@ -59,9 +59,7 @@ Object.keys(statusCodes).forEach(function(code) {
 	}
 }, defaultOptions.errors)
 
-module.exports = createApp
-
-function createApp(_options) {
+module.exports = function createApp(_options) {
 	var uses = []
 	, options = app.options = {}
 
@@ -91,7 +89,6 @@ function createApp(_options) {
 
 	app.addMethod = addMethod
 	app.initRequest = initRequest
-	app.catchErrors = catchErrors
 	app.readBody = readBody
 	app.static = require("./static.js")
 	app.listen = require("./listen.js")
@@ -111,6 +108,9 @@ function createApp(_options) {
 		}
 
 		function next(err) {
+			if (err) {
+				return sendError(res, options, err)
+			}
 			var oldPath, oldUrl
 			, method = uses[usePos]
 			, path = uses[usePos + 1]
@@ -137,7 +137,11 @@ function createApp(_options) {
 				}
 			}
 		}
-		next()
+		try {
+			next()
+		} catch(e) {
+			sendError(res, options, e)
+		}
 	}
 
 	function addMethod(method, methodString) {
@@ -157,14 +161,6 @@ function createApp(_options) {
 }
 
 
-function catchErrors(req, res, next, opts) {
-	try {
-		next()
-	} catch(e) {
-		sendError(res, opts, e)
-	}
-}
-
 
 function initRequest(req, res, next, opts) {
 	var forwarded = req.headers[opts.ipHeader || "x-forwarded-for"]
@@ -180,8 +176,8 @@ function initRequest(req, res, next, opts) {
 	// Sitemaps protocol has a limit of 2048 characters in a URL
 	// Google SERP tool wouldn't cope with URLs longer than 1855 chars
 	if (req.url.length > opts.maxURILength) {
-		//return sendStatus.call(res, 414) // 414 URI Too Long
-		throw "URI Too Long"
+		return sendError(res, opts, "URI Too Long")
+		// throw "URI Too Long"
 	}
 
 	req.originalUrl = req.url
