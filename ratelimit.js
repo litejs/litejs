@@ -86,7 +86,7 @@ function createRatelimit(opts) {
 			}
 			nulls += clean
 		}
-		logLeak("leak:" + leak, "clean:" + clean, "size:" + count)
+		logLeak("leak:%s clean:%s size:%s", leak, clean, count)
 	}
 }
 
