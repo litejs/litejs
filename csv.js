@@ -22,6 +22,7 @@
 	exports.decode = decode
 
 	var Item = require("../model").Item
+	, re = /"((?:""|[^"])*)"|[^",\n\r]+|\r?\n/g
 
 	function encode(obj, opts) {
 		var re = opts.re || /[",\r\n]/
@@ -46,11 +47,20 @@
 	}
 
 	function decode(str, opts) {
-		var lines = str.match(/(("(""|[^"])*"|[^",\n\r]+),?)+/g)
-		, arr = []
+		var match
+		, lines = str.match(re)
+		, row = []
+		, arr = [row]
+
+		for (; match = re.exec(str); ) {
+			if (match[0] === "\n" || match[0] === "\r\n") {
+				arr.push(row = [])
+			} else {
+				row.push(typeof match[1] === "string" ? match[1].replace(/""/g, '"') : match[0])
+			}
+		}
 
 		return arr
-		// '"1997",Ford,E350,"Super, ""luxurious"" truck"\r\n"1998",Ford,E350,"Super, ""luxurious"" truck"'
 	}
 }(this)
 
