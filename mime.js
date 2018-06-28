@@ -1,6 +1,6 @@
 
 
-exports.mimeTypes = {
+module.exports = {
   "_default": "application/octet-stream",
   "aiff": "audio/x-aiff",
   "arj": "application/x-arj-compressed",
