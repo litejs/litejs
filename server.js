@@ -99,7 +99,8 @@ module.exports = function createApp(_options) {
 	return app
 
 	function app(req, res, _next) {
-		var usePos = 0
+		var oldPath, oldUrl
+		, usePos = 0
 		if (typeof _next !== "function") {
 			_next = end
 		}
@@ -108,8 +109,7 @@ module.exports = function createApp(_options) {
 			if (err) {
 				return sendError(res, options, err)
 			}
-			var oldPath, oldUrl
-			, method = uses[usePos]
+			var method = uses[usePos]
 			, path = uses[usePos + 1]
 
 			usePos += 3
@@ -126,13 +126,16 @@ module.exports = function createApp(_options) {
 					oldUrl = req.url
 					req.baseUrl = path
 					req.url = req.url.slice(path.length) || "/"
-					method(req, res, next, options)
-					req.baseUrl = oldPath
-					req.url = oldUrl
+					method(req, res, nextPath, options)
 				} else {
 					method(req, res, next, options)
 				}
 			}
+		}
+		function nextPath(e) {
+			req.baseUrl = oldPath
+			req.url = oldUrl
+			next(e)
 		}
 		try {
 			next()
