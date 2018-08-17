@@ -1,12 +1,12 @@
 
 
-module.exports = function accept(choices) {
+module.exports = function accept(choices, priority) {
 	var i = 0
 	, ruleSeq = 0
 	, rules = choices.constructor === Object ? Object.keys(choices) : choices
 	, wildRe = /\*/
 	, escapeRe = /[.+?^!:${}()|\[\]\/\\]/g
-	, fnStr = 'return function(i){for(var m,n={};(m=r.exec(i))&&(m='
+	, fnStr = 'return function(i){for(var m,l={q:null};(m=r.exec(i))&&(m='
 	, reStr = 'var r=/(?:^|,\\s*)(?:('
 	+ ('' + rules).replace(/[^,;]+|\s*;\s*(\w+)=("([^"]*)"|[^,;\s]*)|,/ig, function a(rule, key, token, qstr, offset) {
 		if (key) {
@@ -39,7 +39,7 @@ module.exports = function accept(choices) {
 		'c,R',
 		reStr +
 		fnStr.replace(/m\[\d+\]\?(?!.*m\[\d+\]\?)/, '') +
-		'});){m.q=parseFloat(m.q)||1;if(!n.q||m.q>n.q||m.q==n.q&&n.match.length>m.match.length)n=m}return n}'
+		'});){if((m.q=m.q?parseFloat(m.q):1)>l.q' + (priority || '') + ')l=m}return l}'
 	)(choices, rules)
 }
 
