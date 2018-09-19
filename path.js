@@ -2,9 +2,19 @@
 !function(exports) {
 	"use strict";
 	var sep = exports.sep = "/"
+	exports.dirname = dirname
 	exports.normalize = normalize
 	exports.relative = relative
 	exports.resolve = resolve
+
+	function dirname(path) {
+		for (var skip = 0, i = path.length; i > 0; ) {
+			if (path.charCodeAt(--i) !== 47) {
+				if (skip === 0) skip = i
+			} else if (skip > 0) break
+		}
+		return i > 0 ? path.slice(0, i) : path.charCodeAt(0) === 47 ? "/" : "."
+	}
 
 	function normalize(path) {
 		var c
