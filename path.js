@@ -71,21 +71,35 @@
 		return res
 	}
 
-	function relative(from, to) {
-		from = normalize(clear(from))
-		to = normalize(clear(to))
+	function relative(_from, _to) {
+		if (_from === _to) return ""
+
+		var last, code1, code2
+		, from = normalize(clear(_from))
+		, to = normalize(clear(_to))
+		, i = 0
+		, arr = []
 
 		if (from === to) return ""
 
-		from = from.split(sep)
-		to = to.split(sep)
-
-		for (var common, i = common = from.length; i--; ) {
-			if (from[i] !== to[i]) common = i
-			from[i] = ".."
+		for (; code1 === code2; ) {
+			code1 = from.charCodeAt(i)
+			if (code1 === 47) last = i
+			code2 = to.charCodeAt(i++)
+		}
+		if (code1 === code1) {
+			code1 = from.length
+			for (i = last++; i < code1; ) {
+				if (from.charCodeAt(i++) === 47) arr.push("..")
+			}
+		} else {
+			last = i
+		}
+		if (code2 === code2) {
+			arr.push(to.slice(last))
 		}
 
-		return from.slice(common).concat(to.slice(common)).join(sep)
+		return arr.join(sep)
 	}
 
 	function resolve() {
@@ -108,7 +122,8 @@
 		if (typeof path !== "string") {
 			throw new TypeError("Path must be a string. Got " + typeof path)
 		}
-		return path.replace(/\/+$/, "")
+		for (var len = path.length - 1, i = len; path.charCodeAt(i) === 47; i--);
+		return i !== len ? path.slice(0, i < 0 ? 1 : i + 1) : path
 	}
 }(this)
 
