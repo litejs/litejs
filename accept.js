@@ -7,7 +7,7 @@ module.exports = function(choices, priority) {
 	, ruleSeq = 0
 	, rules = choices.constructor === Object ? Object.keys(choices) : choices
 	, escapeRe = /[.+?^!:${}()|\[\]\/\\]/g
-	, fnStr = 'return function(i){for(var m,l={q:null};(m=r.exec(i))&&(m='
+	, fnStr = 'return function(i){for(var m,t,l={q:null};(m=r.exec(i))&&(m='
 	, reStr = 'var r=/(?:^|,\\s*)(?:('
 	+ ('' + rules).replace(/[^,;]+|\s*;\s*(\w+)=("([^"]*)"|[^,;\s]*)|,/ig, function add(rule, key, token, qstr, offset) {
 		if (key) {
@@ -46,7 +46,7 @@ module.exports = function(choices, priority) {
 		'c,R',
 		reStr +
 		fnStr.replace(/m\[\d+\]\?(?!.*m\[\d+\]\?)/, '') +
-		'});){if((m.q=m.q?parseFloat(m.q):1)>l.q' + (priority || '') + ')l=m}return l}'
+		'});){t=1*m.q;if((m.q=t>=0&&t<1?t:1)>l.q' + (priority || '') + ')l=m}return l}'
 	)(choices, rules)
 }
 
