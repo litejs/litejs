@@ -459,7 +459,7 @@ function getContent(next) {
 
 	function handleEnd() {
 		try {
-			req.body = negod.fn(tmp)
+			req.body = negod.o(tmp)
 			next(null, req.body, req.parts)
 		} catch (e) {
 			next(e)

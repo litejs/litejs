@@ -19,7 +19,7 @@ module.exports = function(choices, priority) {
 		}
 		fnStr += (offset ? '}:m[' : 'm[') + (++group) + ']?{rule:"' + rule + '",match:m[' + group + ']'
 		if (choices !== rules) {
-			fnStr += ',fn:c[R[' + (ruleSeq++) + ']]'
+			fnStr += ',o:c[R[' + (ruleSeq++) + ']]'
 		}
 
 		function capture(j, re, to) {
