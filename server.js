@@ -4,6 +4,7 @@ var statusCodes = require("http").STATUS_CODES
 , qs = require("querystring")
 , zlib = require("zlib")
 , accept = require("./accept.js")
+, cookie = require("./cookie.js")
 , mime = require("./mime.js")
 , util = require("../lib/util.js")
 , json = require("../lib/json.js")
@@ -181,10 +182,10 @@ function initRequest(req, res, next, opts) {
 	}
 
 	req.originalUrl = req.url
-	req.cookie = getCookie
+	req.cookie = cookie.get
 	req.content = getContent
 
-	res.cookie = setCookie
+	res.cookie = cookie.set
 	res.link = setLink
 	res.sendFile = sendFile
 
@@ -474,55 +475,6 @@ function readBody(req, res, next, opts) {
 	} else {
 		next()
 	}
-}
-
-function getCookie(name, opts) {
-	opts = opts || {}
-
-	var req = this
-	, junks = ("; " + req.headers.cookie).split("; " + name + "=")
-
-	if (junks.length > 2) {
-		;(opts.path || "").split("/").map(function(val, key, arr) {
-			var path = arr.slice(0, key+1).join("/")
-			, domain = opts.domain
-			req.res.cookie(name, "", {ttl: -1, path: path})
-			if (domain) {
-				req.res.cookie(name, "", {ttl: -1, path: path, domain: domain})
-
-				if (domain !== (domain = domain.replace(/^[^.]+/, "*"))) {
-					req.res.cookie(name, "", {ttl: -1, path: path, domain: domain})
-				}
-			}
-		})
-		throw "Error: Cookie fixation detected: " + req.headers.cookie
-	}
-
-	return decodeURIComponent((junks[1] || "").split(";")[0])
-}
-
-function setCookie(name, value, opts) {
-	var res = this
-	, existing = (res._headers || {})["set-cookie"] || []
-
-	if (!Array.isArray(existing)) {
-		existing = [ existing ]
-	}
-
-	value = encodeURIComponent(value || "")
-
-	if (opts) {
-		value +=
-		(opts.ttl      ? "; expires=" + new Date(opts.ttl > 0 ? Date.now() + (opts.ttl*1000) : 0).toUTCString() : "") +
-		(opts.path     ? "; path=" + opts.path : "") +
-		(opts.domain   ? "; domain=" + opts.domain : "") +
-		(opts.secure   ? "; secure" : "") +
-		(opts.httpOnly ? "; HttpOnly" : "")
-	}
-
-	existing.push(name + "=" + value)
-
-	res.setHeader("Set-Cookie", existing)
 }
 
 function setLink(url, rel) {
