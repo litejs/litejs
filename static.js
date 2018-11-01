@@ -3,36 +3,52 @@
 var path = require("path")
 
 
-module.exports = function createStatic(root, options) {
-	options = options || {}
-	options.root = root
-	if (!options.cacheTime) options.cacheTime = 3600
+module.exports = function createStatic(_root, _opts) {
+	var root = path.resolve(_root)
+	, opts = Object.assign({
+		index: "index.html",
+		maxAge: 31536000, // One year
+		cacheControl: {
+			"cache.manifest": 0,
+			"worker.js": 0
+		}
+	}, _opts)
 
-	root = path.resolve(root)
+	if (opts.cacheControl) {
+		var map = {}
+		Object.each(opts.cacheControl, function(time, file) {
+			map[path.resolve(root, file)] = time
+		})
+		opts.cacheControl = map
+	}
 
 	return function(req, res, next) {
 		var file
 		, method = req.method
 
-		if (method != "GET" && method != "HEAD") {
+		if (method !== "GET" && method !== "HEAD") {
 			res.setHeader("Allow", "GET, HEAD")
 			return res.sendStatus(405) // Method not allowed
 		}
 
+		if (req.url === "/" && !opts.index) {
+			return res.sendStatus(404)
+		}
+
 		try {
-			file = path.resolve( root, "." +
-				( req.url == "/"
-				? "/" + (options.directoryIndex || "index.html")
-				: decodeURIComponent( req.url.split("?")[0].replace(/\+/g, " ") )
-				) )
+			file = path.resolve(root, (
+				req.url === "/" ?
+				opts.index :
+				"." + decodeURIComponent(req.url.split("?")[0].replace(/\+/g, " "))
+			))
 		} catch (e) {
 			return res.sendStatus(400)
 		}
 
 		if (file.slice(0, root.length) !== root) {
-			return res.sendStatus(403)
+			return res.sendStatus(404)
 		}
-		res.sendFile(file, options, function(err) {
+		res.sendFile(file, opts, function(err) {
 			if (err && (err.name === "EISDIR" || err.name === "ERANGE" )) {
 				res.sendStatus(err.code)
 			} else {

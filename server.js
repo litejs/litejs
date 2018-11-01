@@ -267,7 +267,8 @@ function sendFile(file, _opts, next) {
 			return next && next(errIsDir)
 		}
 
-		var headers = {}
+		var tmp
+		, headers = {}
 		, reqMtime = Date.parse(res.req.headers["if-modified-since"])
 
 		if (reqMtime && reqMtime >= stat.mtime) {
@@ -296,9 +297,11 @@ function sendFile(file, _opts, next) {
 		 * or to specify both Last-Modified and ETag.
 		 */
 
-		if (opts.cacheTime) {
+		if (typeof opts.maxAge === "number") {
+			tmp = opts.cacheControl && opts.cacheControl[file]
+			if (typeof tmp !== "number") tmp = opts.maxAge
 			headers["Last-Modified"] = stat.mtime.toUTCString()
-			headers["Cache-Control"] = "public, max-age=" + opts.cacheTime
+			headers["Cache-Control"] = tmp === 0 ? "no-cache" : "public, max-age=" + tmp
 		}
 
 		if (opts.download) {
