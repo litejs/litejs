@@ -12,7 +12,7 @@ module.exports = function(choices, priority) {
 	+ ('' + rules).replace(/[^,;]+|\s*;\s*(\w+)=("([^"]*)"|[^,;\s]*)|,/ig, function add(rule, key, token, qstr, offset) {
 		if (key) {
 			fnStr += ',' + key + ':unescape(m[' + (++group + 1) + ']!==void 0?m[' + (group + 1) + ']:m[' + (group++) + ']||"' + escape(qstr == null ? token : qstr ) + '")'
-			return '(?=(?:"[^"]*"|[^,])*;\\s*' + key + '=("([^"]*)"|[^\\s,;]+)|)'
+			return '(?=(?:"[^"]*"|[^,])*;\\s*' + key + '(?:=|\\*=utf-8\'\\w*\')("([^"]*)"|[^\\s,;]+)|)'
 		}
 		if (rule === ',') {
 			return ')|('
