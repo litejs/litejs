@@ -1,10 +1,10 @@
 
 var statusCodes = require("http").STATUS_CODES
 , fs = require("fs")
-, qs = require("querystring")
 , zlib = require("zlib")
 , accept = require("./accept.js")
 , cookie = require("./cookie.js")
+, getContent = require("./content.js")
 , mime = require("./mime.js")
 , util = require("../lib/util.js")
 , json = require("../lib/json.js")
@@ -23,17 +23,6 @@ var statusCodes = require("http").STATUS_CODES
 		'text/csv;headers=no;delimiter=",";NULL=;br="\r\n"',
 		'application/sql;NULL=NULL;table=table;fields='
 	]),
-	negotiateContent: accept({
-		'application/json': function(str) {
-			return JSON.parse(str || "{}")
-		},
-		'application/x-www-form-urlencoded': function(str) {
-			return qs.parse(str)
-		},
-		'multipart/form-data;boundary=': function(str) {
-			throw "Not Implemented"
-		}
-	}),
 	errors: {
 		// new Error([message[, fileName[, lineNumber]]])
 		//   - EvalError - The EvalError object indicates an error regarding the global eval() function.
@@ -199,7 +188,7 @@ function send(body, _opts) {
 	, negod = res.opts.negotiateAccept(head.accept || head["content-type"] || "*")
 	, format = negod.subtype || "json"
 
-	// Safari 5 and IE9 and below drop the original URI's fragment if a HTTP/3xx redirect occurs.
+	// Safari 5 and IE9 drop the original URI's fragment if a HTTP/3xx redirect occurs.
 	// If the Location header on the response specifies a fragment, it is used.
 	// IE10+, Chrome 11+, Firefox 4+, and Opera will all "reattach" the original URI's fragment after following a 3xx redirection.
 
@@ -225,7 +214,7 @@ function send(body, _opts) {
 
 	res.setHeader("Content-Type", mime[format])
 	// Content-Type: application/my-media-type+json; profile=http://example.com/my-hyper-schema#
-	//res.setHeader("Content-Length", body.length)
+	// res.setHeader("Content-Length", body.length)
 
 	// Line and Paragraph separator needing to be escaped in JavaScript but not in JSON,
 	// escape those so the JSON can be evaluated or directly utilized within JSONP.
@@ -424,55 +413,7 @@ function sendError(res, opts, e) {
 	)
 }
 
-function getContent(next) {
-	var i, tmp
-	, req = this
-	, head = req.headers
-	, negod = req.opts.negotiateContent(head["content-type"] || head.accept || "*")
-	, stream = req
-
-	if (head["content-encoding"]) {
-		tmp = head["content-encoding"].split(/\W+/)
-		for (i = tmp.length; i--; ) {
-			if (tmp[i] === "gzip" || tmp[i] === "deflate") {
-				// Decompress Gzip or Deflate by auto-detecting the header
-				stream = stream.pipe(zlib.createUnzip())
-			} else if (tmp[i] && tmp[i] !== "identity") {
-				throw "Unsupported Media Type"
-			}
-		}
-	}
-
-	if (negod.type === "multipart") {
-		// stream = stream.pipe(multipart(negod.boundary))
-	}
-
-	tmp = ""
-	stream.on("data", function handleData(data) {
-		tmp += data
-		// FLOOD ATTACK OR FAULTY CLIENT, NUKE REQUEST
-		if (tmp.length > req.opts.maxBodySize) {
-			req.abort()
-			req.res.sendStatus(413)
-		}
-	})
-	.on("end", handleEnd)
-	.on("error", function(e) {
-		sendError(res, opts, e)
-	})
-
-	function handleEnd() {
-		try {
-			req.body = negod.o(tmp)
-			next(null, req.body, req.parts)
-		} catch (e) {
-			next(e)
-		}
-	}
-}
-
 function readBody(req, res, next, opts) {
-	req.body = {}
 	if (req.method === "POST" || req.method === "PUT" || req.method === "PATCH") {
 		req.content(next)
 	} else {
