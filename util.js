@@ -83,9 +83,11 @@ function wait(fn, _pending) {
 	var pending = _pending || 0
 	, result = [null]
 
+	if (typeof fn !== "function") throw TypeError("Not a function")
+
 	function resume() {
-		if (!--pending) {
-			if (fn) fn.apply(this, result)
+		if (--pending === 0) {
+			fn.apply(this, result)
 		}
 	}
 	resume.wait = function(pos) {
@@ -93,7 +95,8 @@ function wait(fn, _pending) {
 		if (pos === void 0) pos = pending
 		return function(err, res) {
 			if (err) {
-				if (fn) fn.call(this, err)
+				pending = 0
+				fn.call(this, err)
 			} else {
 				result[pos] = res
 				resume()
