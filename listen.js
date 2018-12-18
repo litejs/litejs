@@ -117,8 +117,8 @@ function exit(code) {
 	app.emit("beforeExit", softKill)
 
 	try {
-		if (app.httpServer)  app.httpServer.close(softKill.wait())
-		if (app.httpsServer) app.httpsServer.close(softKill.wait())
+		if (app.httpServer) app.httpServer.close().unref()
+		if (app.httpsServer) app.httpsServer.close().unref()
 	} catch(e) {}
 
 	setTimeout(function() {
