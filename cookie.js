@@ -1,5 +1,6 @@
 
-var valueEsc = /[^!#-~]|[%,;\\]/g
+var log = require("../lib/log")("app:cookie")
+, valueEsc = /[^!#-~]|[%,;\\]/g
 
 exports.get = getCookie
 exports.set = setCookie
@@ -28,10 +29,15 @@ function getCookie(name, opts) {
 				}
 			}
 		})
-		throw "Error: Cookie fixation detected: " + req.headers.cookie
+		log.warn("Cookie fixation detected: %s", req.headers.cookie)
+		return
 	}
 
-	return decodeURIComponent((junks[1] || "").split(";")[0])
+	try {
+		return decodeURIComponent((junks[1] || "").split(";")[0])
+	} catch(e) {
+		log.warn("Invalid cookie '%s' in: %s", name, req.headers.cookie)
+	}
 }
 
 function setCookie(name, value, opts) {
@@ -61,5 +67,6 @@ function setCookie(name, value, opts) {
 	} else {
 		existing.push(cookie)
 	}
+	log.debug("Set-Cookie: %s", cookie)
 }
 
