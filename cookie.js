@@ -1,9 +1,16 @@
 
+var valueEsc = /[^!#-~]|[%,;\\]/g
+
 exports.get = getCookie
 exports.set = setCookie
 
 function getCookie(name, opts) {
-	opts = opts || {}
+	if (typeof name === "object") {
+		opts = name
+		name = opts.name
+	} else {
+		opts = opts || {}
+	}
 
 	var req = this
 	, junks = ("; " + req.headers.cookie).split("; " + name + "=")
@@ -29,16 +36,13 @@ function getCookie(name, opts) {
 
 function setCookie(name, value, opts) {
 	var res = this
-	, existing = (res._headers || {})["set-cookie"] || []
-
-	if (!Array.isArray(existing)) {
-		existing = [ existing ]
-	}
-
-	value = encodeURIComponent(value || "")
+	, existing = (res._headers || setCookie)["set-cookie"]
+	, cookie = (
+		typeof name === "object" ? (opts = name).name : name
+	) + "=" + (value || "").replace(valueEsc, encodeURIComponent)
 
 	if (opts) {
-		value +=
+		cookie +=
 		// Max-Age=1 - Number of seconds until the cookie expires.
 		// ie8 do not support max-age.
 		// if both (Expires and Max-Age) are set, Max-Age will have precedence.
@@ -50,8 +54,12 @@ function setCookie(name, value, opts) {
 		(opts.sameSite ? "; SameSite=" + opts.sameSite : "")
 	}
 
-	existing.push(name + "=" + value)
-
-	res.setHeader("Set-Cookie", existing)
+	if (!Array.isArray(existing)) {
+		res.setHeader("Set-Cookie", (
+			existing === void 0 ? cookie : [existing, cookie]
+		))
+	} else {
+		existing.push(cookie)
+	}
 }
 
