@@ -81,10 +81,11 @@ module.exports = function createApp(_options) {
 	app.listen = require("./listen.js")
 	app.ratelimit = require("./ratelimit.js")
 
-	addMethod("get", "GET")
-	addMethod("post", "POST")
-	addMethod("patch", "PATCH")
 	addMethod("del", "DELETE")
+	addMethod("get", "GET")
+	addMethod("patch", "PATCH")
+	addMethod("post", "POST")
+	addMethod("put", "PUT")
 
 	return app
 
@@ -116,9 +117,9 @@ module.exports = function createApp(_options) {
 					oldUrl = req.url
 					req.baseUrl = path
 					req.url = req.url.slice(path.length) || "/"
-					method(req, res, nextPath, options)
+					method.call(app, req, res, nextPath, options)
 				} else {
-					method(req, res, next, options)
+					method.call(app, req, res, next, options)
 				}
 			}
 		}
