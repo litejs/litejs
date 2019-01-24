@@ -4,6 +4,7 @@ var log = require("../lib/log")("app:cookie")
 
 exports.get = getCookie
 exports.set = setCookie
+exports.escape = escapeCookie
 
 function getCookie(name, opts) {
 	if (typeof name === "object") {
@@ -45,7 +46,7 @@ function setCookie(name, value, opts) {
 	, existing = (res._headers || setCookie)["set-cookie"]
 	, cookie = (
 		typeof name === "object" ? (opts = name).name : name
-	) + "=" + (value || "").replace(valueEsc, encodeURIComponent)
+	) + "=" + escapeCookie(value)
 
 	if (opts) {
 		cookie +=
@@ -68,5 +69,9 @@ function setCookie(name, value, opts) {
 		existing.push(cookie)
 	}
 	log.debug("Set-Cookie: %s", cookie)
+}
+
+function escapeCookie(value) {
+	return typeof value === "string" ? value.replace(valueEsc, encodeURIComponent) : ""
 }
 
