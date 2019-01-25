@@ -93,8 +93,8 @@ function getContent(next, reqOpts) {
 
 	function handleEnd() {
 		try {
-			req.body = negod.o(tmp)
-			next(null, req.body, req.files)
+			req.body = typeof negod.o === "function" ? negod.o(tmp) : tmp
+			next(null, req.body, req.files, negod)
 		} catch (e) {
 			next(e)
 		}
