@@ -1,8 +1,4 @@
 
-var debug = require("../lib/log.js")
-, log = debug("app:ratelimit")
-, logBlock = debug("app:ratelimit:block")
-, logLeak = debug("app:ratelimit:leak")
 
 // Leaky bucket
 //
@@ -20,6 +16,7 @@ function createRatelimit(opts) {
 	opts = opts || {}
 
 	var counters = {}
+	, log = require("../lib/log.js")("app:ratelimit:" + opts.name)
 	, nulls = 0
 	, limit = opts.limit || 1000
 	, time = opts.time || 60*60*1000
@@ -29,7 +26,7 @@ function createRatelimit(opts) {
 	, tickTime = (time/steps)|0
 	, leak = Math.ceil(limit/steps)
 
-	log("created", opts)
+	log("create %o", opts)
 	setInterval(tick, tickTime)
 
 	return ratelimit
@@ -44,7 +41,7 @@ function createRatelimit(opts) {
 			res.setHeader("Rate-Limit", limit)
 
 			if (remaining < 0) {
-				logBlock(field, key)
+				log.info(field, key)
 				setTimeout(block, penalty, res, remaining)
 			} else {
 				res.setHeader("Rate-Limit-Remaining", remaining)
@@ -86,7 +83,7 @@ function createRatelimit(opts) {
 			}
 			nulls += clean
 		}
-		logLeak("leak:%s clean:%s size:%s", leak, clean, count)
+		if (clean > 0) log("leak:%s clean:%s size:%s", leak, clean, count)
 	}
 }
 
