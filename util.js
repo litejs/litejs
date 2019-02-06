@@ -10,8 +10,10 @@ exports.urlRe = /^([-.\da-z]+:)?\/\/(([\da-z.]*)(?::(\d+))?)(\/.*?)(\?.*?)?(#.*)
 exports.domainRe = /^(?:(?:xn-|[a-z\d]+)(?:-[a-z\d]+)*(?:\.(?=.)|$)){2,}/i
 exports.ipv4Re = /^(?:(?:25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(?:\.(?=.)|$)){4}$/
 exports.ipv6Re = /^((?=.*::)(([1-9a-f][\da-f]{0,3}|0|)(:(?=[^:])|::(?!.*::)|$)){1,8}|([\da-f]{1,4}(:(?=[^:])|$)){8})$/i
-exports.ip2int = ip2int
+exports.buf2ip = buf2ip
 exports.int2ip = int2ip
+exports.ip2buf = ip2buf
+exports.ip2int = ip2int
 exports.ipInNet = ipInNet
 
 // Usage:
@@ -125,6 +127,29 @@ function ipInNet(ip, cidr) {
 	//, last = netInt + size - 1
 
 	return (ip2int(ip) & mask) >>> 0 === (ip2int(junks[0]) & mask) >>> 0
+}
+
+function ip2buf(str) {
+	var arr = str.split(":", 8)
+	, len = arr.length
+	if (arr[len - 1].length > 4) {
+		return Buffer.from(arr[len - 1].split(".", 4))
+	}
+	for (; len--; ) {
+		arr[len] = (
+			arr[len] !== "" ?
+			("0000" + arr[len]).slice(-4) :
+			"00000000000000000000000000000000".slice(-4*(8-arr.length))
+		)
+	}
+	return Buffer.from(arr.join(""), "hex")
+}
+
+function buf2ip(buf) {
+	if (buf.length === 4) {
+		return buf.join(".")
+	}
+	return buf.toString("hex").replace(/.{4}(?=.)/g, "$&:")
 }
 
 function Storage() {
