@@ -7,7 +7,6 @@ var statusCodes = require("http").STATUS_CODES
 , getContent = require("./content.js")
 , mime = require("./mime.js")
 , util = require("../lib/util.js")
-, json = require("../lib/json.js")
 , events = require("../lib/events")
 , empty = {}
 , defaultOptions = {
@@ -50,8 +49,7 @@ module.exports = function createApp(_options) {
 	var uses = []
 	, options = app.options = {}
 
-	json.mergePatch(options, defaultOptions)
-	json.mergePatch(options, _options)
+	util.deepAssign(options, defaultOptions, _options)
 	events.asEmitter(app)
 
 	app.use = function appUse(method, path) {

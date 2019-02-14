@@ -1,8 +1,9 @@
 
+exports.deepAssign = deepAssign
 exports.lineEmitter = lineEmitter
-exports.uuid4 = uuid4
 exports.rand = rand
 exports.round = round
+exports.uuid4 = uuid4
 exports.wait = wait
 
 exports.urlRe = /^([-.\da-z]+:)?\/\/(([\da-z.]*)(?::(\d+))?)(\/.*?)(\?.*?)?(#.*)?$/
@@ -14,6 +15,21 @@ exports.int2ip = int2ip
 exports.ip2buf = ip2buf
 exports.ip2int = ip2int
 exports.ipInNet = ipInNet
+
+var hasOwn = {}.hasOwnProperty
+
+function deepAssign(to) {
+	for (var key, from, a = arguments, i = 1, len = a.length; i < len; ) {
+		if (from = a[i++]) for (key in from) if (hasOwn.call(from, key)) {
+			to[key] = (
+				from[key] && from[key].constructor === Object ?
+				deepAssign(to[key] && to[key].constructor === Object ? to[key] : {}, from[key]) :
+				from[key]
+			)
+		}
+	}
+	return to
+}
 
 // Usage:
 // var client = net.connect(soc)
