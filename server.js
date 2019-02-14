@@ -79,7 +79,6 @@ module.exports = function createApp(_options) {
 	app.readBody = readBody
 	app.static = require("./static.js")
 	app.listen = require("./listen.js")
-	app.ratelimit = require("./ratelimit.js")
 
 	addMethod("del", "DELETE")
 	addMethod("get", "GET")
