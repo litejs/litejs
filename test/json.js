@@ -91,10 +91,6 @@ test ("it should work with old Object.deepMerge tests", function(t) {
 	.end()
 }).
 
-it ("merges objects").
-equal(util.merge({a: 1}, {b: 2}), {a: 1, b: 2}).
-equal(util.merge({a: 1}, Object.create({b: 2}), {c: 3}), {a: 1, c: 3}).
-
 it ("has isObject").
 equal(util.isObject({}), true).
 equal(util.isObject(), false).

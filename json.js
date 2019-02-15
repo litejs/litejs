@@ -6,7 +6,6 @@
 	, hasOwn = pointerCache.hasOwnProperty
 
 	exports.clone = clone
-	exports.merge = merge
 	exports.mergePatch = mergePatch
 	exports.isObject = isObject
 
@@ -54,15 +53,6 @@
 				mergePatch(target, val, changed, previous, pointer)
 			}
 			target = patch
-		}
-		return target
-	}
-
-	function merge(target) {
-		for (var key, source, a = arguments, i = 1, len = a.length; i < len; ) {
-			if (source = a[i++]) for (key in source) if (hasOwn.call(source, key)) {
-				target[key] = source[key]
-			}
 		}
 		return target
 	}
