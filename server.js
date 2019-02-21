@@ -89,9 +89,6 @@ module.exports = function createApp(_options) {
 	function app(req, res, _next) {
 		var oldPath, oldUrl
 		, usePos = 0
-		if (typeof _next !== "function") {
-			_next = end
-		}
 
 		function next(err) {
 			if (err) {
@@ -107,8 +104,14 @@ module.exports = function createApp(_options) {
 				path && path !== req.url.slice(0, path.length)
 				) {
 				next()
+			} else if (uses[usePos - 1] === void 0) {
+				if (typeof _next === "function") {
+					_next()
+				} else {
+					res.sendStatus(404)
+				}
 			} else {
-				method = uses[usePos - 1] || _next
+				method = uses[usePos - 1]
 				if (path) {
 					oldPath = req.baseUrl
 					oldUrl = req.url
@@ -141,10 +144,6 @@ module.exports = function createApp(_options) {
 			arr.unshift(methodString)
 			return app.use.apply(app, arr)
 		}
-	}
-
-	function end(req, res) {
-		res.sendStatus(404)
 	}
 }
 
