@@ -88,7 +88,10 @@ module.exports = function createApp(_options) {
 
 	function app(req, res, _next) {
 		var oldPath, oldUrl
+		, tryCatch = true
 		, usePos = 0
+
+		next()
 
 		function next(err) {
 			if (err) {
@@ -96,30 +99,39 @@ module.exports = function createApp(_options) {
 			}
 			var method = uses[usePos]
 			, path = uses[usePos + 1]
-
-			usePos += 3
+			, pos = usePos += 3
 
 			if (
 				method && method !== req.method ||
 				path && path !== req.url.slice(0, path.length)
 				) {
 				next()
-			} else if (uses[usePos - 1] === void 0) {
+			} else if (uses[pos - 1] === void 0) {
 				if (typeof _next === "function") {
 					_next()
 				} else {
 					res.sendStatus(404)
 				}
 			} else {
-				method = uses[usePos - 1]
+				method = uses[pos - 1]
 				if (path) {
 					oldPath = req.baseUrl
 					oldUrl = req.url
 					req.baseUrl = path
 					req.url = req.url.slice(path.length) || "/"
-					method.call(app, req, res, nextPath, options)
+				}
+				if (tryCatch === true) {
+					tryCatch = false
+					try {
+						method.call(app, req, res, path ? nextPath : next, options)
+					} catch(e) {
+						return sendError(res, options, e)
+					}
 				} else {
-					method.call(app, req, res, next, options)
+					method.call(app, req, res, path ? nextPath : next, options)
+				}
+				if (pos === usePos) {
+					tryCatch = true
 				}
 			}
 		}
@@ -127,11 +139,6 @@ module.exports = function createApp(_options) {
 			req.baseUrl = oldPath
 			req.url = oldUrl
 			next(e)
-		}
-		try {
-			next()
-		} catch(e) {
-			sendError(res, options, e)
 		}
 	}
 
