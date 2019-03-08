@@ -21,6 +21,7 @@
 		var emitter = this === exports ? empty : this
 		, events = emitter._e || (emitter._e = Object.create(null))
 		if (type && fn) {
+			if (typeof fn === "string") fn = emit.bind(null, fn)
 			emit.call(emitter, "newListener", type, fn, scope, _origin)
 			;(events[type] || (events[type] = [])).unshift(scope, _origin, fn)
 		}
