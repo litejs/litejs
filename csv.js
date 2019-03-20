@@ -48,17 +48,30 @@
 
 	function decode(str, opts) {
 		var match
-		, lines = str.match(re)
 		, row = []
-		, arr = [row]
+		, head = row
+		, arr = []
+		, i = 0
+
+		if (opts && opts.head === false) {
+			arr.push(row = [])
+			head = null
+		}
+
 
 		for (; match = re.exec(str); ) {
 			if (match[0] === "\n" || match[0] === "\r\n") {
-				arr.push(row = [])
+				arr.push(row = head ? {} : [])
+				i = 0
 			} else {
-				row.push(typeof match[1] === "string" ? match[1].replace(/""/g, '"') : match[0])
+				row[
+					head && head !== row ?
+					head[i++] :
+					i++
+				] = typeof match[1] === "string" ? match[1].replace(/""/g, '"') : match[0]
 			}
 		}
+		if (i==0) arr.length -= 1
 
 		return arr
 	}
