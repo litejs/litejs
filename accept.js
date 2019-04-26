@@ -3,6 +3,7 @@
 /*! litejs.com/MIT-LICENSE.txt */
 
 module.exports = function(choices, priority) {
+	'use strict'
 	var group = 0
 	, ruleSeq = 0
 	, rules = choices.constructor == Object ? Object.keys(choices) : choices
