@@ -11,7 +11,7 @@ module.exports = function(choices, priority) {
 	, reStr = 'var r=/(?:^|,\\s*)(?:('
 	+ ('' + rules).replace(/[^,;]+|\s*;\s*(\w+)=("([^"]*)"|[^,;\s]*)|,/ig, function add(rule, key, token, qstr, offset) {
 		if (key) {
-			fnStr += ',' + key + ':unescape(m[' + (++group + 1) + ']!==void 0?m[' + (group + 1) + ']:m[' + (group++) + ']||"' + escape(qstr == null ? token : qstr ) + '")'
+			fnStr += ',' + key + ':unescape(m[' + (++group + 1) + ']==null?m[' + (group++) + ']||"' + escape(qstr == null ? token : qstr ) + '":m[' + group + '])'
 			return '(?=(?:"[^"]*"|[^,])*;\\s*' + key + '(?:=|\\*=utf-8\'\\w*\')("([^"]*)"|[^\\s,;]+)|)'
 		}
 		if (rule === ',') {
