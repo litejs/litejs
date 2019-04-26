@@ -2,7 +2,7 @@
 
 /*! litejs.com/MIT-LICENSE.txt */
 
-module.exports = function(choices, priority) {
+this.accept = function(choices, priority) {
 	'use strict'
 	var group = 0
 	, ruleSeq = 0

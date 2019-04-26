@@ -4,7 +4,7 @@ var fs = require("fs")
 , path = require("path")
 , qs = require("querystring")
 , Writable = require("stream").Writable
-, accept = require("./accept.js")
+, accept = require("./accept.js").accept
 , rnrn = Buffer.from("\r\n\r\n")
 , negotiateContent = accept({
 	'application/json': function(str) {
