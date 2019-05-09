@@ -13,7 +13,7 @@ this.accept = function(choices, priority) {
 	return Function(
 		'c,R',
 		'var r=/(?:^|,\\s*)(?:(' +
-		('' + rules).replace(/[^,;]+|\s*;\s*(\w+)=("([^"]*)"|[^,;\s]*)|,/ig, function add(rule, key, token, qstr, offset) {
+		('' + rules).replace(/[^,;]+|\s*;\s*(\w+)=("([^"]*)"|[^,;\s]*)|,/ig, function add(rule, key, token, qstr, offset, all) {
 			if (key) {
 				fnStr += ',' + key + ':unescape(m[' + (++group + 1) + ']==null?m[' + (group++) + ']||"' + escape(qstr == null ? token : qstr ) + '":m[' + group + '])'
 				return '(?=(?:"[^"]*"|[^,])*;\\s*' + key + '(?:=|\\*=utf-8\'\\w*\')("([^"]*)"|[^\\s,;]+)|)'
@@ -33,6 +33,12 @@ this.accept = function(choices, priority) {
 				fnStr += ',type:' + capture(1, /(.*)\\\//, '($1)\\/')
 				+ ',subtype:' + capture(2, /\/(.+?)(?=\\\+|$)/, '/($1)')
 				+ ',suffix:' + capture(3, /\+(.+)/, '+($1)')
+			} else if (key = priority == "lang" && rule.match(/^..(?=\-)/i)) {
+				// Basic Filtering
+				// https://tools.ietf.org/html/rfc4647#section-3.3.1
+				if (!RegExp(key + "(?!-)", "i").test(all)) {
+					rule = "(?:" + rule + "|" + key + "(?!.+" + rule + "))"
+				}
 			}
 			rule = rule.replace(/\*/g, '[^,;\\s\\/+]+?')
 
@@ -47,7 +53,7 @@ this.accept = function(choices, priority) {
 		'))\\s*(?=,|;|$)(?:"[^"]*"|[^,])*/gi;' +
 		fnStr.replace(/m\[\d+\]\?(?!.*m\[\d+\]\?)/, '') +
 		'});){t=1*m.q;if((m.q=t>=0&&t<1?t:1)>l.q' +
-		(priority || '') +
+		(priority && priority !== "lang" ? priority : '') +
 		')l=m}return l}'
 	)(choices, rules)
 }
