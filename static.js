@@ -8,6 +8,7 @@ module.exports = function createStatic(_root, _opts) {
 	, opts = Object.assign({
 		index: "index.html",
 		maxAge: 31536000, // One year
+		rangeSize: 500 * 1024,
 		cacheControl: {
 			"cache.manifest": 0,
 			"worker.js": 0

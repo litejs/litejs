@@ -314,7 +314,9 @@ function sendFile(file, _opts, next) {
 
 		// https://tools.ietf.org/html/rfc7233 HTTP/1.1 Range Requests
 
-		headers["Accept-Ranges"] = "bytes"
+		if (stat.size > opts.rangeSize) {
+			headers["Accept-Ranges"] = "bytes"
+		}
 
 		var info = {
 			code: 200,
