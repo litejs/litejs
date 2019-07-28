@@ -58,16 +58,29 @@ var undef, a, b, c
 
 
 
-var test = require("..").
+var test = require("..")
 
-describe ("JSON.mergePatch").
-it("should apply merge patches")
+.describe ("JSON.mergePatch")
+.it("should apply merge patches", function(assert) {
+	function addTest(method, a, b, c, d, e) {
+		var changes = []
+		, previous = {}
+		assert.equal(util[method](util.clone(a), b, changes, previous), c)
+		.equal(changes, d)
+		.equal(util[method](util.clone(a), b), c)
 
-for (var x = 0; x < tests.length; )
-	addTest("mergePatch", tests[x++], tests[x++], tests[x++], tests[x++], tests[x++])
+		if (e) {
+			assert.equal(previous, e)
+		}
+	}
+	for (var x = 0; x < tests.length; ) {
+		addTest("mergePatch", tests[x++], tests[x++], tests[x++], tests[x++], tests[x++])
+	}
+	assert.end()
+})
 
-test.
-test ("it should work with old Object.deepMerge tests", function(t) {
+
+.it ("should work with old Object.deepMerge tests", function(t) {
 	a = { a:"A"
 		, b:null
 		, c:"C"
@@ -85,24 +98,27 @@ test ("it should work with old Object.deepMerge tests", function(t) {
 	c = []
 	util.mergePatch(a, b, c)
 
-	t.deepEqual(a, {"a":"A","b":"B","d":null,"e":{"ea":"EA","eb":"EB","ed":null},"f":{"fa":1}})
-	.deepEqual(b, {"b":"B","c":null,"e":{"eb":"EB","ec":null},"f":{"fa":1},"g":null})
-	.deepEqual(c, ["/b","/c","/e/eb","/e/ec","/e","/f/fa","/f","/g"])
+	t.equal(a, {"a":"A","b":"B","d":null,"e":{"ea":"EA","eb":"EB","ed":null},"f":{"fa":1}})
+	.equal(b, {"b":"B","c":null,"e":{"eb":"EB","ec":null},"f":{"fa":1},"g":null})
+	.equal(c, ["/b","/c","/e/eb","/e/ec","/e","/f/fa","/f","/g"])
 	.end()
-}).
+})
 
-it ("has isObject").
-equal(util.isObject({}), true).
-equal(util.isObject(), false).
-equal(util.isObject(null), false).
-equal(util.isObject(""), false).
-equal(util.isObject("a"), false).
-equal(util.isObject(0), false).
-equal(util.isObject(1), false).
-equal(util.isObject([]), false).
+.it ("has isObject", function(assert) {
+	assert
+	.equal(util.isObject({}), true)
+	.equal(util.isObject(), false)
+	.equal(util.isObject(null), false)
+	.equal(util.isObject(""), false)
+	.equal(util.isObject("a"), false)
+	.equal(util.isObject(0), false)
+	.equal(util.isObject(1), false)
+	.equal(util.isObject([]), false)
+	.end()
+})
 
-describe ("util.clone").
-test("it clones objects", function(assert) {
+.describe ("util.clone")
+.it("clones objects", function(assert) {
 	Object.prototype.dummy = 123
 	var dateClone = util.clone(date)
 	, map = {a:3}
@@ -129,14 +145,14 @@ test("it clones objects", function(assert) {
 	assert.notStrictEqual(re4, re4Clone)
 	assert.notStrictEqual(re5, re5Clone)
 
-	assert.deepEqual(arr, arrClone)
-	assert.deepEqual(date, dateClone)
-	assert.deepEqual(map, mapClone)
-	assert.deepEqual(re1, re1Clone)
-	assert.deepEqual(re2, re2Clone)
-	assert.deepEqual(re3, re3Clone)
-	assert.deepEqual(re4, re4Clone)
-	assert.deepEqual(re5, re5Clone)
+	assert.equal(arr, arrClone)
+	assert.equal(date, dateClone)
+	assert.equal(map, mapClone)
+	assert.equal(re1, re1Clone)
+	assert.equal(re2, re2Clone)
+	assert.equal(re3, re3Clone)
+	assert.equal(re4, re4Clone)
+	assert.equal(re5, re5Clone)
 
 	delete Object.prototype.dummy
 
@@ -152,16 +168,5 @@ test("it clones objects", function(assert) {
 //isOptimized(util.isObject, ["a"]).
 
 
-function addTest(method, a, b, c, d, e) {
-	var changes = []
-	, previous = {}
-	test = test.deepEqual(util[method](util.clone(a), b, changes, previous), c)
-	test = test.deepEqual(changes, d)
-	test = test.deepEqual(util[method](util.clone(a), b), c)
-
-	if (e) {
-		test = test.deepEqual(previous, e)
-	}
-}
 
 
