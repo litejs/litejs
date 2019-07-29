@@ -283,18 +283,17 @@ function sendFile(file, _opts, next) {
 		/*/
 		//*/
 
-		/*
-		 * It is important to specify one of Expires or Cache-Control max-age,
-		 * and one of Last-Modified or ETag, for all cacheable resources.
-		 * It is redundant to specify both Expires and Cache-Control: max-age,
-		 * or to specify both Last-Modified and ETag.
-		 */
-
 		if (typeof opts.maxAge === "number") {
 			tmp = opts.cacheControl && opts.cacheControl[file]
 			if (typeof tmp !== "number") tmp = opts.maxAge
-			headers["Last-Modified"] = stat.mtime.toUTCString()
-			headers["Cache-Control"] = tmp === 0 ? "no-cache" : "public, max-age=" + tmp
+
+			// max-age=N is relative to the time of the request
+			headers["Cache-Control"] = tmp > 0 ? "public, max-age=" + tmp : "no-cache"
+
+			// Last-Modified header is used only when
+			// Cache-control: max-age=N and Expires header is not present:
+			//     max-age = (Date - Last-modified) / 10
+			// headers["Last-Modified"] = stat.mtime.toUTCString()
 		}
 
 		if (opts.download) {
