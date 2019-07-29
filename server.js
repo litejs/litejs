@@ -239,6 +239,7 @@ var errIsDir = {
 	message: "Range Not Satisfiable"
 }
 , flvMagic = "FLV" + String.fromCharCode(1,5,0,0,0,9,0,0,0,9)
+, ieRe = /\bMSIE (\d+)/
 
 function sendFile(file, _opts, next) {
 	var res = this
@@ -365,6 +366,22 @@ function sendFile(file, _opts, next) {
 			res.write(flvMagic)
 		}
 
+		/*
+		<meta http-equiv="x-dns-prefetch-control" content="off">
+
+		To be sure you're using the latest rendering mode for IE.
+		The best practice is an X-UA-Compatible HTTP Header.
+		<meta http-equiv="X-UA-Compatible" content="IE=edge">
+
+		X-Frame-Options: deny
+		Content-Security-Policy: script-src 'self'; frame-src 'none'
+		Strict-Transport-Security: max-age=778000
+		*/
+
+		if (headers["Content-Type"] == "text/html" && (tmp = ieRe.exec(req.headers["user-agent"]))) {
+			// Chrome Frame works in IE6-9, and was retired on February 25, 2014
+			res.setHeader("X-UA-Compatible", tmp[1] < 10 ? "IE=edge,chrome=1" : "IE=edge")
+		}
 
 		fs.createReadStream(file, {
 			flags: "r",
