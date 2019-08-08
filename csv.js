@@ -21,17 +21,18 @@
 	exports.encode = encode
 	exports.decode = decode
 
-	var Item = require("../model").Item
-	, re = /"((?:""|[^"])*)"|[^",\n\r]+|\r?\n/g
+	var get = require("../model").Item.get
+	, re = /"((?:""|[^"])*)"|[^",\n\r]+|,|\r?\n/g
 
-	function encode(obj, opts) {
-		var re = opts.re || /[",\r\n]/
+	function encode(obj, _opts) {
+		var opts = _opts || {}
+		, re = opts.re || /[",\r\n]/
 		, arr = Array.isArray(obj) ? obj : [ obj ]
 		, keys = opts.select ? opts.select.replace(/\[[^\]]+?\]/g, "").split(",") : Object.keys(arr[0])
 
 		arr = arr.map(function(obj) {
 			return keys.map(function(key) {
-				var value = Item.get(obj, key)
+				var value = get(obj, key)
 				if (Array.isArray(value)) value = value.join(";")
 				return (
 					value == null ? opts.NULL :
@@ -46,29 +47,29 @@
 		return (opts.prefix || "") + arr.join(opts.br) + (opts.postfix || "")
 	}
 
-	function decode(str, opts) {
-		var match
+	function decode(str, _opts) {
+		var m
+		, opts = _opts || {}
 		, row = []
 		, head = row
 		, arr = []
 		, i = 0
 
-		if (opts && opts.head === false) {
-			arr.push(row = [])
-			head = null
+		if (opts.headers !== "on") {
+			head = opts.keys ? opts.keys.split(",") : null
+			row = arr[0] = head === null ? [] : {}
 		}
 
-
-		for (; match = re.exec(str); ) {
-			if (match[0] === "\n" || match[0] === "\r\n") {
-				arr.push(row = head ? {} : [])
+		for (; m = re.exec(str); ) {
+			if (m[0] === "\n" || m[0] === "\r\n") {
+				arr.push(row = head === null ? [] : {})
 				i = 0
+			} else if (m[0] === ",") {
+				i++
 			} else {
 				row[
-					head && head !== row ?
-					head[i++] :
-					i++
-				] = typeof match[1] === "string" ? match[1].replace(/""/g, '"') : match[0]
+					head !== null && head !== row ? head[i] : i
+				] = typeof m[1] === "string" ? m[1].replace(/""/g, '"') : m[0]
 			}
 		}
 		if (i==0) arr.length -= 1
