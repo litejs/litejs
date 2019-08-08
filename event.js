@@ -25,7 +25,7 @@
 			emit.call(emitter, "newListener", type, fn, scope, _origin)
 			;(events[type] || (events[type] = [])).unshift(scope, _origin, fn)
 		}
-		return emitter
+		return this
 	}
 
 	function off(type, fn, scope) {
@@ -41,15 +41,18 @@
 				}
 			}
 		}
-		return emitter
+		return this
 	}
 
 	function one(type, fn, scope) {
 		var emitter = this === exports ? empty : this
 		function remove() {
-			emitter.off(type, fn, scope).off(type, remove, scope)
+			off.call(emitter, type, fn, scope)
+			off.call(emitter, type, remove, scope)
 		}
-		return emitter.on(type, remove, scope).on(type, fn, scope)
+		on.call(emitter, type, remove, scope)
+		on.call(emitter, type, fn, scope)
+		return this
 	}
 
 	// emitNext
@@ -72,7 +75,7 @@
 
 	function listen(emitter, ev, fn, scope, _origin) {
 		if (emitter) {
-			emitter.on(ev, fn, scope)
+			on.call(emitter, ev, fn, scope)
 			;(this._l || (this._l = [])).push([emitter, ev, fn, scope, _origin])
 		}
 		return this
@@ -85,7 +88,7 @@
 			a = listening[i]
 			if (key === "*" || a.indexOf(key) > -1) {
 				listening.splice(i, 1)
-				a[0].off(a[1], a[2], a[3])
+				off.call(a[0], a[1], a[2], a[3])
 			}
 		}
 		return this
