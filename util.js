@@ -154,7 +154,7 @@ function ip2buf(str) {
 		arr[len] = (
 			arr[len] !== "" ?
 			("0000" + arr[len]).slice(-4) :
-			"00000000000000000000000000000000".slice(-4*(8-arr.length))
+			"00000000000000000000000000000000".slice(-4*(9 - arr.length))
 		)
 	}
 	return Buffer.from(arr.join(""), "hex")
