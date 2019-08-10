@@ -4,7 +4,6 @@ exports.uuid4 = uuid4
 exports.rand = rand
 exports.round = round
 exports.wait = wait
-exports.Storage = Storage
 
 exports.urlRe = /^([-.\da-z]+:)?\/\/(([\da-z.]*)(?::(\d+))?)(\/.*?)(\?.*?)?(#.*)?$/
 exports.domainRe = /^(?:(?:xn-|[a-z\d]+)(?:-[a-z\d]+)*(?:\.(?=.)|$)){2,}/i
@@ -150,26 +149,5 @@ function buf2ip(buf) {
 		return buf.join(".")
 	}
 	return buf.toString("hex").replace(/.{4}(?=.)/g, "$&:")
-}
-
-function Storage() {
-	this.data = {}
-}
-
-Storage.prototype = {
-	get: function(key, next) {
-		var obj = this.data[key]
-		, err = obj ? null : "Item not found"
-		next(err, obj)
-	},
-	set: function(key, val, next) {
-		this.data[key] = val
-		next(null)
-	},
-	rename: function(key, newKey, next) {
-		this.data[newKey] = this.data[key]
-		delete this.data[key]
-		next(null)
-	}
 }
 
