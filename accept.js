@@ -11,12 +11,21 @@ this.accept = function(choices, priority) {
 	, fnStr = 'return function(i){for(var m,t,l={q:null};(m=r.exec(i))&&(m='
 
 	return Function(
-		'c,R',
+		'c,R,D',
 		'var r=/(?:^|,\\s*)(?:(' +
 		('' + rules).replace(/[^,;]+|\s*;\s*(\w+)=("([^"]*)"|[^,;\s]*)|,/ig, function add(rule, key, token, qstr, offset, all) {
 			if (key) {
-				fnStr += ',' + key + ':unescape(m[' + (++group + 1) + ']==null?m[' + (group++) + ']||"' + escape(qstr == null ? token : qstr ) + '":m[' + group + '])'
-				return '(?=(?:"[^"]*"|[^,])*;\\s*' + key + '(?:=|\\*=utf-8\'\\w*\')("([^"]*)"|[^\\s,;]+)|)'
+				// Parse Parameters
+				//
+				// Non-extended notation, using "quoted-string" RFC-8187
+				//     foo: bar; title="US-$ rates"
+				// Extended notation, using the Unicode character U+00A3 ("£", POUND SIGN):
+				//     foo: bar; title*=utf-8'en'%C2%A3%20rates
+
+				fnStr += ',' + key + ':D(m[' + (++group) + '],m[' + (++group + 1) + ']==null?m[' + (group++) + ']||'
+					+ JSON.stringify(qstr == null ? token : qstr)
+					+ ':m[' + group + '])'
+				return '(?=(?:"[^"]*"|[^,])*;\\s*' + key + '(=|\\*=utf-8\'\\w*\')("([^"]*)"|[^\\s,;]+)|)'
 			}
 			if (rule == ',') {
 				return ')|('
@@ -55,6 +64,11 @@ this.accept = function(choices, priority) {
 		'});){t=1*m.q;if((m.q=t>=0&&t<1?t:1)>l.q' +
 		(priority && priority !== "lang" ? priority : '') +
 		')l=m}return l}'
-	)(choices, rules)
+	)(choices, rules, function(op, str) {
+		if (op !== "=") try {
+			str = decodeURIComponent(str)
+		} catch (e) {}
+		return str
+	})
 }
 
