@@ -420,7 +420,7 @@ function sendError(res, opts, e) {
 	var message = typeof e === "string" ? e : e.message
 	, map = opts.errors && (opts.errors[message] || opts.errors[e.name]) || empty
 	, error = {
-		id: util.rand(16),
+		id: Math.random().toString(36).slice(2,10),
 		time: res.req.date,
 		code: map.code || e.code || 500,
 		message: map.message || message
