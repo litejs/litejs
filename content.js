@@ -108,7 +108,6 @@ function multipart(boundary, reqOpts, req) {
 		boundary = Buffer.from("\r\n--" + boundary)
 	}
 
-	seq++
 	makeTable(boundary)
 
 	var headers, fileStream
@@ -119,6 +118,7 @@ function multipart(boundary, reqOpts, req) {
 	, nextPos = needle.length - 3
 	, remainingFields = number(reqOpts.maxFields, req.opts.maxFields, 1000)
 	, remainingFiles = number(reqOpts.maxFiles, req.opts.maxFiles, 1000)
+	, savePath = (reqOpts.path || os.tmpdir() + "/up-") + process.pid + "-" + (seq++) + "-"
 
 	return new Writable({
 		write: function(chunk, enc, cb) {
@@ -181,10 +181,7 @@ function multipart(boundary, reqOpts, req) {
 							if (!remainingFiles--) return writable.destroy({ code: 413, message: "maxFiles exceeded"})
 							writable.emit("file", negod, saveTo)
 							if (!fileStream) {
-								saveTo(
-									(reqOpts.path || os.tmpdir() + "/upload-") +
-									process.pid + "-" + seq + "-" + remainingFiles
-								)
+								saveTo(savePath + remainingFiles)
 							}
 						}
 						needle = boundary
