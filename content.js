@@ -63,7 +63,14 @@ function getContent(next, reqOpts) {
 		stream = stream.pipe(multipart(negod.boundary, reqOpts || {}, req))
 
 		stream.on("field", function(negod) {
-			req.body[negod.name] = negod.content.toString()
+			var step = req.body
+			, key = negod.name
+			key.replace(/\[(.*?)\]/g, function(_, _key, offset) {
+				if (step == req.body) key = key.slice(0, offset)
+				step = step[key] || (step[key] = _key && +_key != _key ? {} : [])
+				key = _key
+			})
+			step[key || step.length] = negod.content.toString()
 		})
 		stream.on("file", function(negod) {
 			if (!req.files) req.files = []
