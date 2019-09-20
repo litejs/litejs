@@ -64,14 +64,12 @@
 		, emitter = this === exports ? empty : this
 		, _e = emitter._e
 		, arr = _e ? (_e[type] || empty).concat(_e["*"] || empty) : empty
-		_e = 0
-		if (i = arr.length) {
+		if (i = _e = arr.length) {
 			for (args = arr.slice.call(arguments, 1); i--; ) {
 				arr[i--].apply(arr[--i] || emitter, args)
-				_e++
 			}
 		}
-		return _e
+		return _e / 3
 	}
 
 	function listen(emitter, ev, fn, scope, _origin) {
