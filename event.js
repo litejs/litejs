@@ -1,9 +1,10 @@
 
 !function(exports) {
 	var empty = []
+	, Event = exports.Event || exports
 
-	exports.Emitter = EventEmitter
-	exports.asEmitter = asEmitter
+	Event.Emitter = EventEmitter
+	Event.asEmitter = asEmitter
 
 	function EventEmitter() {}
 
@@ -21,7 +22,7 @@
 		var emitter = this === exports ? empty : this
 		, events = emitter._e || (emitter._e = Object.create(null))
 		if (type && fn) {
-			if (typeof fn === "string") fn = emit.bind(null, fn)
+			if (typeof fn === "string") fn = emit.bind(emitter, fn)
 			emit.call(emitter, "newListener", type, fn, scope, _origin)
 			;(events[type] || (events[type] = [])).unshift(scope, _origin, fn)
 		}
@@ -95,5 +96,5 @@
 	}
 
 // `this` refers to the `window` in browser and to the `exports` in Node.js.
-}(this.Event || this)
+}(this)
 
