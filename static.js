@@ -16,11 +16,11 @@ module.exports = function createStatic(_root, _opts) {
 	}, _opts)
 
 	if (opts.cacheControl) {
-		var map = {}
-		Object.each(opts.cacheControl, function(time, file) {
-			map[path.resolve(root, file)] = time
-		})
-		opts.cacheControl = map
+		Object.each(opts.cacheControl, resolveFile, opts.cacheControl = {})
+	}
+
+	if (opts.headers) {
+		Object.each(opts.headers, resolveFile, opts.headers = {})
 	}
 
 	return function(req, res, next) {
@@ -56,6 +56,10 @@ module.exports = function createStatic(_root, _opts) {
 				next()
 			}
 		})
+	}
+
+	function resolveFile(val, file) {
+		this[file === "*" ? file : path.resolve(root, file)] = val
 	}
 }
 

@@ -347,11 +347,20 @@ function sendFile(file, _opts, next) {
 			headers["Content-Type"] += "; charset=UTF-8"
 		}
 
-
-		//**
 		headers["Content-Length"] = info.size
-		res.writeHead(info.code, headers)
 
+		if (headers["Content-Type"] == "text/html" && (tmp = ieRe.exec(req.headers["user-agent"]))) {
+			// Chrome Frame works in IE6-9, and was retired on February 25, 2014
+			headers["X-UA-Compatible"] = tmp[1] < 10 ? "IE=edge,chrome=1" : "IE=edge"
+		}
+
+
+		if (opts.headers) {
+			Object.assign(headers, opts.headers["*"])
+			Object.assign(headers, opts.headers[file])
+		}
+
+		res.writeHead(info.code, headers)
 		if (res.req.method == "HEAD") {
 			return res.end()
 		}
@@ -377,11 +386,6 @@ function sendFile(file, _opts, next) {
 		Content-Security-Policy: script-src 'self'; frame-src 'none'
 		Strict-Transport-Security: max-age=778000
 		*/
-
-		if (headers["Content-Type"] == "text/html" && (tmp = ieRe.exec(req.headers["user-agent"]))) {
-			// Chrome Frame works in IE6-9, and was retired on February 25, 2014
-			res.setHeader("X-UA-Compatible", tmp[1] < 10 ? "IE=edge,chrome=1" : "IE=edge")
-		}
 
 		fs.createReadStream(file, {
 			flags: "r",
