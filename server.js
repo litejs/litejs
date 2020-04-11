@@ -449,7 +449,7 @@ function readBody(req, res, next, opts) {
 
 function setLink(url, rel) {
 	var res = this
-	, existing = (res._headers || {})["link"] || []
+	, existing = res.getHeader("link") || []
 
 	if (!Array.isArray(existing)) {
 		existing = [ existing ]

@@ -43,7 +43,7 @@ function getCookie(name, opts) {
 
 function setCookie(name, value, opts) {
 	var res = this
-	, existing = (res._headers || setCookie)["set-cookie"]
+	, existing = res.getHeader("set-cookie")
 	, cookie = (
 		typeof name === "object" ? (opts = name).name : name
 	) + "=" + escapeCookie(value)
