@@ -27,6 +27,8 @@
 	function encode(obj, _opts) {
 		var opts = _opts || {}
 		, re = opts.re || /[",\r\n]/
+		, escRe = opts.esc || /"/g
+		, escVal = opts.escVal || '""'
 		, arr = Array.isArray(obj) ? obj : [ obj ]
 		, keys = opts.select ? opts.select.replace(/\[[^\]]+?\]/g, "").split(",") : Object.keys(arr[0])
 
@@ -36,7 +38,7 @@
 				if (Array.isArray(value)) value = value.join(";")
 				return (
 					value == null ? opts.NULL :
-					re.test(value+="") ? '"' + value.replace(/"/g, '""') + '"' :
+					re.test(value+="") ? '"' + value.replace(escRe, escVal) + '"' :
 					value
 				)
 			}).join(opts.delimiter)

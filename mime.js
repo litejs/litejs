@@ -137,6 +137,7 @@ module.exports = {
   "wvx": "video/x-ms-wvx",
   "xbm": "image/x-xbitmap",
   "xlw": "application/vnd.ms-excel",
+  "xls": "application/vnd.ms-excel",
   "xml": "text/xml",
   "xpm": "image/x-xpixmap",
   "xwd": "image/x-xwindowdump",
