@@ -44,7 +44,7 @@
 			}).join(opts.delimiter)
 		})
 		if (opts.headers === "on") {
-			arr.unshift(keys.join(opts.delimiter))
+			arr.unshift((opts.fields ? opts.fields.split(",") : keys).join(opts.delimiter))
 		}
 		return (opts.prefix || "") + arr.join(opts.br) + (opts.postfix || "")
 	}

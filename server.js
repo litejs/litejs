@@ -18,9 +18,10 @@ var statusCodes = require("http").STATUS_CODES
 	maxFieldSize: 1000,
 	maxFileSize:  Infinity,
 	negotiateAccept: accept([
-		'application/json;space=',
-		'text/csv;headers=no;delimiter=",";NULL=;br="\r\n"',
-		'application/sql;NULL=NULL;table=table;fields='
+		'application/json;space=;filename=',
+		'text/csv;headers=no;delimiter=",";NULL=;br="\r\n";fields=;filename=',
+		'application/vnd.ms-excel;headers=no;filename=file.xls;sheet=Sheet1;fields=',
+		'application/sql;NULL=NULL;table=table;fields=;filename='
 	]),
 	errors: {
 		// new Error([message[, fileName[, lineNumber]]])
@@ -201,15 +202,29 @@ function send(body, _opts) {
 	}
 
 	if (typeof body !== "string") {
+		if (negod.filename) {
+			res.setHeader("Content-Disposition", "attachment; filename=" + negod.filename)
+		}
 		negod.select = _opts && _opts.select || res.req.url.split("$select")[1] || ""
-		if (format == "csv") {
-			body = require("../lib/csv.js").encode(body, negod)
-		} else if (format == "sql") {
+		if (format == "sql") {
 			negod.re = /\D/
 			negod.br = "),\n("
 			negod.prefix = "INSERT INTO " +
 			negod.table + (negod.fields ? " (" + negod.fields + ")" : "") + " VALUES ("
 			negod.postfix = ");"
+			format = "csv"
+		} else if (format == "vnd.ms-excel") {
+			negod.prefix = '<?xml version="1.0" encoding="UTF-8"?>\n<?mso-application progid="Excel.Sheet"?>\n<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet" xmlns:html="https://www.w3.org/TR/html401/">\n<Worksheet ss:Name="' + opts.sheet + '"><Table><Row><Cell><Data ss:Type="String">'
+			negod.delimiter = '</Data></Cell><Cell><Data ss:Type="String">'
+			negod.br = '</Data></Cell></Row><Row><Cell><Data ss:Type="String">'
+			negod.postfix = '</Row></Table></Worksheet></Workbook>'
+			negod.re = /</
+			negod.esc = /</g
+			negod.escVal = "&lt;"
+			negod.NULL = ""
+			format = "csv"
+		}
+		if (format == "csv") {
 			body = require("../lib/csv.js").encode(body, negod)
 		} else {
 			body = JSON.stringify(body, null, +negod.space || negod.space)
