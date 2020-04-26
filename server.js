@@ -18,10 +18,10 @@ var statusCodes = require("http").STATUS_CODES
 	maxFieldSize: 1000,
 	maxFileSize:  Infinity,
 	negotiateAccept: accept([
-		'application/json;space=;filename=',
-		'text/csv;headers=no;delimiter=",";NULL=;br="\r\n";fields=;filename=',
-		'application/vnd.ms-excel;headers=no;filename=file.xls;sheet=Sheet1;fields=',
-		'application/sql;NULL=NULL;table=table;fields=;filename='
+		'application/json;space=;filename=;select=',
+		'text/csv;headers=no;delimiter=",";NULL=;br="\r\n";fields=;filename=;select=',
+		'application/vnd.ms-excel;headers=no;filename=file.xls;sheet=Sheet1;fields=;select=',
+		'application/sql;NULL=NULL;table=table;fields=;filename=;select='
 	]),
 	errors: {
 		// new Error([message[, fileName[, lineNumber]]])
@@ -227,7 +227,11 @@ function send(body, _opts) {
 		if (format == "csv") {
 			body = require("../lib/csv.js").encode(body, negod)
 		} else {
-			body = JSON.stringify(body, null, +negod.space || negod.space)
+			body = JSON.stringify(
+				body,
+				negod.select ? negod.select.split(",") : null,
+				+negod.space || negod.space
+			)
 		}
 	}
 
