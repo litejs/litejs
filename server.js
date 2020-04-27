@@ -6,6 +6,7 @@ var statusCodes = require("http").STATUS_CODES
 , cookie = require("./cookie.js")
 , getContent = require("./content.js")
 , mime = require("./mime.js")
+, csv = require("../lib/csv.js")
 , util = require("../lib/util.js")
 , events = require("../lib/events")
 , empty = {}
@@ -17,12 +18,34 @@ var statusCodes = require("http").STATUS_CODES
 	maxFiles:     1000,
 	maxFieldSize: 1000,
 	maxFileSize:  Infinity,
-	negotiateAccept: accept([
-		'application/json;space=;filename=;select=',
-		'text/csv;headers=no;delimiter=",";NULL=;br="\r\n";fields=;filename=;select=',
-		'application/vnd.ms-excel;headers=no;filename=file.xls;sheet=Sheet1;fields=;select=',
-		'application/sql;NULL=NULL;table=table;fields=;filename=;select='
-	]),
+	negotiateAccept: accept({
+		'application/json;space=;filename=;select=': function(data, negod) {
+			return JSON.stringify(
+				data,
+				negod.select ? negod.select.split(",") : null,
+				+negod.space || negod.space
+			)
+		},
+		'text/csv;headers=no;delimiter=",";NULL=;br="\r\n";fields=;filename=;select=': csv.encode,
+		'application/vnd.ms-excel;headers=no;NULL=;sheet=Sheet1;fields=;filename=file.xls;select=': function(data, negod) {
+			negod.prefix = '<?xml version="1.0" encoding="UTF-8"?>\n<?mso-application progid="Excel.Sheet"?>\n<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet" xmlns:html="https://www.w3.org/TR/html401/">\n<Worksheet ss:Name="' + negod.sheet + '"><Table><Row><Cell><Data ss:Type="String">'
+			negod.delimiter = '</Data></Cell><Cell><Data ss:Type="String">'
+			negod.br = '</Data></Cell></Row><Row><Cell><Data ss:Type="String">'
+			negod.postfix = '</Data></Cell></Row></Table></Worksheet></Workbook>'
+			negod.re = /</
+			negod.esc = /</g
+			negod.escVal = "&lt;"
+			return csv.encode(data, negod)
+		},
+		'application/sql;NULL=NULL;table=table;fields=;filename=;select=': function(data, negod) {
+			negod.re = /\D/
+			negod.br = "),\n("
+			negod.prefix = "INSERT INTO " +
+			negod.table + (negod.fields ? " (" + negod.fields + ")" : "") + " VALUES ("
+			negod.postfix = ");"
+			return csv.encode(data, negod)
+		}
+	}),
 	errors: {
 		// new Error([message[, fileName[, lineNumber]]])
 		//   - EvalError - The EvalError object indicates an error regarding the global eval() function.
@@ -206,33 +229,7 @@ function send(body, _opts) {
 			res.setHeader("Content-Disposition", "attachment; filename=" + negod.filename)
 		}
 		negod.select = _opts && _opts.select || res.req.url.split("$select")[1] || ""
-		if (format == "sql") {
-			negod.re = /\D/
-			negod.br = "),\n("
-			negod.prefix = "INSERT INTO " +
-			negod.table + (negod.fields ? " (" + negod.fields + ")" : "") + " VALUES ("
-			negod.postfix = ");"
-			format = "csv"
-		} else if (format == "vnd.ms-excel") {
-			negod.prefix = '<?xml version="1.0" encoding="UTF-8"?>\n<?mso-application progid="Excel.Sheet"?>\n<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet" xmlns:html="https://www.w3.org/TR/html401/">\n<Worksheet ss:Name="' + opts.sheet + '"><Table><Row><Cell><Data ss:Type="String">'
-			negod.delimiter = '</Data></Cell><Cell><Data ss:Type="String">'
-			negod.br = '</Data></Cell></Row><Row><Cell><Data ss:Type="String">'
-			negod.postfix = '</Row></Table></Worksheet></Workbook>'
-			negod.re = /</
-			negod.esc = /</g
-			negod.escVal = "&lt;"
-			negod.NULL = ""
-			format = "csv"
-		}
-		if (format == "csv") {
-			body = require("../lib/csv.js").encode(body, negod)
-		} else {
-			body = JSON.stringify(
-				body,
-				negod.select ? negod.select.split(",") : null,
-				+negod.space || negod.space
-			)
-		}
+		body = negod.o(body, negod)
 	}
 
 	res.setHeader("Content-Type", mime[format])
