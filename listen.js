@@ -46,38 +46,40 @@ function listen(port) {
 	return app
 }
 
-function _listen(port) {
+function _listen() {
 	var app = this
 	, options = app.options
-	, httpPort = process.env.PORT || port || 8080
-	, httpsPort = process.env.HTTPS_PORT || 8443
-	, secure = options.https || options.http2
-	, msg = "Listening"
-	, listenCount = 0
+	, httpsOptions = options.https || options.http2
 
 	if (app.httpServer)  app.httpServer.close()
 	if (app.httpsServer) app.httpsServer.close()
 	app.httpServer = app.httpsServer = null
 
-	app.httpServer = require("http")
-	.createServer(secure && options.forceHttps ? forceHttps : this)
-	.listen(httpPort, addMsg("http"))
-	.on("connection", setNoDelay)
-	.on("close", logClose("http"))
+	if (options.httpPort) {
+		app.httpServer = require("http")
+		.createServer(options.forceHttps ? forceHttps : this)
+		.listen(
+			options.httpPort,
+			options.httpHost || "0.0.0.0",
+			onListen("http")
+		)
+	}
 
-	if (secure) {
+	if (httpsOptions && httpsOptions.port) {
 		app.httpsServer = (
 			options.http2 ?
-			require("http2").createSecureServer(secure, this) :
-			require("https").createServer(secure, this)
+			require("http2").createSecureServer(httpsOptions, this) :
+			require("https").createServer(httpsOptions, this)
 		)
-		.listen(httpsPort, options.http2 ? addMsg("http2") : addMsg("https"))
-		.on("connection", setNoDelay)
-		.on("close", logClose(options.http2 ? "http2" : "https"))
+		.listen(
+			httpsOptions.port,
+			options.httpsHost || options.httpHost || "0.0.0.0",
+			onListen(options.http2 ? "http2" : "https")
+		)
 
-		if (secure.sessionReuse) {
+		if (httpsOptions.sessionReuse) {
 			var sessionStore = {}
-			, timeout = secure.sessionTimeout || 300
+			, timeout = httpsOptions.sessionTimeout || 300
 
 			app.httpsServer
 			.on("newSession", function(id, data, cb) {
@@ -90,20 +92,29 @@ function _listen(port) {
 		}
 	}
 
-	function addMsg(proto) {
-		listenCount++
+	function onListen(proto) {
 		return function() {
 			var addr = this.address()
-			msg += " " + proto + " at " + addr.address + ":" + addr.port
-			if (!--listenCount) {
-				log.info(msg)
-			}
+			log.info("Listening %s at %s:%s", proto, addr.address, addr.port)
+			this
+			.on("close", function() {
+				log.info("Stop listening %s at %s:%s", proto, addr.address, addr.port)
+			})
+			.on("connection", setNoDelay)
 		}
 	}
-	function logClose(proto) {
-		return function() {
-			log.info("Stop listening " + proto)
-		}
+
+	function setNoDelay(socket) {
+		socket.setNoDelay(true)
+	}
+
+	function forceHttps(req, res) {
+		var port = httpsOptions && httpsOptions.port || 8443
+		, host = (req.headers.host || "localhost").split(":")[0]
+		, url = "https://" + (port == 443 ? host : host + ":" + port) + req.url
+
+		res.writeHead(301, {"Content-Type": "text/html", "Location": url})
+		res.end('Redirecting to <a href="' + url + '">' + url + '</a>')
 	}
 }
 
@@ -127,19 +138,6 @@ function exit(code) {
 	}, 5000).unref()
 
 	softKill()
-}
-
-function setNoDelay(socket) {
-	socket.setNoDelay(true)
-}
-
-function forceHttps(req, res) {
-	var port = process.env.HTTPS_PORT || 8443
-	, host = (req.headers.host || "localhost").split(":")[0]
-	, url = "https://" + (port == 443 ? host : host + ":" + port) + req.url
-
-	res.writeHead(301, {"Content-Type": "text/html", "Location": url})
-	res.end('Redirecting to <a href="' + url + '">' + url + '</a>')
 }
 
 
