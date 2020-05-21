@@ -16,7 +16,7 @@ function createRatelimit(opts) {
 	opts = opts || {}
 
 	var counters = {}
-	, log = require("../lib/log.js")("app:ratelimit:" + opts.name)
+	, log = require("../log.js")("server:ratelimit:" + opts.name)
 	, nulls = 0
 	, limit = opts.limit || 1000
 	, time = opts.time || 60*60*1000

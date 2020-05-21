@@ -1,6 +1,6 @@
 
 var util = require("../lib/util")
-, log = require("../lib/log")("server")
+, log = require("../log")("server")
 
 
 module.exports = listen

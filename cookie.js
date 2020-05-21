@@ -1,5 +1,5 @@
 
-var log = require("../lib/log")("app:cookie")
+var log = require("../log")("server:cookie")
 , valueEsc = /[^!#-~]|[%,;\\]/g
 
 exports.get = getCookie
