@@ -1,22 +1,22 @@
 
 var util = require("../lib/util")
-, log = require("../lib/log")("app")
+, log = require("../lib/log")("server")
 
 
 module.exports = listen
 
 
-function listen(port) {
+function listen() {
 	var exiting
-	, app = this
-	, options = app.options
+	, server = this
+	, options = server.options
 
 	process.on("uncaughtException", function(e) {
 		;(options.errorLog || log.error)(
 			"\nUNCAUGHT EXCEPTION!\n" +
 			(e.stack || (e.name || "Error") + ": " + (e.message || e))
 		)
-		;(options.exit || exit).call(app, 1)
+		;(options.exit || exit).call(server, 1)
 	})
 
 	process.on("SIGINT", function() {
@@ -26,37 +26,37 @@ function listen(port) {
 		}
 		exiting = true
 		log.info("Gracefully shutting down from SIGINT (Ctrl-C)")
-		;(options.exit || exit).call(app, 0)
+		;(options.exit || exit).call(server, 0)
 	})
 
 	process.on("SIGTERM", function() {
 		log.info("Gracefully shutting down from SIGTERM (kill)")
-		;(options.exit || exit).call(app, 0)
+		;(options.exit || exit).call(server, 0)
 	})
 
 	process.on("SIGHUP", function() {
 		log.info("Reloading configuration from SIGHUP")
-		app.listen(port, true)
+		server.listen(true)
 	})
 
-	app.listen = options.listen || _listen
+	server.listen = options.listen || _listen
 
-	app.listen(port)
+	server.listen()
 
-	return app
+	return server
 }
 
 function _listen() {
-	var app = this
-	, options = app.options
+	var server = this
+	, options = server.options
 	, httpsOptions = options.https || options.http2
 
-	if (app.httpServer)  app.httpServer.close()
-	if (app.httpsServer) app.httpsServer.close()
-	app.httpServer = app.httpsServer = null
+	if (server.httpServer)  server.httpServer.close()
+	if (server.httpsServer) server.httpsServer.close()
+	server.httpServer = server.httpsServer = null
 
 	if (options.httpPort) {
-		app.httpServer = require("http")
+		server.httpServer = require("http")
 		.createServer(options.forceHttps ? forceHttps : this)
 		.listen(
 			options.httpPort,
@@ -66,7 +66,7 @@ function _listen() {
 	}
 
 	if (httpsOptions && httpsOptions.port) {
-		app.httpsServer = (
+		server.httpsServer = (
 			options.http2 ?
 			require("http2").createSecureServer(httpsOptions, this) :
 			require("https").createServer(httpsOptions, this)
@@ -81,7 +81,7 @@ function _listen() {
 			var sessionStore = {}
 			, timeout = httpsOptions.sessionTimeout || 300
 
-			app.httpsServer
+			server.httpsServer
 			.on("newSession", function(id, data, cb) {
 				sessionStore[id] = data
 				cb()
@@ -119,17 +119,17 @@ function _listen() {
 }
 
 function exit(code) {
-	var app = this
+	var server = this
 	, softKill = util.wait(function() {
 		log.info("Everything closed cleanly")
 		process.exit(code)
 	}, 1)
 
-	app.emit("beforeExit", softKill)
+	server.emit("beforeExit", softKill)
 
 	try {
-		if (app.httpServer) app.httpServer.close().unref()
-		if (app.httpsServer) app.httpsServer.close().unref()
+		if (server.httpServer) server.httpServer.close().unref()
+		if (server.httpsServer) server.httpsServer.close().unref()
 	} catch(e) {}
 
 	setTimeout(function() {
