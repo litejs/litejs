@@ -61,6 +61,7 @@ module.exports = {
   "midi": "audio/midi",
   "mif": "application/x-mif",
   "mime": "www/mime",
+  "mjs": "text/javascript",
   "movie": "video/x-sgi-movie",
   "mp4": "video/mp4",
   "mpg": "video/mpeg",
