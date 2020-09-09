@@ -64,6 +64,7 @@ module.exports = {
   "mjs": "text/javascript",
   "movie": "video/x-sgi-movie",
   "mp4": "video/mp4",
+  "mp3": "audio/mpeg",
   "mpg": "video/mpeg",
   "mpga": "audio/mpeg",
   "ms": "application/x-troff-ms",

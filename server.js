@@ -337,7 +337,7 @@ function sendFile(file, _opts, next) {
 		var info = {
 			code: 200,
 			start: 0,
-			end: stat.size,
+			end: stat.size - 1,
 			size: stat.size
 		}
 		, range = res.req.headers.range
@@ -347,14 +347,13 @@ function sendFile(file, _opts, next) {
 			// If the entity tag does not match,
 			// then the server SHOULD return the entire entity using a 200 (OK) response.
 			info.start = +range[1]
-			info.end = +range[2]
+			if (range[2]) info.end = +range[2]
 
 			if (info.start > info.end || info.end > info.size) {
 				res.setHeader("Content-Range", "bytes */" + info.size)
 				return next && next(errBadRange)
 			}
 			info.code = 206
-			info.size = info.end - info.start + 1
 			headers["Content-Range"] = "bytes " + info.start + "-" + info.end + "/" + info.size
 		}
 
