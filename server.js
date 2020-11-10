@@ -1,7 +1,6 @@
 
 var statusCodes = require("http").STATUS_CODES
 , fs = require("fs")
-, zlib = require("zlib")
 , accept = require("./accept.js").accept
 , cookie = require("./cookie.js")
 , getContent = require("./content.js")
@@ -409,6 +408,7 @@ function sendFile(file, _opts, next) {
 		}).pipe(res)
 
 		/*/
+		var zlib = require("zlib")
 		if ( (""+req.headers["accept-encoding"]).indexOf("gzip") > -1) {
 			// Only send a Vary: Accept-Encoding header when you have compressed the content (e.g. Content-Encoding: gzip).
 			res.useChunkedEncodingByDefault = false

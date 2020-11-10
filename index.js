@@ -21,4 +21,9 @@ if (!fs.copyFileSync) {
 	}
 }
 
+if (!process.versions) {
+	// for iotjs
+	process.versions = {}
+}
+
 
