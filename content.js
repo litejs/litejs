@@ -1,6 +1,5 @@
 
 var fs = require("fs")
-, os = require("os")
 , Writable = require("stream").Writable
 , accept = require("./accept.js").accept
 , querystring = require("../lib/querystring")
@@ -29,6 +28,16 @@ var fs = require("fs")
 	'form-data;name="";filename=""'
 ])
 , seq = 0
+, tmpdir = (
+	process.env.TMPDIR ||
+	process.env.TEMP ||
+	process.env.TMP ||
+	(
+		process.platform === "win32" ?
+		(process.env.SystemRoot || process.env.windir) + "\\temp" :
+		"/tmp"
+	)
+).replace(/([^:])[\/\\]+$/, "$1")
 
 
 module.exports = getContent
@@ -124,7 +133,7 @@ function multipart(boundary, reqOpts, req) {
 	, nextPos = needle.length - 3
 	, remainingFields = number(reqOpts.maxFields, req.opts.maxFields, 1000)
 	, remainingFiles = number(reqOpts.maxFiles, req.opts.maxFiles, 1000)
-	, savePath = (reqOpts.path || os.tmpdir() + "/up-") + process.pid + "-" + (seq++) + "-"
+	, savePath = (reqOpts.path || tmpdir + "/up-") + process.pid + "-" + (seq++) + "-"
 
 	return new Writable({
 		write: function(chunk, enc, cb) {
