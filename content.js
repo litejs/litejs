@@ -1,17 +1,16 @@
 
 var fs = require("fs")
 , os = require("os")
-, path = require("path")
-, qs = require("querystring")
 , Writable = require("stream").Writable
 , accept = require("./accept.js").accept
+, querystring = require("../lib/querystring")
 , rnrn = Buffer.from("\r\n\r\n")
 , negotiateContent = accept({
 	'application/json': function(str) {
 		return JSON.parse(str || "{}")
 	},
 	'application/x-www-form-urlencoded': function(str) {
-		return qs.parse(str)
+		return querystring.parse(str)
 	},
 	// Subtypes:
 	//  - alternative
