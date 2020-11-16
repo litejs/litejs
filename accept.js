@@ -15,13 +15,6 @@ this.accept = function(choices, priority) {
 		'var r=/(?:^|,\\s*)(?:(' +
 		('' + rules).replace(/[^,;]+|\s*;\s*(\w+)=("([^"]*)"|[^,;\s]*)|,/ig, function add(rule, key, token, qstr, offset, all) {
 			if (key) {
-				// Parse Parameters
-				//
-				// Non-extended notation, using "quoted-string" RFC-8187
-				//     foo: bar; title="US-$ rates"
-				// Extended notation, using the Unicode character U+00A3 ("£", POUND SIGN):
-				//     foo: bar; title*=utf-8'en'%C2%A3%20rates
-
 				fnStr += ',' + key + ':D(m[' + (++group) + '],m[' + (++group + 1) + ']==null?m[' + (group++) + ']||'
 					+ JSON.stringify(qstr == null ? token : qstr)
 					+ ':m[' + group + '])'

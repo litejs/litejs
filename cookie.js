@@ -1,10 +1,10 @@
 
-var log = require("../log")("server:cookie")
-, valueEsc = /[^!#-~]|[%,;\\]/g
+var valueEsc = /[^!#-~]|[%,;\\]/g
 
 exports.get = getCookie
 exports.set = setCookie
 exports.escape = escapeCookie
+exports.log = console
 
 function getCookie(name, opts) {
 	if (typeof name === "object") {
@@ -30,14 +30,14 @@ function getCookie(name, opts) {
 				}
 			}
 		})
-		log.warn("Cookie fixation detected: %s", req.headers.cookie)
+		exports.log.warn("Cookie fixation detected: %s", req.headers.cookie)
 		return
 	}
 
 	try {
 		return decodeURIComponent((junks[1] || "").split(";")[0])
 	} catch(e) {
-		log.warn("Invalid cookie '%s' in: %s", name, req.headers.cookie)
+		exports.log.warn("Invalid cookie '%s' in: %s", name, req.headers.cookie)
 	}
 }
 
@@ -68,7 +68,7 @@ function setCookie(name, value, opts) {
 	} else {
 		existing.push(cookie)
 	}
-	log.debug("Set-Cookie: %s", cookie)
+	exports.log.debug("Set-Cookie: %s", cookie)
 }
 
 function escapeCookie(value) {

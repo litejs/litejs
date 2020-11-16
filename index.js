@@ -22,8 +22,43 @@ if (!fs.copyFileSync) {
 }
 
 if (!process.versions) {
-	// for iotjs
 	process.versions = {}
+	if (process.iotjs) process.versions.iotjs = process.version
 }
+
+if (!process.hrtime) {
+	// for iotjs
+	process.hrtime = function(diff) {
+		var now = (new Date()).getTime() * 1e-3
+		, sec = Math.floor(now)
+		, nano = Math.floor((now%1) * 1e9)
+		if (diff) {
+			sec -= diff[0]
+			nano -= diff[1]
+			if (nano < 0) {
+				sec--
+				nano += 1e9
+			}
+		}
+		return [sec, nano]
+	}
+}
+
+if (!Object.assign) {
+	Object.assign = function(a) {
+		var t,k,i=1,A=arguments,l=A.length
+		for (; i<l; ) if (t=A[i++]) for(k in t) if(Object.prototype.hasOwnProperty.call(t,k)) {
+			a[k]=t[k]
+		}
+		return a
+	}
+}
+
+
+module.exports.version = process.versions.litejs = require("./package.json").version
+module.exports.server = require("./server")
+module.exports.log = require("./log")
+module.exports.log.debug(process.env.DEBUG)
+
 
 

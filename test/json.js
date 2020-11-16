@@ -2,7 +2,7 @@
 
 var undef, a, b, c
 , date = new Date()
-, util = require("../../lib/json")
+, util = require("../json")
 , obj =
 	{ "foo": ["bar", "baz"]
 	, "": 0
@@ -58,105 +58,108 @@ var undef, a, b, c
 
 
 
-var test = require("..")
+var test = require("litejs/test")
 
-.describe ("JSON.mergePatch")
-.it("should apply merge patches", function(assert) {
-	function addTest(method, a, b, c, d, e) {
-		var changes = []
-		, previous = {}
-		assert.equal(util[method](util.clone(a), b, changes, previous), c)
-		.equal(changes, d)
-		.equal(util[method](util.clone(a), b), c)
+.describe ("json", function() {
+	this
+	.it("should apply merge patches", function(assert) {
+		function addTest(method, a, b, c, d, e) {
+			var changes = []
+			, previous = {}
+			assert.equal(util[method](util.clone(a), b, changes, previous), c)
+			.equal(changes, d)
+			.equal(util[method](util.clone(a), b), c)
 
-		if (e) {
-			assert.equal(previous, e)
+			if (e) {
+				assert.equal(previous, e)
+			}
 		}
-	}
-	for (var x = 0; x < tests.length; ) {
-		addTest("mergePatch", tests[x++], tests[x++], tests[x++], tests[x++], tests[x++])
-	}
-	assert.end()
-})
+		for (var x = 0; x < tests.length; ) {
+			addTest("mergePatch", tests[x++], tests[x++], tests[x++], tests[x++], tests[x++])
+		}
+		assert.end()
+	})
 
 
-.it ("should work with old Object.deepMerge tests", function(t) {
-	a = { a:"A"
-		, b:null
-		, c:"C"
-		, d:null
-		, e:{ea:"EA", eb:null, ec:"EC", ed:null}
-		, f:null
-		, g:{ga:1}
-	}
-	b = { b:"B"
-		, c:null
-		, e: {eb:"EB", ec:null}
-		, f: {fa:1}
-		, g: null
-	}
-	c = []
-	util.mergePatch(a, b, c)
+	.it ("should work with old Object.deepMerge tests", function(t) {
+		a = { a:"A"
+			, b:null
+			, c:"C"
+			, d:null
+			, e:{ea:"EA", eb:null, ec:"EC", ed:null}
+			, f:null
+			, g:{ga:1}
+		}
+		b = { b:"B"
+			, c:null
+			, e: {eb:"EB", ec:null}
+			, f: {fa:1}
+			, g: null
+		}
+		c = []
+		util.mergePatch(a, b, c)
 
-	t.equal(a, {"a":"A","b":"B","d":null,"e":{"ea":"EA","eb":"EB","ed":null},"f":{"fa":1}})
-	.equal(b, {"b":"B","c":null,"e":{"eb":"EB","ec":null},"f":{"fa":1},"g":null})
-	.equal(c, ["/b","/c","/e/eb","/e/ec","/e","/f/fa","/f","/g"])
-	.end()
-})
+		t.equal(a, {"a":"A","b":"B","d":null,"e":{"ea":"EA","eb":"EB","ed":null},"f":{"fa":1}})
+		.equal(b, {"b":"B","c":null,"e":{"eb":"EB","ec":null},"f":{"fa":1},"g":null})
+		.equal(c, ["/b","/c","/e/eb","/e/ec","/e","/f/fa","/f","/g"])
+		.end()
+	})
 
-.it ("has isObject", function(assert) {
-	assert
-	.equal(util.isObject({}), true)
-	.equal(util.isObject(), false)
-	.equal(util.isObject(null), false)
-	.equal(util.isObject(""), false)
-	.equal(util.isObject("a"), false)
-	.equal(util.isObject(0), false)
-	.equal(util.isObject(1), false)
-	.equal(util.isObject([]), false)
-	.end()
-})
+	.it ("has isObject", function(assert) {
+		assert
+		.equal(util.isObject({}), true)
+		.equal(util.isObject(), false)
+		.equal(util.isObject(null), false)
+		.equal(util.isObject(""), false)
+		.equal(util.isObject("a"), false)
+		.equal(util.isObject(0), false)
+		.equal(util.isObject(1), false)
+		.equal(util.isObject([]), false)
+		.end()
+	})
 
-.describe ("util.clone")
-.it("clones objects", function(assert) {
-	Object.prototype.dummy = 123
-	var dateClone = util.clone(date)
-	, map = {a:3}
-	, mapClone = util.clone(map)
-	, re1 = /ab/
-	, re1Clone = util.clone(re1)
-	, re2 = /ab/g
-	, re2Clone = util.clone(re2)
-	, re3 = /ab/i
-	, re3Clone = util.clone(re3)
-	, re4 = /ab/m
-	, re4Clone = util.clone(re4)
-	, re5 = /ab/gim
-	, re5Clone = util.clone(re5)
-	, arr = [1, "2", date, map, re1]
-	, arrClone = util.clone(arr)
+	.describe ("util.clone")
+	.it("clones objects", function(assert) {
+		Object.prototype.dummy = 123
+		var dateClone = util.clone(date)
+		, map = {a:3}
+		, mapClone = util.clone(map)
+		, re1 = /ab/
+		, re1Clone = util.clone(re1)
+		, re2 = /ab/g
+		, re2Clone = util.clone(re2)
+		, re3 = /ab/i
+		, re3Clone = util.clone(re3)
+		, re4 = /ab/m
+		, re4Clone = util.clone(re4)
+		, re5 = /ab/gim
+		, re5Clone = util.clone(re5)
+		, arr = [1, "2", date, map, re1]
+		, arrClone = util.clone(arr)
 
-	assert.notStrictEqual(arr, arrClone)
-	assert.notStrictEqual(date, dateClone)
-	assert.notStrictEqual(map, mapClone)
-	assert.notStrictEqual(re1, re1Clone)
-	assert.notStrictEqual(re2, re2Clone)
-	assert.notStrictEqual(re3, re3Clone)
-	assert.notStrictEqual(re4, re4Clone)
-	assert.notStrictEqual(re5, re5Clone)
+		assert.notStrictEqual(arr, arrClone)
+		assert.notStrictEqual(date, dateClone)
+		assert.notStrictEqual(map, mapClone)
+		assert.notStrictEqual(re1, re1Clone)
+		assert.notStrictEqual(re2, re2Clone)
+		assert.notStrictEqual(re3, re3Clone)
+		assert.notStrictEqual(re4, re4Clone)
+		assert.notStrictEqual(re5, re5Clone)
 
-	assert.equal(arr, arrClone)
-	assert.equal(date, dateClone)
-	assert.equal(map, mapClone)
-	assert.equal(re1, re1Clone)
-	assert.equal(re2, re2Clone)
-	assert.equal(re3, re3Clone)
-	assert.equal(re4, re4Clone)
-	assert.equal(re5, re5Clone)
+		assert.equal(arr, arrClone)
+		assert.equal(date, dateClone)
+		assert.equal(map, mapClone)
+		assert.equal(re1, re1Clone)
+		assert.equal(re2, re2Clone)
+		assert.equal(re3, re3Clone)
+		assert.equal(re4, re4Clone)
+		assert.equal(re5, re5Clone)
 
-	delete Object.prototype.dummy
+		delete Object.prototype.dummy
 
-	assert.end()
+		assert.end()
+	})
+
 })
 
 //it("should be V8 friendly").

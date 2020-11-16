@@ -1,0 +1,42 @@
+{
+  "name": "litejs",
+  "version": "21.0.0-rc.1",
+  "description": "Full-stack web framework in a tiny package",
+  "license": "MIT",
+  "author": "Lauri Rooden <lauri@rooden.ee>",
+  "keywords": [
+    "litejs",
+    "framework",
+    "http",
+    "server",
+    "content negotiation",
+    "accept",
+    "multipart",
+    "uploads",
+    "form-data"
+  ],
+  "homepage": "https://litejs.com",
+  "repository": "github:litejs/litejs",
+  "bugs": "https://github.com/litejs/litejs/issues",
+  "main": "index.js",
+  "files": [
+    "/*.js"
+  ],
+  "jshintConfig": {
+    "asi": true,
+    "laxcomma": true,
+    "maxdepth": 6,
+    "quotmark": "double"
+  },
+  "nyc": {
+    "exclude": [
+      "coverage/**",
+      "test/**"
+    ],
+    "reporter": [
+      "lcov",
+      "text",
+      "html"
+    ]
+  }
+}

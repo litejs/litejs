@@ -1,13 +1,13 @@
 
 var statusCodes = require("http").STATUS_CODES
 , fs = require("fs")
-, accept = require("./accept.js").accept
-, cookie = require("./cookie.js")
-, getContent = require("./content.js")
-, mime = require("./mime.js")
-, csv = require("../lib/csv.js")
-, util = require("../lib/util.js")
-, events = require("../lib/events")
+, accept = require("./accept").accept
+, cookie = require("./cookie")
+, getContent = require("./content")
+, mime = require("./mime")
+, csv = require("./csv")
+, util = require("./util")
+, events = require("./events")
 , empty = {}
 , defaultOptions = {
 	maxURILength: 2000,
@@ -58,9 +58,6 @@ var statusCodes = require("http").STATUS_CODES
 		"URIError": { code: 400 }
 	}
 }
-
-require("../lib/fn")
-require("../lib/timing")
 
 Object.keys(statusCodes).forEach(function(code) {
 	if (code >= 400) {

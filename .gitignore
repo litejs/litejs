@@ -1,0 +1,6 @@
+/.env
+/.nyc_output
+/coverage
+/wiki
+/node_modules
+
