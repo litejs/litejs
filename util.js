@@ -161,9 +161,6 @@ function ip2buf(str) {
 }
 
 function buf2ip(buf) {
-	if (buf.length === 4) {
-		return buf.join(".")
-	}
-	return buf.toString("hex").replace(/.{4}(?=.)/g, "$&:")
+	return buf.length === 4 ? buf.join(".") : buf.toString("hex").replace(/.{4}(?=.)/g, "$&:")
 }
 
