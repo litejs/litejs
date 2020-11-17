@@ -7,46 +7,82 @@ describe("cookie", function() {
 	var cookie = require("../cookie")
 
 	it ("should get cookies", function(assert) {
-		var j, test
+		var req, j, test
 		, tests = [
 			// name, value, rest
 			["a", "1", "a=1", "a=1; ", "b=2; a=1"],
-			[{name:"a"}, "1", "a=1"]
+			[{name:"a"}, "", "a=", "b=1", "a=%E0%A4%A"],
+			[{
+				name:"foo",
+				domain:"www.example.com",
+				_setCookie: "foo=; Expires=Thu, 01 Jan 1970 00:00:00 GMT; foo=; Expires=Thu, 01 Jan 1970 00:00:00 GMT; Domain=www.example.com; foo=; Expires=Thu, 01 Jan 1970 00:00:00 GMT; Domain=*.example.com"
+			}, "", "foo=1; foo=2"],
+			[{
+				name:"foo",
+				domain:"example.com",
+				_setCookie: "foo=; Expires=Thu, 01 Jan 1970 00:00:00 GMT; foo=; Expires=Thu, 01 Jan 1970 00:00:00 GMT; Domain=example.com"
+			}, "", "foo=1; foo=2"],
+			[{
+				name:"foo",
+				_setCookie: "foo=; Expires=Thu, 01 Jan 1970 00:00:00 GMT"
+			}, "", "foo=1; foo=2"],
 		]
 		, i = 0
-		, len = tests.length
 
-		for (; test = tests[i++]; ) for (j = test.length; --j > 1; ) {
-			assert.equal(cookie.get.call({
-				headers: {
-					cookie: test[j]
+		for (; test = tests[i++]; ) {
+			req = new Req()
+			req.res = new Req()
+			req.res.cookie = cookie.set
+			for (j = test.length; --j > 1; ) {
+				req.headers.cookie = test[j]
+				assert.equal(cookie.get.call(req, test[0]), test[1])
+				if (test[0]._setCookie) {
+					assert.equal([].concat(req.res.getHeader("set-cookie")).join("; "), test[0]._setCookie)
 				}
-			}, test[0]), test[1])
+			}
 		}
 
 		assert.end()
 	})
 
-	it ("_should set cookies", function(assert, mock) {
-		var j, test
+	it ("should set cookies", function(assert, mock) {
+		mock.time("2020-11-17T10:41:06.320Z")
+		var req, j, test
 		, tests = [
-			// name, value, rest
-			["a", "1", "a=1", "a=1; ", "b=2; a=1"],
-			[{name:"a"}, "1", "a=1"]
+			["a=1", "a", "1"],
+			["a=1; b=2", {name:"a"}, "1", "b", 2],
+			[
+				"a=1; Path=/; Domain=example.com; b=2; Expires=Tue, 17 Nov 2020 10:42:06 GMT; foo=bar; Secure; HttpOnly; SameSite=Lax",
+				{ name:"a", domain: "example.com", path: "/" }, "1",
+				{ name: "b", ttl: 60 }, 2,
+				{ name: "foo", secure: true, httpOnly: 1, sameSite: "Lax" }, "bar"
+			]
 		]
 		, i = 0
-		, len = tests.length
 
-		for (; test = tests[i++]; ) for (j = test.length; --j > 1; ) {
-			assert.equal(cookie.get.call({
-				headers: {
-					cookie: test[j]
-				}
-			}, test[0]), test[1])
+		for (; test = tests[i++]; ) {
+			req = new Req()
+			for (j = 1; j < test.length; ) {
+				cookie.set.call(req, test[j++], test[j++])
+			}
+			assert.equal([].concat(req.getHeader("set-cookie")).join("; "), test[0])
 		}
 
 		assert.end()
 	})
+
+	function Req(opts) {
+		var req = this
+		req.headers = Object.assign({}, opts && opts.headers)
+	}
+	Req.prototype = {
+		getHeader: function(name) {
+			return this.headers[name.toLowerCase()] || null
+		},
+		setHeader: function(name, value) {
+			this.headers[name.toLowerCase()] = value
+		}
+	}
 })
 
 

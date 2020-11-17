@@ -25,20 +25,18 @@ function getCookie(name, opts) {
 			if (domain) {
 				req.res.cookie(name, "", {ttl: -1, path: path, domain: domain})
 
-				if (domain !== (domain = domain.replace(/^[^.]+/, "*"))) {
+				if (domain !== (domain = domain.replace(/^[^.]+(?=\.(?=.+\.))/, "*"))) {
 					req.res.cookie(name, "", {ttl: -1, path: path, domain: domain})
 				}
 			}
 		})
 		exports.log.warn("Cookie fixation detected: %s", req.headers.cookie)
-		return
-	}
-
-	try {
+	} else try {
 		return decodeURIComponent((junks[1] || "").split(";")[0])
 	} catch(e) {
 		exports.log.warn("Invalid cookie '%s' in: %s", name, req.headers.cookie)
 	}
+	return ""
 }
 
 function setCookie(name, value, opts) {
@@ -61,17 +59,15 @@ function setCookie(name, value, opts) {
 		(opts.sameSite ? "; SameSite=" + opts.sameSite : "")
 	}
 
-	if (!Array.isArray(existing)) {
-		res.setHeader("Set-Cookie", (
-			existing === void 0 ? cookie : [existing, cookie]
-		))
-	} else {
+	if (Array.isArray(existing)) {
 		existing.push(cookie)
+	} else {
+		res.setHeader("Set-Cookie", existing ? [existing, cookie] : cookie)
 	}
 	exports.log.debug("Set-Cookie: %s", cookie)
 }
 
 function escapeCookie(value) {
-	return typeof value === "string" ? value.replace(valueEsc, encodeURIComponent) : ""
+	return ("" + value).replace(valueEsc, encodeURIComponent)
 }
 
