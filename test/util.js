@@ -8,7 +8,7 @@ var describe = require("litejs/test").describe
 describe("util", function() {
 	var util = require("../util")
 
-	it ("should merge", function(assert) {
+	it ("should have deepAssign", function(assert) {
 		function B(){}
 		B.prototype.parent = 1
 		var a = {
@@ -46,7 +46,6 @@ describe("util", function() {
 			d: {dd:{ddd:4}},
 			e: {ee:5},
 			f: {ff:6},
-			A: null,
 			B: false,
 			C: "",
 			D: 0,
