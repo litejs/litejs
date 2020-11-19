@@ -1,89 +1,62 @@
 
-
-// Leaky bucket
-//
-// 14.37 Retry-After
-//
-// Retry-After  = "Retry-After" ":" ( HTTP-date | delta-seconds )
-//
-//        Retry-After: Fri, 31 Dec 1999 23:59:59 GMT
-//        Retry-After: 120
-
-
 module.exports = createRatelimit
 
 function createRatelimit(opts) {
 	opts = opts || {}
 
 	var counters = {}
-	, log = require("../log.js")("server:ratelimit:" + opts.name)
-	, nulls = 0
 	, limit = opts.limit || 1000
-	, time = opts.time || 60*60*1000
 	, steps = opts.steps || 60
 	, field = opts.field || "ip"
 	, penalty = opts.penalty || 5000
-	, tickTime = (time/steps)|0
+	, tickTime = ((opts.time || 60*60*1000)/steps)|0
 	, leak = Math.ceil(limit/steps)
+	, penaltyLeak = Math.ceil(penalty/leak)
+	, nulled = 0
+	, warn = limit - leak
 
-	log("create %o", opts)
-	setInterval(tick, tickTime)
+	setInterval(tick, tickTime).unref()
 
-	return ratelimit
+	return function ratelimit(req, res, next) {
+		var remaining
+		, key = req[field]
 
-	function ratelimit(req, res, next) {
-		var key = req[field]
-		, remaining = limit - (counters[key] || (counters[key] = 0)) - 1
-
-		counters[key]++
-
-		if (remaining < leak) {
+		if (warn < (counters[key] > 0 ? ++counters[key] : (counters[key] = 1))) {
 			res.setHeader("Rate-Limit", limit)
 
+			remaining = limit - counters[key]
 			if (remaining < 0) {
-				log.info(field, key)
-				setTimeout(block, penalty, res, remaining)
+				res.setHeader("Retry-After", tickTime * Math.ceil(-remaining/leak))
+				setTimeout(block, penalty, res)
 			} else {
 				res.setHeader("Rate-Limit-Remaining", remaining)
-				setTimeout(next, Math.ceil((leak - remaining) / leak * penalty))
+				setTimeout(next, penalty - penaltyLeak - remaining * penaltyLeak)
 			}
 		} else {
 			next()
 		}
 	}
 
-	function block(res, remaining) {
+	function block(res) {
 		res.statusCode = 429
-		res.setHeader("Retry-After", tickTime * Math.ceil(-remaining/leak))
 		res.end("Too Many Requests")
 	}
 
 	function tick() {
-		var key, counter, next
-		, count = 0
-		, clean = 0
+		var key, next
+		, curr = counters
 
-		if (nulls > 1000) {
-			next = {}
-			for (key in counters) if (counters[key] > leak) {
-				count++
-				next[key] = counters[key] - leak
-			} else clean++
-			nulls = 0
-			counters = next
-		} else {
-			for (key in counters) if (null !== (counter = counters[key])) {
-				if (counter > leak) {
-					count++
-					counters[key] -= leak
-				} else {
-					clean++
-					counters[key] = null
-				}
+		if (nulled > 1000) {
+			nulled = 0
+			counters = next = {}
+			for (key in curr) if (curr[key] > leak) {
+				next[key] = curr[key] - leak
 			}
-			nulls += clean
+		} else {
+			for (key in curr) if (curr[key] > 0) {
+				if ((curr[key] -= leak) <= 0) nulled++
+			}
 		}
-		if (clean > 0) log("leak:%s clean:%s size:%s", leak, clean, count)
 	}
 }
 
