@@ -4,7 +4,11 @@ var describe = require("litejs/test").describe
 
 
 describe("cookie", function() {
-	var cookie = require("../cookie")
+	var server = require("../server")
+
+	// Max-Age=1 - Number of seconds until the cookie expires.
+	// ie8 do not support max-age.
+	// if both (Expires and Max-Age) are set, Max-Age will have precedence.
 
 	it ("should get cookies", function(assert) {
 		var req, j, test
@@ -32,10 +36,10 @@ describe("cookie", function() {
 		for (; test = tests[i++]; ) {
 			req = new Req()
 			req.res = new Req()
-			req.res.cookie = cookie.set
+			req.res.cookie = server.setCookie
 			for (j = test.length; --j > 1; ) {
 				req.headers.cookie = test[j]
-				assert.equal(cookie.get.call(req, test[0]), test[1])
+				assert.equal(req.cookie(test[0]), test[1])
 				if (test[0]._setCookie) {
 					assert.equal([].concat(req.res.getHeader("set-cookie")).join("; "), test[0]._setCookie)
 				}
@@ -54,7 +58,7 @@ describe("cookie", function() {
 			[
 				"a=1; Path=/; Domain=example.com; b=2; Expires=Tue, 17 Nov 2020 10:42:06 GMT; foo=bar; Secure; HttpOnly; SameSite=Lax",
 				{ name:"a", domain: "example.com", path: "/" }, "1",
-				{ name: "b", ttl: 60 }, 2,
+				{ name: "b", maxAge: 60 }, 2,
 				{ name: "foo", secure: true, httpOnly: 1, sameSite: "Lax" }, "bar"
 			]
 		]
@@ -62,8 +66,9 @@ describe("cookie", function() {
 
 		for (; test = tests[i++]; ) {
 			req = new Req()
+			req.cookie = server.setCookie
 			for (j = 1; j < test.length; ) {
-				cookie.set.call(req, test[j++], test[j++])
+				req.cookie(test[j++], test[j++])
 			}
 			assert.equal([].concat(req.getHeader("set-cookie")).join("; "), test[0])
 		}
@@ -73,6 +78,10 @@ describe("cookie", function() {
 
 	function Req(opts) {
 		var req = this
+		req.opts = {
+			log: { warn: function() {} }
+		}
+		req.cookie = server.getCookie
 		req.headers = Object.assign({}, opts && opts.headers)
 	}
 	Req.prototype = {

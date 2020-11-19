@@ -1,5 +1,7 @@
 
-//require("../polyfill")
+require("..")
+
+require("./engine.js")
 
 require("./accept.js")
 require("./content.js")

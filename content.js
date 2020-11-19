@@ -3,6 +3,7 @@ var fs = require("fs")
 , Writable = require("stream").Writable
 , accept = require("./accept.js").accept
 , querystring = require("./querystring")
+, util = require("./util")
 , rnrn = Buffer.from("\r\n\r\n")
 , negotiateContent = accept({
 	'application/json': function(str) {
@@ -17,17 +18,11 @@ var fs = require("fs")
 	'form-data;name="";filename=""'
 ])
 , seq = 0
-, tmpdir = (
-	process.env.TMPDIR ||
-	process.env.TEMP ||
-	process.env.TMP ||
-	(
-		process.platform === "win32" ?
-		/* istanbul ignore next */
-		(process.env.SystemRoot || process.env.windir) + "\\temp" :
-		"/tmp"
-	)
-).replace(/([^:])[\/\\]+$/, "$1")
+, decompress = {
+	br: "createBrotliDecompress",
+	gzip: "createUnzip",
+	deflate: "createUnzip"
+}
 
 makeTable(rnrn)
 
@@ -37,7 +32,7 @@ module.exports = function getContent(next, reqOpts) {
 	, head = req.headers
 	, negod = negotiateContent(head["content-type"] || head.accept)
 	, stream = req
-	, maxBodySize = number(reqOpts && reqOpts.maxBodySize, req.opts.maxBodySize, 1e6)
+	, maxBodySize = util.num(reqOpts && reqOpts.maxBodySize, req.opts.maxBodySize, 1e6)
 
 	if (!negod.match) {
 		return next("Unsupported Media Type")
@@ -48,11 +43,10 @@ module.exports = function getContent(next, reqOpts) {
 	if (head["content-encoding"]) {
 		tmp = head["content-encoding"].split(/\W+/)
 		for (i = tmp.length; i--; ) {
-			if (tmp[i] === "gzip" || tmp[i] === "deflate") {
-				// Decompress Gzip or Deflate by auto-detecting the header
-				stream = stream.pipe(require("zlib").createUnzip())
-			} else if (tmp[i] === "br") {
-				stream = stream.pipe(require("zlib").createBrotliDecompress())
+			if (req.opts.compress && decompress[tmp[i]]) {
+				stream = stream.pipe(require("zlib")[decompress[tmp[i]]]({
+					maxOutputLength: maxBodySize
+				}))
 			} else if (tmp[i] && tmp[i] !== "identity") {
 				return next("Unsupported Media Type")
 			}
@@ -66,7 +60,7 @@ module.exports = function getContent(next, reqOpts) {
 			next(null, req.body, req.files, negod)
 			if (req.files) {
 				for (var i = req.files.length; i--; ) {
-					if (req.files[i].tmp) fs.unlink(req.files[i].tmp, nop)
+					if (req.files[i].tmp) fs.unlink(req.files[i].tmp, util.nop)
 				}
 			}
 		})
@@ -105,9 +99,9 @@ function multipart(boundary, reqOpts, req) {
 	, bufs = [rnrn.slice(2)]
 	, bufsBytes = 2
 	, nextPos = needle.length - 3
-	, remainingFields = number(reqOpts.maxFields, req.opts.maxFields, 1000)
-	, remainingFiles = number(reqOpts.maxFiles, req.opts.maxFiles, 1000)
-	, savePath = (reqOpts.path || tmpdir + "/up-") + process.pid + "-" + (seq++) + "-"
+	, remainingFields = util.num(reqOpts.maxFields, req.opts.maxFields, 1000)
+	, remainingFiles = util.num(reqOpts.maxFiles, req.opts.maxFiles, 1000)
+	, savePath = (reqOpts.tmp || req.opts.tmp) + (seq++)
 
 	return new Writable({
 		write: function(chunk, enc, cb) {
@@ -172,13 +166,13 @@ function multipart(boundary, reqOpts, req) {
 						negod = negotiateDisposition(headers["content-disposition"])
 						negod.headers = headers
 
-						if (negod.filename && reqOpts.path !== null) {
+						if (negod.filename) {
 							if (!remainingFiles--) return writable.destroy({ code: 413, message: "maxFiles exceeded"})
 							if (!req.files) req.files = []
 							req.files.push(negod)
 							req.emit("file", negod, saveTo)
 							if (!fileStream) {
-								saveTo(savePath + remainingFiles)
+								saveTo(savePath + "-" + remainingFiles)
 							}
 						}
 						needle = boundary
@@ -218,16 +212,6 @@ function multipart(boundary, reqOpts, req) {
 		)
 		negod = null
 	}
-}
-
-function nop() {}
-
-function number(a, b, c) {
-	return (
-		typeof a === "number" ? a :
-		typeof b === "number" ? b :
-		c
-	)
 }
 
 // multipart/form-data part accepts only Content-Type, Content-Disposition, and (in limited circumstances) Content-Transfer-Encoding.

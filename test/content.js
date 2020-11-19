@@ -22,7 +22,12 @@ describe("content", function() {
 
 	try {
 		zlib = require("zlib")
-	} catch(e) {}
+	} catch(e) {
+		zlib = {
+			brotliCompressSync: function(a){return a},
+			deflateSync: function(a){return a}
+		}
+	}
 
 	describe.assert.fakeReq = fakeReq
 
@@ -48,9 +53,9 @@ describe("content", function() {
 		assert.fakeReq({
 			headers: {
 				"content-type": "application/json",
-				"content-encoding": zlib ? "deflate, identity, br" : ""
+				"content-encoding": "deflate, identity, br"
 			},
-			body: zlib ? zlib.brotliCompressSync(zlib.deflateSync('{"a":2}')) : '{"a":2}'
+			body: zlib.brotliCompressSync(zlib.deflateSync('{"a":2}'))
 		}, {a:2})
 
 	})
@@ -285,6 +290,8 @@ describe("content", function() {
 		req.getContent = content
 		req.headers = opts.headers
 		req.opts = {
+			compress: true,
+			tmp: "/tmp/" + process.pid,
 			maxBodySize: 1000,
 			maxFiles: 2
 		}

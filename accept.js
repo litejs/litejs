@@ -3,7 +3,8 @@
 /*! litejs.com/MIT-LICENSE.txt */
 
 this.accept = function(choices, priority) {
-	'use strict'
+	// jshint quotmark:single, boss:true
+	'use strict';
 	var group = 0
 	, ruleSeq = 0
 	, rules = choices.constructor == Object ? Object.keys(choices) : choices

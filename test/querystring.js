@@ -13,13 +13,25 @@ describe("querystring", function() {
 		, tests = [
 			[
 				{}, "", null
-			],
-			[
+			], [
 				{"foo": "bar"},
 				"foo=bar"
 			], [
+				{"foo": ["bar"]},
+				"foo[]=bar",
+				"foo[0]=bar",
+				"foo[1]=bar"
+			], [
 				{"foo": ["bar", "quux"]},
-				"foo=bar&foo=quux"
+				"foo=bar&foo=quux",
+				"foo[]=bar&foo[]=quux",
+				"foo[0]=bar&foo[1]=quux",
+				"foo[1]=bar&foo[2]=quux"
+			], [
+				{"map": {"a":"1","b":["2","3"]}},
+				"map[a]=1&map[b]=2&map[b]=3",
+				"map[a]=1&map[b][]=2&map[b][]=3",
+				"map[a]=1&map[b][0]=2&map[b][1]=3"
 			], [
 				{"my weird field": "q1!2\"'w$5&7/z8)?"},
 				'my+weird+field=q1%212%22%27w%245%267%2Fz8%29%3F',

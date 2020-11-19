@@ -46,6 +46,7 @@ if (!process.hrtime) {
 
 if (!Object.assign) {
 	Object.assign = function(a) {
+		// jshint boss:true
 		var t,k,i=1,A=arguments,l=A.length
 		for (; i<l; ) if (t=A[i++]) for(k in t) if(Object.prototype.hasOwnProperty.call(t,k)) {
 			a[k]=t[k]
