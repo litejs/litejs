@@ -59,9 +59,15 @@ function setLevels(name) {
 }
 
 function _log(name, level, msg) {
-	var out, tmp
+	var args = arguments.length > 3 ? slice.call(arguments, 3) : null
 	, now = date.setTime(Date.now())
-	, args = arguments.length > 3 ? slice.call(arguments, 3) : null
+	, tmp = now - (this.last || now)
+	, out = date.toISOString() + " " + name + " +" + (
+		tmp > 36e4 ? (tmp / 36e4).toFixed(1) + "h" :
+		tmp > 6e4  ? (tmp / 6e4).toFixed(1) + "m" :
+		tmp > 1e3  ? (tmp / 1e3 | 0) + "s" :
+		tmp + "ms"
+	).replace(".0", "")
 
 	if (log.rawStream) {
 		log.rawStream.write([now, name, level, msg, args])
@@ -78,21 +84,12 @@ function _log(name, level, msg) {
 		}
 	}
 
-	if (log.prettyStream) {
-		tmp = now - (this.last || now)
-		out = date.toISOString() + " " + name + " +" + (
-			tmp > 36e4 ? (tmp / 36e4).toFixed(1) + "h" :
-			tmp > 6e4  ? (tmp / 6e4).toFixed(1) + "m" :
-			tmp > 1e3  ? (tmp / 1e3 | 0) + "s" :
-			tmp + "ms"
-		).replace(".0", "")
-		if (args === null) {
-			out += " " + msg
-		} else {
-			out += " " + format(msg, args)
-		}
+	out += " " + (args === null ? msg : format(msg, args))
 
+	if (log.prettyStream) {
 		log.prettyStream.write(out + "\n")
+	} else {
+		console.log(out)
 	}
 
 	this.last = now
