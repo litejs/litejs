@@ -325,6 +325,41 @@ describe("util", function() {
 			emitter.push(null)
 		}
 	})
+	it("should resolve numbers", function(assert) {
+		var X, arr = [
+			0, X, X, 0,
+			X, 0, X, 0,
+			X, X, 0, 0,
+			1, 0, 0, 1,
+			123, X, X, 123,
+			X, 123, X, 123,
+			X, X, 123, 123,
+			"1", X, X, 1,
+			X, "1", X, 1,
+			"1.", X, X, 1,
+			"1.0", X, X, 1,
+			"123", X, X, 123,
+			"124 ", X, X, 124,
+			"125k", X, X, 125*1000,
+			"126 k", X, X, 126*1000,
+			"127ki", X, X, 127*1024,
+			"128 ki", X, X, 128*1024,
+			"2M", X, X,  2*1000*1000,
+			"3Mi", X, X, 3*1024*1024,
+			"4G", X, X,  4*1000*1000*1000,
+			"5Gi", X, X, 5*1024*1024*1024,
+			"6T", X, X,  6*1000*1000*1000*1000,
+			"7Ti", X, X, 7*1024*1024*1024*1024,
+			"8P", X, X,  8*1000*1000*1000*1000*1000,
+			"9Pi", X, X, 9*1024*1024*1024*1024*1024
+		]
+		, i = 0
+		, l = arr.length
+		for (; i < l; ) {
+			assert.equal(util.num(arr[i++], arr[i++], arr[i++]), arr[i++])
+		}
+		assert.end()
+	})
 	it("should have wait", function(assert) {
 		assert.plan(4)
 

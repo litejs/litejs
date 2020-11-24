@@ -1,6 +1,8 @@
 
 exports.deepAssign = deepAssign
 exports.lineEmitter = lineEmitter
+exports.nop = nop
+exports.num = num
 exports.rand = rand
 exports.round = round
 exports.uuid4 = uuid4
@@ -17,6 +19,16 @@ exports.ip2int = ip2int
 exports.ipInNet = ipInNet
 
 var hasOwn = {}.hasOwnProperty
+, numRe = /^(-?\d+\.?\d*) *(|[kMGTP]i?)$/
+, numMap = {
+	"": 1,
+	k: 1e3, M: 1e6, G: 1e9, T: 1e12, P: 1e15,
+	ki: 1024,
+	Mi: 1048576,
+	Gi: 1073741824,
+	Ti: 1099511627776,
+	Pi: 1125899906842624
+}
 
 function deepAssign(to) {
 	for (var key, from, a = arguments, i = 1, len = a.length; i < len; ) {
@@ -70,6 +82,19 @@ function lineEmitter(emitter, opts) {
 		.removeListener(end, lineEmitterEnd)
 	}
 	return emitter
+}
+
+function nop() {}
+
+function num(a, b, c) {
+	var tmp
+	return (
+		typeof a === "number" && a === a ? a :
+		typeof a === "string" && (tmp = numRe.exec(a)) ? tmp[1] * numMap[tmp[2]] :
+		typeof b === "number" && b === b ? b :
+		typeof b === "string" && (tmp = numRe.exec(b)) ? tmp[1] * numMap[tmp[2]] :
+		c
+	)
 }
 
 function uuid4(a, b) {
