@@ -22,6 +22,16 @@ var fs = require("fs")
 				negod.select ? negod.select.split(",") : null,
 				+negod.space || negod.space
 			)
+		},
+		// RFC 4180 optional parameters: charset, header
+		'text/csv;br="\r\n";delimiter=",";fields=;filename=;header=;NULL=;select=': require("./csv.js").encode,
+		'application/sql;fields=;filename=;NULL=NULL;select=;table=table': function(data, negod) {
+			negod.re = /\D/
+			negod.br = "),\n("
+			negod.prefix = "INSERT INTO " +
+			negod.table + (negod.fields ? " (" + negod.fields + ")" : "") + " VALUES ("
+			negod.postfix = ");"
+			return csv.encode(data, negod)
 		}
 	},
 	charset: "UTF-8",

@@ -19,12 +19,12 @@ require("litejs/test").describe.it("should encode and decode csv", function(asse
 	}
 	, opts2 = {
 		br: "\r\n",
-		headers: "on",
+		header: "present",
 		result: 'ab,ef,i\r\ncd,"g""h",","\r\nCD,,\r\n1,,J\r\n,GH,'
 	}
 	, opts2f = {
 		br: "\r\n",
-		headers: "on",
+		header: "present",
 		fields: "Ab,Ef,I",
 		result: 'Ab,Ef,I\r\ncd,"g""h",","\r\nCD,,\r\n1,,J\r\n,GH,'
 	}
@@ -67,7 +67,7 @@ require("litejs/test").describe.it("should encode and decode csv", function(asse
 
 	assert.equal(csv.encode([{arr:["a","b"]}]), "a;b")
 	assert.equal(csv.decode("a,b,c\n1,2,3"), [["a","b","c"],["1","2","3"]])
-	assert.equal(csv.decode("a,b,c\n1,2,3\n", {headers:"on"}), [{"a":"1","b":"2","c":"3"}])
+	assert.equal(csv.decode("a,b,c\n1,2,3\n", {header:"present"}), [{"a":"1","b":"2","c":"3"}])
 	assert.equal(
 		csv.decode("a,b,c\n", {keys:"A,B,C"}),
 		[{"A":"a","B":"b","C":"c"}]

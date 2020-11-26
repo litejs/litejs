@@ -43,7 +43,7 @@
 				)
 			}).join(opts.delimiter)
 		})
-		if (opts.headers === "on") {
+		if (opts.header === "present") {
 			arr.unshift((opts.fields ? opts.fields.split(",") : keys).join(opts.delimiter))
 		}
 		return (opts.prefix || "") + arr.join(opts.br) + (opts.postfix || "")
@@ -57,7 +57,7 @@
 		, arr = []
 		, i = 0
 
-		if (opts.headers !== "on") {
+		if (opts.header !== "present") {
 			head = opts.keys ? opts.keys.split(",") : null
 			row = arr[0] = head === null ? [] : {}
 		}
