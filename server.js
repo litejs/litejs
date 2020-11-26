@@ -16,7 +16,7 @@ var fs = require("fs")
 	log: console,
 	exitTime: 5000,
 	accept: {
-		"application/json;filename=;select=;space=": function(data, negod) {
+		'application/json;filename=;select=;space=': function(data, negod) {
 			return JSON.stringify(
 				data,
 				negod.select ? negod.select.split(",") : null,

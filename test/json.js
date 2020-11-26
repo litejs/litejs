@@ -307,28 +307,43 @@ require("litejs/test").describe("json", function() {
 			.end()
 		})
 
-		.test("it should copy", function(assert) {
-			var map = {id:1, name:"One", map: { nested: {a:1,b:2}, c:3, d:false }}
-			function stringify(obj, attrs) {
-				return JSON.stringify(isArray(attrs) ? json.copy({}, obj, attrs) : obj)
+		.should("transform objects", function(assert) {
+			var tmp
+			, obj = {
+				id: 1,
+				map: { a: 2, b: 3, c: 4 },
+				firstName: "John",
+				age: 21,
+				rel: [
+					{ type: "father", firstName: "Bob" },
+					{ type: "mother", firstName: "Mary" },
+					{ type: "child", firstName: "Lisa" },
+					{ type: "child", firstName: "Bart" }
+				]
 			}
 
-			assert.equal(json.copy({a:1},null, ["a"]), {a:1})
-			assert.equal(json.copy({a:1},null, ["b"]), {a:1})
-			assert.equal(json.copy({a:1},{a:2}, ["a"]), {a:2})
-			assert.strictEqual(json.copy({a:1},{a:null}, ["a"]).a, null)
-			assert.equal(json.copy({a:1},{a:2}, ["b"]), {a:1})
+			tmp = json.tr("id,name:firstName,mother:rel[type=mother|a=':'].firstName")
+			assert.equal(tmp(obj), {
+				id: 1,
+				name: "John",
+				mother: "Mary"
+			})
 
-			assert
-			.equal(stringify(map), '{"id":1,"name":"One","map":{"nested":{"a":1,"b":2},"c":3,"d":false}}')
-			.equal(stringify(map, ["id"]), '{"id":1}')
-			.equal(stringify(map, ["id", "id.a", "none", "none.b"]), '{"id":1}')
-			.equal(stringify(map, ["id", "name"]), '{"id":1,"name":"One"}')
-			.equal(stringify(map, ["id", "name", "map"]), '{"id":1,"name":"One","map":{"nested":{"a":1,"b":2},"c":3,"d":false}}')
-			.equal(stringify(map, ["id", "name", "map.c"]), '{"id":1,"name":"One","map":{"c":3}}')
-			.equal(stringify(map, ["id", "name", "map.nested.a","map.d"]), '{"id":1,"name":"One","map":{"nested":{"a":1},"d":false}}')
+			// last one owerride previous
+			tmp = json.tr("id,,map,map.a")
+			assert.equal(tmp(obj), { id: 1, map: {a:2} })
+			tmp = json.tr("id,map.a,map")
+			assert.equal(tmp(obj), { id: 1, map: { a: 2, b: 3, c: 4 } })
+			tmp = json.tr("id,map.a,map.c")
+			assert.equal(tmp(obj), { id: 1, map: {a:2,c:4} })
 
+			tmp = json.tr("id,map.a,map.b:map.c")
+			assert.equal(tmp(obj), { id: 1, map: {a:2,b:4} })
+
+			//tmp = json.tr("id,day:text{'kala'}")
+			//assert.equal(tmp(obj), { id: 1, text: "kala" })
 			assert.end()
+
 		})
 
 		.test("throw", function(assert) {
@@ -529,8 +544,12 @@ require("litejs/test").describe("json", function() {
 			assert.equal("1".match(valRe), ["1"])
 			assert.equal("1,2".match(valRe), ["1", "2"])
 			assert.equal("1,'a b',2,'','\"'".match(valRe), ["1", "'a b'", "2", "''", "'\"'"])
-			assert.equal('1,"a{,}b",2,{i=1,"a,b"}'.match(valRe), ["1", '"a{,}b"', "2",'{i=1,"a,b"}'])
-			assert.equal('2,{i[]={a="{,^|&}"&b=@c}},"} a"'.match(valRe), ["2",'{i[]={a="{,^|&}"&b=@c}}', '"} a"'])
+			assert.equal(
+				'1,"a{,}b",2,{i=1,"a,b"}'.match(valRe),
+				["1", '"a{,}b"', "2",'{i=1,"a,b"}'])
+			assert.equal(
+				'2,{i[]={a="{,^|&}"&b=@c}},Date{M=11},"} a"'.match(valRe),
+				["2",'{i[]={a="{,^|&}"&b=@c}}', 'Date{M=11}', '"} a"'])
 			assert.end()
 		})
 		.test("it should throw on invalid filter", function(assert) {

@@ -15,11 +15,10 @@
 	, globReplace = /\?|(?=\*)/g
 	, globGroup = /\[!(?=.*\])/g
 	, primitiveRe = /^(-?(\d*\.)?\d+|true|false|null)$/
-	, valRe = /("|')(?:\\?.)*?\1|(\w*)\{(("|')(?:\\?.)*?\4|\w*\{(?:("|')(?:\\?.)*?\5|[^}])*?\}|.)*?\}|([@$]?)([^,]+)/g
+	, valRe = /("|')(?:\\?.)*?\1|(\w*)\{((?:("|')(?:\\?.)*?\4|\w*\{(?:("|')(?:\\?.)*?\5|[^}])*?\}|.)*?)\}|([@$]?)([^,]+)/g
 	, filterRe = /(!?)(\$?)((?:[-+:.\/\w]+|\[[^\]]+\]|\{[^}]+}|\\x2e)+)(\[]|\{}|)(?:(!(?=\1)==?|(?=\1)[<>=]=?)((?:("|')(?:\\?.)*?\7|\w*\{(?:("|')(?:\\?.)*?\8|\w*\{(?:("|')(?:\\?.)*?\9|[^}])*?\}|.)*?\}|[^|&()])*))?(?=[;)|&]|$)|(([;&|])\11*|([()])|.)/g
 	, onlyFilterRe = RegExp("^(?:([@*])|" + filterRe.source.slice(0, -10) + "))+$")
 	, cleanRe = /(\(o=d\)&&(?!.*o=o).*)\(o=d\)&&/g
-	, nameRe = / (\w+)/
 	, fns = {
 		"==": "a==d",
 		"===": "a===d",
@@ -34,12 +33,12 @@
 	, isArray = Array.isArray
 
 	exports.clone = clone
-	exports.copy = copy
 	exports.matcher = matcher
 	exports.get = function(obj, pointer, fallback) { return pathFn(pointer)(obj, fallback) }
 	exports.isObject = isObject
 	exports.mergePatch = mergePatch
 	exports.set = function(obj, pointer, value) { return pathFn(pointer, true)(obj, value) }
+	exports.tr = tr
 
 	exports.get.str = pathStr
 	matcher.re = filterRe
@@ -174,16 +173,6 @@
 		return obj
 	}
 
-	function copy(a, b, attrs) {
-		var len = b && attrs && attrs.length
-		return len ? (
-			copy[len] ||
-			(copy[len] = Function("a,b,k,g", "var v,u;return " + KEYS(attrs).map(function(i) {
-				return "(v=g(k[" + i + "])(b))!==u&&g(k[" + i + "],true)(a,v)"
-			}) + ",a"))
-		)(a, b, attrs, pathFn) : a
-	}
-
 	function matcher(str, prefix, opts, getter, tmp) {
 		var optimized
 		, arr = []
@@ -313,6 +302,23 @@
 			);
 		);
 		return "a[" + (-1 < i ? i : arr.push(val) - 1) + "]"
+	}
+
+	function tr(attrs, aclFn) {
+		var attr, tmp
+		, arr = []
+		, map = {}
+		, i = 0
+		for (; attr = valRe.exec(attrs); ) {
+			tmp = attr[0].split(":")
+			exports.set(map, tmp[0], i)
+			arr[i++] = pathFn(tmp[1] ? attr[0].slice(tmp[0].length+1) : tmp[0])
+		}
+		return Function(
+			"g,a",
+			"return function(o,a){return " +
+			JSON.stringify(map).replace(/:(\d+)/g,":g[$1](o)") + "}"
+		)(arr, aclFn)
 	}
 
 	function isObject(obj) {
