@@ -1,13 +1,50 @@
 
 
 
-!function(exports) {
-	var pointerCache = {}
-	, hasOwn = pointerCache.hasOwnProperty
+!function(exports, Object) {
+	"use strict";
+	var getFns = Object.create(null)
+	, setFns = Object.create(null)
+	, filterFns = Object.create(null)
+	, KEYS = Object.keys
+	, FILTER_ERR = "Invalid filter: "
+	, escRe = /['\n\r\u2028\u2029]|\\(?!x2e)/g
+	, pathRe = /(^$|.+?)(?:\[([^\]]*)\]|\{([^}]*)})?(\.(?=[^.])|$)/g
+	, reEscRe = /[.+^=:${}()|\/\\]/g
+	, globRe = /\[.+?\]|[?*]/
+	, globReplace = /\?|(?=\*)/g
+	, globGroup = /\[!(?=.*\])/g
+	, primitiveRe = /^(-?(\d*\.)?\d+|true|false|null)$/
+	, valRe = /("|')(?:\\?.)*?\1|(\w*)\{(("|')(?:\\?.)*?\4|\w*\{(?:("|')(?:\\?.)*?\5|[^}])*?\}|.)*?\}|([@$]?)([^,]+)/g
+	, filterRe = /(!?)(\$?)((?:[-+:.\/\w]+|\[[^\]]+\]|\{[^}]+}|\\x2e)+)(\[]|\{}|)(?:(!(?=\1)==?|(?=\1)[<>=]=?)((?:("|')(?:\\?.)*?\7|\w*\{(?:("|')(?:\\?.)*?\8|\w*\{(?:("|')(?:\\?.)*?\9|[^}])*?\}|.)*?\}|[^|&()])*))?(?=[;)|&]|$)|(([;&|])\11*|([()])|.)/g
+	, onlyFilterRe = RegExp("^(?:([@*])|" + filterRe.source.slice(0, -10) + "))+$")
+	, cleanRe = /(\(o=d\)&&(?!.*o=o).*)\(o=d\)&&/g
+	, nameRe = / (\w+)/
+	, fns = {
+		"==": "a==d",
+		"===": "a===d",
+		">": "a<d",
+		">=": "a<=d",
+		"<": "a>d",
+		"<=": "a>=d",
+		"~": "typeof d==='string'&&a.test(d)"
+	}
+	, hasOwn = fns.hasOwnProperty
+	, tmpDate = new Date()
+	, isArray = Array.isArray
 
 	exports.clone = clone
-	exports.mergePatch = mergePatch
+	exports.copy = copy
+	exports.matcher = matcher
+	exports.get = function(obj, pointer, fallback) { return pathFn(pointer)(obj, fallback) }
 	exports.isObject = isObject
+	exports.mergePatch = mergePatch
+	exports.set = function(obj, pointer, value) { return pathFn(pointer, true)(obj, value) }
+
+	exports.get.str = pathStr
+	matcher.re = filterRe
+	matcher.str = filterStr
+	matcher.valRe = valRe
 
 	/**
 	 * JSON Merge Patch
@@ -57,6 +94,71 @@
 		return target
 	}
 
+	function escFn(str) {
+		return escape(str).replace(/%u/g, "\\u").replace(/%/g, "\\x")
+	}
+
+	function pathStr(str, set) {
+		return (
+			str.charAt(0) === "/" ?
+			str.slice(1).replace(/\./g, "\\x2e").replace(/\//g, ".").replace(/~1/g, "/").replace(/~0/g, "~") :
+			str
+		)
+		.replace(escRe, escFn)
+		.replace(pathRe, set === true ? pathSet : pathGet)
+	}
+
+	function pathGet(str, path, arr, obj, dot) {
+		var v = dot ? "(o=" : "(c="
+		, sub = arr || obj
+		if (sub && !(sub = onlyFilterRe.exec(sub))) throw Error(FILTER_ERR + str)
+		return (
+			sub ?
+			pathGet(0, path, 0, 0, 1) + (arr ? "i" : "j") + "(o)&&" + v + (
+				sub[1] ? (arr ? "o" : "K(o)") + (sub[0] === "*" ? "" : ".length") :
+				+arr == arr ?  "o[" + (arr < 0 ? "o.length" + arr : arr) + "]" :
+				(arr ? "I" : "J") + "(o,f('" + sub[0] + "'))"
+			) + ")" :
+			v + "o['" + path + (
+				arr === "" ? "'])&&i(c)&&c" :
+				obj === "" ? "'])&&j(c)&&c" :
+				"'])"
+			)
+		) + (dot ? "&&" : "")
+	}
+
+	function pathSet(str, path, arr, obj, dot) {
+		var op = "o['" + path + "']"
+		, out = ""
+		, sub = arr || obj
+		if (sub) {
+			out = "(o="+(arr?"i":"j")+"(o['" + path + "'])?o['" + path + "']:(o['" + path + "']="+(arr?"[]":"{}")+"))&&"
+			if (arr === "-") {
+				op = "o[o.length]"
+			} else if (+arr == arr) {
+				op = "o[" + (arr < 0 ? "o.length" + arr : arr) + "]"
+			} else {
+				if (!onlyFilterRe.test(arr)) throw Error(FILTER_ERR + str)
+				op = "o[t]"
+				out += "(t="+(arr?"I":"J")+"(o,f('" + sub + "'),1))!=null&&"
+			}
+		}
+		return out + (dot ?
+			"(o=typeof " + op + "==='object'&&" + op + "||(" + op + "={}))&&" :
+			"((c=" + op + "),(" + op + "=v),c)"
+		)
+	}
+
+	function pathFn(str, set) {
+		var map = set === true ? setFns : getFns
+		return map[str] || (map[str] = Function(
+			"i,j,I,J,K,f",
+			"return function(d,v,b){var c,o,t;return (o=d)&&" +
+			pathStr(str, set) +
+			(set ? ",c}": "!==void 0?c:v}")
+		)(isArray, isObject, inArray, inObject, KEYS, matcher))
+	}
+
 	function clone(obj) {
 		var temp, key
 		if (obj && typeof obj == "object") {
@@ -72,11 +174,165 @@
 		return obj
 	}
 
+	function copy(a, b, attrs) {
+		var len = b && attrs && attrs.length
+		return len ? (
+			copy[len] ||
+			(copy[len] = Function("a,b,k,g", "var v,u;return " + KEYS(attrs).map(function(i) {
+				return "(v=g(k[" + i + "])(b))!==u&&g(k[" + i + "],true)(a,v)"
+			}) + ",a"))
+		)(a, b, attrs, pathFn) : a
+	}
+
+	function matcher(str, prefix, opts, getter, tmp) {
+		var optimized
+		, arr = []
+		, key = (prefix || "") + (fns[str] || filterStr(str, opts, arr, getter))
+		, fn = filterFns[key]
+		if (!fn) {
+			for (optimized = key; optimized != (optimized = optimized.replace(cleanRe, "$1")); );
+			fn = filterFns[key] = Function(
+				fns[str] ? "a" : "a,i,j,I,J,K,f,p,t",
+				"return function(d,b){var o;return " + optimized + "}"
+			)
+			fn.source = optimized
+		}
+		return fns[str] ? fn : fn(
+			arr, isArray, isObject, inArray, inObject, KEYS, matcher, pathFn, tmp
+		)
+	}
+
+	// Date{day=1,2}
+	// sliceable[start:stop:step]
+	// Geo{distance=200km&lat=40&lon=-70}
+	// ?pos=Geo{distance=200km&lat=@lat&lon=@lon}
+	// [lon, lat] in The GeoJSON Format RFC 7946
+	// IP{net=127.0.0.1/30}
+	// var re = /^((\d|[1-9]\d|1\d\d|2[0-4]\d|25[0-5])(?:\.(?=.)|$)){4}$/
+	// ["1.2.3.4", "127.0.0.1", "192.175.255.254."].map(re.test, re)
+
+	matcher.date = function(str) {
+		return matcher(str, "(t.setTime(+d)>=0)&&", null, dateGetter, tmpDate)
+	}
+
+	function dateGetter(name) {
+		return "(t.get" + Date.fnMap[name] + ")"
+	}
+
+	function filterStr(qs, opts, arr, getter) {
+		return qs.replace(filterRe, worker).replace(/^[1&]&+|&+1?$/g, "") || "1"
+
+		function worker(all, not, isOption, attr, isArray, op, val, q1, q2, q3, ext, ok2, ok1) {
+			if (ext) {
+				if (!ok2 && !ok1) {
+					throw Error(FILTER_ERR + qs)
+				}
+				return ok1 ? ok1 : ok2 == ";" ? "&&" : ok2 + ok2
+			}
+			if (isOption) {
+				if (opts) opts[attr] = val
+				return "1"
+			}
+
+			var idd, m, v, isRe
+			, a = []
+			, pre = "(o=d)&&"
+
+			attr = (getter || pathStr)(attr)
+
+			if (m = attr.match(/\(c=(.*?)\)$/)) {
+				if (m[1] == "K(o)") {
+					pre += attr + "&&"
+					attr = "c"
+				} else {
+					if (m.index) pre += attr.slice(0, m.index)
+					attr = m[1]
+				}
+			}
+
+			if (op == "!=" || op == "!==") {
+				not = "!"
+				op = op.slice(1)
+			}
+			if (isArray) {
+				pre += not + (isArray === "[]" ? "i(" : "j(") + attr + ")"
+			}
+
+			if (!op) {
+				return isArray === "" ? pre + not + attr : pre
+			}
+
+			if (op == "=" || op == "==") op += "="
+			if (val === "") val="''"
+			for (; m = valRe.exec(val); ) {
+				// quote, extension, subquery, subQuote, subSubQuote, at
+				// Parameterized query ?name=$name|name=:name
+				isRe = 0
+				v = m[6] == "$" ? "b['"+ m[7] +"']" : arrIdx(arr,
+					m[1] || m[3] ? m[0].slice(m[3] ? m[2].length + 1 : 1, -1) :
+					m[6] ? m[7] :
+					primitiveRe.test(m[0]) ? JSON.parse(m[0]) :
+					(isRe = globRe.test(m[0])) ? RegExp(
+						"^" + m[0]
+						.replace(reEscRe, "\\$&")
+						.replace(globReplace, ".")
+						.replace(globGroup, "[^") + "$",
+						op === "==" ? "i" : ""
+					) :
+					m[0]
+				)
+				idd = (
+					m[2] ? "f." + m[2].toLowerCase() :
+					m[3] ? "f" :
+					isArray || attr === "c" ? arrIdx(arr, matcher(isRe ? "~" : op)) :
+					""
+				) + "(" + v
+				a.push(
+					isArray || attr === "c" ? (isArray == "{}" ? "J(" : "I(") + attr + "," + idd + "))" :
+					m[2] || m[3] ? idd + ")(" + attr + ")" :
+					isRe ? "typeof " + attr + "==='string'&&" + v + ".test(" + attr + ")" :
+					m[6] ? attr + "!==void 0&&" + attr + op + (
+						m[6] == "$" ? "b['"+ m[7] +"']" : "p(" + v + ")(o)"
+					) :
+					attr + op + v
+				)
+			}
+
+			return pre + (
+				isArray ? (not ? "||" : "&&") : ""
+			) + not + "(" + a.join("||") + ")"
+		}
+	}
+
+	function arrIdx(arr, val) {
+		for (
+			var i = arr.length;
+			0 <= --i && !(
+				arr[i] === val ||
+				val && val.source && val.source === arr[i].source
+			);
+		);
+		return "a[" + (-1 < i ? i : arr.push(val) - 1) + "]"
+	}
+
 	function isObject(obj) {
 		return !!obj && obj.constructor === Object
 	}
 
+	function inArray(a, fn, idx) {
+		for (var i = -1, len = a.length; ++i < len; ) {
+			if (fn(a[i])) return idx == null ? a[i] : i
+		}
+		return idx != null && len
+	}
+
+	function inObject(o, fn, idx) {
+		for (var key in o) {
+			if (fn(o[key])) return idx == null ? o[key] : key
+		}
+		return null
+	}
 // `this` refers to the `window` in browser and to the `exports` in Node.js.
-}(this.JSON || this)
+}(this.JSON || this, Object)
 
 

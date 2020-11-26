@@ -21,7 +21,7 @@
 	exports.encode = encode
 	exports.decode = decode
 
-	var get = require("./model").Item.get
+	var get = require("./json").get
 	, re = /"((?:""|[^"])*)"|[^",\n\r]+|,|\r?\n/g
 
 	function encode(obj, _opts) {
