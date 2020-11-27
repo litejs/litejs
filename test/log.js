@@ -1,6 +1,6 @@
 
 
-require("litejs/test").describe.it("should handle logs", function(assert, mock) {
+describe.it("should handle logs", function(assert, mock) {
 	var tmp
 	, log = require("../log")
 	, a = log("main:a")

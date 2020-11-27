@@ -1,7 +1,6 @@
 //require("../polyfill")
 
-var describe = require("litejs/test").describe
-, it = describe.it
+var it = describe.it
 
 
 describe("accept", function() {

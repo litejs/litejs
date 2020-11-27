@@ -3,12 +3,15 @@ require("..")
 
 require("./engine.js")
 
-require("./accept.js")
-require("./content.js")
-require("./cookie.js")
+describe("server", function() {
+	require("./accept.js")
+	require("./content.js")
+	require("./cookie.js")
+})
+
 require("./csv.js")
 require("./json.js")
-require("./events.js")
+require("./event.js")
 require("./log.js")
 require("./path.js")
 require("./ratelimit.js")

@@ -2,7 +2,7 @@
 
 
 
-require("litejs/test").describe("json", function() {
+describe("json", function() {
 	var undef, a, b, c
 	, isArray = Array.isArray
 	, date = new Date()

@@ -1,7 +1,6 @@
 
 
-require("litejs/test")
-.describe("engine", function() {
+describe("engine", function() {
 	this
 	.should("parse full date", function(assert, mock) {
 		mock.time(0, 0)

@@ -1,6 +1,5 @@
 
-var describe = require("litejs/test").describe
-, it = describe.it
+var it = describe.it
 
 
 // Leaky bucket
@@ -23,9 +22,11 @@ describe("ratelimit", function() {
 		}
 		var ipLimit = require("../ratelimit")()
 
-		assert.plan(0)
+		assert.plan(1)
 
 		run(null, 0, [])
+
+		assert.ok(1)
 
 		function run(expect, delay, headers) {
 			assert.planned++

@@ -1,7 +1,7 @@
 
 
 
-require("litejs/test").describe.it("should encode and decode csv", function(assert) {
+describe.it("should encode and decode csv", function(assert) {
 	var row, tmp
 	, csv = require("../csv")
 	, i = 0

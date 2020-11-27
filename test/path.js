@@ -3,7 +3,7 @@
 var path = require("path")
 , path2 = require("../path")
 
-require("litejs/test").describe.it ("normalizes path", function(assert) {
+describe.it ("normalizes path", function(assert) {
 	assert.pathNormalize = function(actual, expected) {
 		var res1 = path2.normalize(actual)
 		var res2 = path.normalize(actual)

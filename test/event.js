@@ -3,8 +3,8 @@ global.document = this
 
 var emitted = []
 , expected = []
-, events = require("../events")
-, Emitter = events.Emitter
+, event = require("../event")
+, Emitter = event.Emitter
 , emitter = new Emitter()
 , em1 = new Emitter()
 , em2 = new Emitter()
@@ -34,7 +34,7 @@ Scope.prototype.handler = function(val) {
 	emitted.push(this.name + " " + val)
 }
 
-require("litejs/test").describe.it ("should handle events", function(assert) {
+describe.it ("should handle events", function(assert) {
 	assert
 	.equal(emitter.emit("ev0", "emit0"), 0)
 	.equal(emitted, expected)
@@ -194,15 +194,15 @@ require("litejs/test").describe.it ("should handle events", function(assert) {
 	.equal(emitter._l.length, 0)
 	.equal(emitter.listen(null, "ev1", ev1), emitter)
 	.equal(emitter._l.length, 0)
-	.equal(emitter.listen(events, "ev1", ev1), emitter)
-	.equal(emitter.listen(events, "ev2", ev2), emitter)
+	.equal(emitter.listen(event, "ev1", ev1), emitter)
+	.equal(emitter.listen(event, "ev2", ev2), emitter)
 
-	em1.on.call(events, null, "event")
-	em1.one.call(events, "ev2", "event")
+	em1.on.call(event, null, "event")
+	em1.one.call(event, "ev2", "event")
 
 	assert
-	.equal(em1.emit.call(events, "ev2", 1), 3)
-	.equal(em1.emit.call(events, "ev2", 1), 2)
+	.equal(em1.emit.call(event, "ev2", 1), 3)
+	.equal(em1.emit.call(event, "ev2", 1), 2)
 
 	.equal(emitter._l.length, 2)
 	.equal(emitter.unlisten("*"), emitter)

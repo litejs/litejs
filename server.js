@@ -2,7 +2,7 @@
 var fs = require("fs")
 , accept = require("./accept").accept
 , content = require("./content")
-, events = require("./events")
+, event = require("./event")
 , path = require("./path")
 , util = require("./util")
 , defaultOpts = {
@@ -201,7 +201,7 @@ function createApp(opts_) {
 	, uses = []
 	, opts = util.deepAssign(app.opts = {defaults: defaultOpts}, defaultOpts, opts_)
 
-	events.asEmitter(app)
+	event.asEmitter(app)
 	opts._accept = accept(opts.accept)
 	opts._encoding = accept(opts.encoding)
 

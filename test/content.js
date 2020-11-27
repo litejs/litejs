@@ -1,6 +1,5 @@
 
-var describe = require("litejs/test").describe
-, it = describe.it
+var it = describe.it
 
 // Subtypes:
 //  - alternative
@@ -19,6 +18,7 @@ describe("content", function() {
 	, fs = require("fs")
 	, stream = require("stream")
 	, content = require("../content")
+	, util = require("../util")
 
 	try {
 		zlib = require("zlib")
@@ -41,14 +41,14 @@ describe("content", function() {
 				"content-encoding": "identity"
 			},
 			body: '{"a":1}'
-		}, {a:1})
+		}, {body: {a:1}})
 
 		assert.fakeReq({
 			headers: {
 				"content-type": "application/json"
 			},
 			body: ''
-		}, {})
+		}, {body:{}})
 
 		assert.fakeReq({
 			headers: {
@@ -56,7 +56,7 @@ describe("content", function() {
 				"content-encoding": "deflate, identity, br"
 			},
 			body: zlib.brotliCompressSync(zlib.deflateSync('{"a":2}'))
-		}, {a:2})
+		}, {body: {a:2}})
 
 	})
 
@@ -67,7 +67,7 @@ describe("content", function() {
 				"content-type": "application/x-www-form-urlencoded"
 			},
 			body: 'a=1&b=2'
-		}, {a:"1", b:"2"})
+		}, {body: {a:"1", b:"2"}})
 	})
 
 	it ("should parse querystring", function(assert) {
@@ -145,39 +145,41 @@ describe("content", function() {
 			}
 		}
 		, result = {
-			ab: "123",
-			c: { d: "234" }
+			body: {
+				ab: "123",
+				c: { d: "234" }
+			},
+			files: [
+				{ name: "file_0", filename: "ABC.txt" , tmp: "" },
+				{ name: "file_1", filename: "abc.txt" , tmp: "" }
+			]
 		}
-		, files = [
-			{ name: "file_0", filename: "ABC.txt" , tmp: "" },
-			{ name: "file_1", filename: "abc.txt" , tmp: "" }
-		]
 
 		assert.plan(8)
 
 		req.body = body
-		assert.fakeReq(req, result, files)
+		assert.fakeReq(req, result)
 
 		req.body = body.match(/[\s\S]/g)
-		assert.fakeReq(req, result, files)
+		assert.fakeReq(req, result)
 
 		req.body = body.match(/[\s\S]{1,2}/g)
-		assert.fakeReq(req, result, files)
+		assert.fakeReq(req, result)
 
 		req.body = body.match(/[\s\S]{1,3}/g)
-		assert.fakeReq(req, result, files)
+		assert.fakeReq(req, result)
 
 		req.body = body.match(/[\s\S]{1,4}/g)
-		assert.fakeReq(req, result, files)
+		assert.fakeReq(req, result)
 
 		req.body = body.match(/[\s\S]{1,5}/g)
-		assert.fakeReq(req, result, files)
+		assert.fakeReq(req, result)
 
 		req.body = body.match(/[\s\S]{1,8}/g)
-		assert.fakeReq(req, result, files)
+		assert.fakeReq(req, result)
 
 		req.body = body.match(/[\s\S]{1,16}/g)
-		assert.fakeReq(req, result, files)
+		assert.fakeReq(req, result)
 	})
 
 	it("should parse multipart/form-data without files", function(assert) {
@@ -203,33 +205,34 @@ describe("content", function() {
 			}
 		}
 		, result = {
-			ab: ["123", "456"],
-			c: { d: {e: "234"} }
+			body: {
+				ab: ["123", "456"],
+				c: { d: {e: "234"} }
+			}
 		}
-		, files = null
 
 		assert.plan(7)
 
 		req.body = body
-		assert.fakeReq(req, result, files)
+		assert.fakeReq(req, result)
 
 		req.body = body.match(/[\s\S]/g)
-		assert.fakeReq(req, result, files)
+		assert.fakeReq(req, result)
 
 		req.body = body.match(/[\s\S]{1,2}/g)
-		assert.fakeReq(req, result, files)
+		assert.fakeReq(req, result)
 
 		req.body = body.match(/[\s\S]{1,3}/g)
-		assert.fakeReq(req, result, files)
+		assert.fakeReq(req, result)
 
 		req.body = body.match(/[\s\S]{1,4}/g)
-		assert.fakeReq(req, result, files)
+		assert.fakeReq(req, result)
 
 		req.body = body.match(/[\s\S]{1,8}/g)
-		assert.fakeReq(req, result, files)
+		assert.fakeReq(req, result)
 
 		req.body = body.match(/[\s\S]{1,18}/g)
-		assert.fakeReq(req, result, files)
+		assert.fakeReq(req, result)
 	})
 
 	it("handle errors", function(assert) {
@@ -243,20 +246,19 @@ describe("content", function() {
 				"content-type": "application/json"
 			},
 			body: ''
-		}, null, null, "Unsupported Media Type" )
+		}, { error: "Unsupported Media Type" })
 
 		assert.fakeReq({
-			headers: {
-			},
+			headers: {},
 			body: ''
-		}, null, null, "Unsupported Media Type" )
+		}, { error: "Unsupported Media Type" })
 
 		assert.fakeReq({
 			headers: {
 				"content-type": "application/json"
 			},
 			body: 'a=1&b=2'
-		}, null, null, "Unexpected token a in JSON at position 0" )
+		}, { error: "Unexpected token a in JSON at position 0" })
 
 		assert.fakeReq({
 			headers: {
@@ -285,7 +287,7 @@ describe("content", function() {
 				'E',
 				"--" + boundary + "--"
 			].join('\r\n')
-		}, null, null, "maxFields exceeded", { maxFields: 4 })
+		}, { error: "maxFields exceeded" }, { maxFields: 4 })
 
 		assert.fakeReq({
 			headers: {
@@ -309,42 +311,42 @@ describe("content", function() {
 				'C',
 				"--" + boundary + "--"
 			].join('\r\n')
-		}, null, null, "maxFiles exceeded" )
+		}, { error: "maxFiles exceeded" } )
 
 		assert.fakeReq({
 			headers: {
 				"content-type": "application/json"
 			},
 			body: new Array(100).join(boundary)
-		}, null, null, "Payload Too Large" )
+		}, { error: "Payload Too Large" } )
 
 		assert.fakeReq({
 			headers: {
 				"content-type": "application/json"
 			},
 			body: "ab"
-		}, null, null, "Payload Too Large", { maxBodySize: 1 } )
+		}, { error: "Payload Too Large" }, { maxBodySize: 1 } )
 
 	})
 
 
-	function fakeReq(opts, expected, _files, _err, reqOpts) {
+	function fakeReq(req_, expected, reqOpts) {
 		var assert = this
 		, req = new stream.Readable()
-		, junks = Array.isArray(opts.body) ? opts.body : [ opts.body ]
+		, junks = Array.isArray(req_.body) ? req_.body : [ req_.body ]
 
 		req.getContent = content
-		req.headers = opts.headers
-		req.opts = {
+		req.headers = req_.headers || {}
+		req.opts = util.deepAssign({
 			compress: true,
 			tmp: "/tmp/" + process.pid,
 			maxBodySize: 1000,
 			maxFiles: 2
-		}
+		}, req_)
 
 		req.getContent(function(err, body, files, negod) {
 			assert.planned += 1
-			assert.equal(err && err.message || err, _err || null)
+			assert.equal(err && err.message || err, expected.error || null)
 
 			assert.planned += 1
 			assert.equal(files ? files.map(function(negod) {
@@ -354,14 +356,14 @@ describe("content", function() {
 					//content: negod.content,
 					tmp: ""
 				}
-			}) : null, _files || null)
+			}) : null, expected.files || null)
 
 			if (files) {
 				fs.unlinkSync(files[0].tmp)
 				files[0].tmp = null
 			}
 
-			assert.equal(body, expected)
+			assert.equal(body, expected.body)
 		}, reqOpts)
 
 		junks.forEach(function(junk) {
