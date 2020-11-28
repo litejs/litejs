@@ -32,7 +32,7 @@ describe("content", function() {
 	describe.assert.fakeReq = fakeReq
 
 
-	it("should parse application/json", function(assert) {
+	it("should accept application/json", function(assert) {
 		assert.plan(3)
 
 		assert.fakeReq({
@@ -44,10 +44,7 @@ describe("content", function() {
 		}, {body: {a:1}})
 
 		assert.fakeReq({
-			headers: {
-				"content-type": "application/json"
-			},
-			body: ''
+			headers: { "content-type": "application/json" },
 		}, {body:{}})
 
 		assert.fakeReq({
@@ -60,12 +57,22 @@ describe("content", function() {
 
 	})
 
-	it("should parse application/x-www-form-urlencoded", function(assert) {
+	it("should accept text/csv", function(assert) {
+		assert.plan(2)
+		assert.fakeReq({
+			headers: { "content-type": "text/csv" },
+			body: 'a,b\n1,2'
+		}, {body: [["a", "b"], ["1", "2"]]})
+		assert.fakeReq({
+			headers: { "content-type": "text/csv;header=present" },
+			body: 'a,b\n1,2'
+		}, {body: [{a:"1", b:"2"}]})
+	})
+
+	it("should accept application/x-www-form-urlencoded", function(assert) {
 		assert.plan(1)
 		assert.fakeReq({
-			headers: {
-				"content-type": "application/x-www-form-urlencoded"
-			},
+			headers: { "content-type": "application/x-www-form-urlencoded" },
 			body: 'a=1&b=2'
 		}, {body: {a:"1", b:"2"}})
 	})

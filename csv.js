@@ -58,7 +58,7 @@
 		, i = 0
 
 		if (opts.header !== "present") {
-			head = opts.keys ? opts.keys.split(",") : null
+			head = opts.fields ? opts.fields.split(",") : null
 			row = arr[0] = head === null ? [] : {}
 		}
 

@@ -10,7 +10,8 @@ var fs = require("fs")
 		return JSON.parse(str || "{}")
 	},
 	'application/x-www-form-urlencoded': querystring,
-	'multipart/*;boundary=': null
+	'multipart/*;boundary=': null,
+	'text/csv;br="\r\n";delimiter=",";fields=;header=;NULL=;select=': require("./csv.js").decode
 })
 , negotiateDisposition = accept([
 	'form-data;name="";filename=""'
@@ -84,7 +85,7 @@ function getContent(next, reqOpts) {
 		if (next) {
 			if (err) next(err)
 			else try {
-				if (negod.o) req.body = negod.o(tmp)
+				if (negod.o) req.body = negod.o(tmp, negod)
 				next(null, req.body, req.files, negod)
 			} catch (e) {
 				next(e)

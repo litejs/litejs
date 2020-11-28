@@ -13,7 +13,7 @@ describe.it("should encode and decode csv", function(assert) {
 	]
 	, opts1 = {
 		br: "\r\n",
-		keys: "ab,ef,i",
+		fields: "ab,ef,i",
 		NULL: null,
 		result: 'cd,"g""h",","\r\nCD,,\r\n1,,J\r\n,GH,'
 	}
@@ -59,7 +59,9 @@ describe.it("should encode and decode csv", function(assert) {
 
 	assert.equal(csv.encode({ab:"cd", ef:"gh"}, Object.assign({select:"ab"}, opts1)), "cd")
 
-	assert.equal(csv.decode("1,2,3\n4,5,6", {head: false}), [["1", "2", "3"], ["4", "5", "6"]])
+	assert.equal(csv.decode("1,2,3\n4,5,6", {}), [["1", "2", "3"], ["4", "5", "6"]])
+	assert.equal(csv.decode("1,2,3\n4,5,6", {fields:"a,b,c"}), [{a:"1", b:"2", c:"3"}, {a:"4", b:"5", c:"6"}])
+	assert.equal(csv.decode("a,b,c\n1,2,3\n4,5,6", {header:"present"}), [{a:"1", b:"2", c:"3"}, {a:"4", b:"5", c:"6"}])
 	assert.equal(
 		csv.decode('"1997",Ford,E350,"Super, ""luxurious"" truck"\r\n"1998",Ford,E350,"Super, ""luxurious"" truck"', {head: false}),
 		[["1997","Ford","E350",'Super, "luxurious" truck'], ["1998","Ford","E350",'Super, "luxurious" truck']]
@@ -69,7 +71,7 @@ describe.it("should encode and decode csv", function(assert) {
 	assert.equal(csv.decode("a,b,c\n1,2,3"), [["a","b","c"],["1","2","3"]])
 	assert.equal(csv.decode("a,b,c\n1,2,3\n", {header:"present"}), [{"a":"1","b":"2","c":"3"}])
 	assert.equal(
-		csv.decode("a,b,c\n", {keys:"A,B,C"}),
+		csv.decode("a,b,c\n", {fields:"A,B,C"}),
 		[{"A":"a","B":"b","C":"c"}]
 	)
 
