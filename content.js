@@ -2,16 +2,14 @@
 var fs = require("fs")
 , Writable = require("stream").Writable
 , accept = require("./accept.js").accept
-, querystring = require("./querystring")
+, json = require("./json")
 , util = require("./util")
 , rnrn = Buffer.from("\r\n\r\n")
 , negotiateContent = accept({
 	'application/json': function(str) {
 		return JSON.parse(str || "{}")
 	},
-	'application/x-www-form-urlencoded': function(str) {
-		return querystring.parse(str)
-	},
+	'application/x-www-form-urlencoded': querystring,
 	'multipart/*;boundary=': null
 })
 , negotiateDisposition = accept([
@@ -26,7 +24,10 @@ var fs = require("fs")
 
 makeTable(rnrn)
 
-module.exports = function getContent(next, reqOpts) {
+module.exports = getContent
+getContent.querystring = querystring
+
+function getContent(next, reqOpts) {
 	var i, tmp
 	, req = this
 	, head = req.headers
@@ -35,7 +36,7 @@ module.exports = function getContent(next, reqOpts) {
 	, maxBodySize = util.num(reqOpts && reqOpts.maxBodySize, req.opts.maxBodySize, 1e6)
 
 	if (!negod.match) {
-		return next("Unsupported Media Type")
+		return handleEnd("Unsupported Media Type")
 	}
 
 	req.body = {}
@@ -48,7 +49,7 @@ module.exports = function getContent(next, reqOpts) {
 					maxOutputLength: maxBodySize
 				}))
 			} else if (tmp[i] && tmp[i] !== "identity") {
-				return next("Unsupported Media Type")
+				return handleEnd("Unsupported Media Type")
 			}
 		}
 	}
@@ -57,7 +58,7 @@ module.exports = function getContent(next, reqOpts) {
 		stream = stream.pipe(multipart(negod.boundary, reqOpts || {}, req))
 
 		stream.on("finish", function() {
-			next(null, req.body, req.files, negod)
+			handleEnd()
 			if (req.files) {
 				for (var i = req.files.length; i--; ) {
 					if (req.files[i].tmp) fs.unlink(req.files[i].tmp, util.nop)
@@ -70,24 +71,41 @@ module.exports = function getContent(next, reqOpts) {
 			tmp += data
 			// FLOOD ATTACK OR FAULTY CLIENT, NUKE REQUEST
 			if (tmp.length > maxBodySize) {
+				handleEnd("Payload Too Large") // 431 Payload Too Large
 				stream.destroy()
-				next("Payload Too Large") // 431 Payload Too Large
 			}
 		})
 		.on("end", handleEnd)
 	}
 
-	stream.on("error", next)
+	stream.on("error", handleEnd)
 
-	function handleEnd() {
-		if (this.destroyed) return
-		try {
-			req.body = negod.o(tmp)
-			next(null, req.body, req.files, negod)
-		} catch (e) {
-			next(e)
+	function handleEnd(err) {
+		if (next) {
+			if (err) next(err)
+			else try {
+				if (negod.o) req.body = negod.o(tmp)
+				next(null, req.body, req.files, negod)
+			} catch (e) {
+				next(e)
+			}
+			next = null
 		}
 	}
+}
+
+function querystring(str) {
+	var step, map = {}
+	if (typeof str === "string" && str !== "") {
+		var arr = str.split("&")
+		, i = 0
+		, l = arr.length
+		for (; i < l; ) {
+			step = arr[i++].replace(/\+/g, " ").split("=")
+			json.setForm(map, unescape(step[0]), unescape(step[1] || ""))
+		}
+	}
+	return map
 }
 
 function multipart(boundary, reqOpts, req) {
@@ -146,14 +164,7 @@ function multipart(boundary, reqOpts, req) {
 					if (needle === boundary) {
 						if (negod) {
 							if (!remainingFields--) return writable.destroy({ code: 413, message: "maxFields exceeded"})
-							j = negod.name
-							negod = req.body
-							j.replace(/\[(.*?)\]/g, function(_, _key, offset) {
-								if (negod == req.body) j = j.slice(0, offset)
-								negod = negod[j] || (negod[j] = _key && +_key != _key ? {} : [])
-								j = _key
-							})
-							negod[j || negod.length] = buf.toString()
+							json.setForm(req.body, negod.name, buf.toString())
 							negod = null
 						} else if (fileStream) {
 							fileStream.end(buf)

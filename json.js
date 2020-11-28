@@ -11,6 +11,7 @@
 	, escRe = /['\n\r\u2028\u2029]|\\(?!x2e)/g
 	, pathRe = /(^$|.+?)(?:\[([^\]]*)\]|\{([^}]*)})?(\.(?=[^.])|$)/g
 	, reEscRe = /[.+^=:${}()|\/\\]/g
+	, keyRe = /\[(.*?)\]/g
 	, globRe = /\[.+?\]|[?*]/
 	, globReplace = /\?|(?=\*)/g
 	, globGroup = /\[!(?=.*\])/g
@@ -38,6 +39,7 @@
 	exports.isObject = isObject
 	exports.mergePatch = mergePatch
 	exports.set = function(obj, pointer, value) { return pathFn(pointer, true)(obj, value) }
+	exports.setForm = setForm
 	exports.tr = tr
 
 	exports.get.str = pathStr
@@ -302,6 +304,24 @@
 			);
 		);
 		return "a[" + (-1 < i ? i : arr.push(val) - 1) + "]"
+	}
+
+	function setForm(map, key_, val) {
+		for (var match, key = key_, step = map; match = keyRe.exec(key_); ) {
+			if (step === map) key = key.slice(0, match.index)
+			match = match[1]
+			step = step[key] || (
+				step[key] = match && +match != match ? {} : []
+			)
+			key = match
+		}
+		if (isArray(step)) {
+			step.push(val)
+		} else if (isArray(step[key])) {
+			step[key].push(val)
+		} else {
+			step[key] = step[key] != null ? [step[key], val] : val
+		}
 	}
 
 	function tr(attrs, aclFn) {
