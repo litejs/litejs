@@ -166,7 +166,11 @@ function multipart(boundary, reqOpts, req) {
 					if (needle === boundary) {
 						if (negod) {
 							if (!remainingFields--) return writable.destroy({ code: 413, message: "maxFields exceeded"})
-							JSON.setForm(req.body, negod.name, buf.toString())
+							if (negod.preamble) {
+								req.emit("preamble", req.preamble = buf.toString("utf8", 2))
+							} else {
+								JSON.setForm(req.body, negod.name, buf.toString())
+							}
 							negod = null
 						} else if (fileStream) {
 							fileStream.end(buf)

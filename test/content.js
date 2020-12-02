@@ -105,9 +105,9 @@ describe("content", function() {
 				"map[a]=1&map[b][]=2&map[b][]=3",
 				"map[a]=1&map[b][0]=2&map[b][1]=3"
 			], [
-				{"my weird field": "q1!2\"'w$5&7/z8)?"},
-				'my+weird+field=q1%212%22%27w%245%267%2Fz8%29%3F',
-				'my%20weird%20field=q1!2%22\'w%245%267%2Fz8)%3F'
+				{"my weird field": "q=1!2\"'w$5&7/z&8)?"},
+				'my+weird+field=q%3D1%212%22%27w%245%267%2Fz%268%29%3F',
+				'my%20weird%20field=q%3D1!2%22\'w%245%267%2Fz%268)%3F'
 			], [
 				{"a": ["1", "2", "", ""]},
 				"a=1&a=2&a&a="
@@ -192,6 +192,7 @@ describe("content", function() {
 	it("should parse multipart/form-data without files", function(assert) {
 		var boundary = "--0000012345z"
 		, body = [
+			"This is the preamble.",
 			"--" + boundary,
 			'Content-Disposition: form-data; name="ab[]"',
 			'',
@@ -239,7 +240,8 @@ describe("content", function() {
 		assert.fakeReq(req, result)
 
 		req.body = body.match(/[\s\S]{1,18}/g)
-		assert.fakeReq(req, result)
+		req.preamble = "This is the preamble."
+		assert.fakeReq(req, result, {preamble:true})
 	})
 
 	it("handle errors", function(assert) {
@@ -368,6 +370,11 @@ describe("content", function() {
 			if (files) {
 				fs.unlinkSync(files[0].tmp)
 				files[0].tmp = null
+			}
+
+			if (reqOpts && reqOpts.preamble) {
+				assert.planned += 1
+				assert.equal(req.preamble, req_.preamble)
 			}
 
 			assert.equal(body, expected.body)
