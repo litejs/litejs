@@ -1,8 +1,9 @@
 
+require("./json")
+
 var fs = require("fs")
 , Writable = require("stream").Writable
 , accept = require("./accept.js").accept
-, json = require("./json")
 , util = require("./util")
 , rnrn = Buffer.from("\r\n\r\n")
 , negotiateContent = accept({
@@ -103,7 +104,7 @@ function querystring(str) {
 		, l = arr.length
 		for (; i < l; ) {
 			step = arr[i++].replace(/\+/g, " ").split("=")
-			json.setForm(map, unescape(step[0]), unescape(step[1] || ""))
+			JSON.setForm(map, unescape(step[0]), unescape(step[1] || ""))
 		}
 	}
 	return map
@@ -165,7 +166,7 @@ function multipart(boundary, reqOpts, req) {
 					if (needle === boundary) {
 						if (negod) {
 							if (!remainingFields--) return writable.destroy({ code: 413, message: "maxFields exceeded"})
-							json.setForm(req.body, negod.name, buf.toString())
+							JSON.setForm(req.body, negod.name, buf.toString())
 							negod = null
 						} else if (fileStream) {
 							fileStream.end(buf)

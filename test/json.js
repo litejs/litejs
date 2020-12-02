@@ -3,10 +3,11 @@
 
 
 describe("json", function() {
+	require("../json")
 	var undef, a, b, c
 	, isArray = Array.isArray
 	, date = new Date()
-	, json = require("../json")
+	, json = JSON
 	, matcher = json.matcher
 	, filterStr = matcher.str
 	, obj =
@@ -372,8 +373,8 @@ describe("json", function() {
 			var fn, str, test
 			, o1 = {id:1, time: Date.now() - 1, a:"1", b:true, n: "Cat", arr: ["a1", 2, "123-456", "3", 567, { conf: "/a/b" }], map: [{q:2}, null]}
 			, o2 = {id:2, deep:[1], a:"21", b:false, n: "Batman", map: [{q:1},{q:"123-456",n:"N"},{n:[{d:3}]}]}
-			, o3 = {deep:{obj:2,o2:1.5,x:{a:1,b:0}}, dd: +("2015-09-22T12:31".date())}
-			, o4 = {"id.id": 4, colon:"ab:cd","a4":1, arr:[1], deep:{obj:1}, dd: +("2017-11-02T12:21".date())}
+			, o3 = {deep:{obj:2,o2:1.5,x:{a:1,b:0}}, dd: Date.parse("2015-09-22T12:31:00Z")}
+			, o4 = {"id.id": 4, colon:"ab:cd","a4":1, arr:[1], deep:{obj:1}, dd: Date.parse("2017-11-02T12:21:00Z")}
 			, oAll = [o1, o2, o3, o4]
 			, tests = [
 				[ "id", "(o=d)&&o['id']", [o1, o2]],

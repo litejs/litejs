@@ -29,6 +29,17 @@
 		"<=": "a>=d",
 		"~": "typeof d==='string'&&a.test(d)"
 	}
+	, fnMap = {
+		w: "Day()||7",
+		Y: "FullYear()%100",
+		M: "Month()+1",
+		D: "Date()",
+		h: "Hours()",
+		H: "Hours()%12||12",
+		m: "Minutes()",
+		s: "Seconds()",
+		S: "Milliseconds()"
+	}
 	, hasOwn = fns.hasOwnProperty
 	, tmpDate = new Date()
 	, isArray = Array.isArray
@@ -207,7 +218,7 @@
 	}
 
 	function dateGetter(name) {
-		return "(t.get" + Date.fnMap[name] + ")"
+		return "(t.get" + fnMap[name] + ")"
 	}
 
 	function filterStr(qs, opts, arr, getter) {
@@ -359,6 +370,6 @@
 		return null
 	}
 // `this` refers to the `window` in browser and to the `exports` in Node.js.
-}(this.JSON || this, Object)
+}(JSON, Object)
 
 
