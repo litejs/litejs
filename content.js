@@ -57,16 +57,9 @@ function getContent(next, reqOpts) {
 	}
 
 	if (negod.type === "multipart") {
-		stream = stream.pipe(multipart(negod.boundary, reqOpts || {}, req))
-
-		stream.on("finish", function() {
-			handleEnd()
-			if (req.files) {
-				for (var i = req.files.length; i--; ) {
-					if (req.files[i].tmp) fs.unlink(req.files[i].tmp, util.nop)
-				}
-			}
-		})
+		stream = stream
+		.pipe(multipart(negod.boundary, reqOpts || {}, req))
+		.on("finish", handleEnd)
 	} else {
 		tmp = ""
 		stream.on("data", function handleData(data) {
@@ -92,6 +85,11 @@ function getContent(next, reqOpts) {
 				next(e)
 			}
 			next = null
+			if (req.files) {
+				for (var i = req.files.length; i--; ) {
+					if (req.files[i].tmp) fs.unlink(req.files[i].tmp, util.nop)
+				}
+			}
 		}
 	}
 }
@@ -121,7 +119,7 @@ function multipart(boundary, reqOpts, req) {
 	, nextPos = needle.length - 3
 	, remainingFields = util.num(reqOpts.maxFields, req.opts.maxFields, 1000)
 	, remainingFiles = util.num(reqOpts.maxFiles, req.opts.maxFiles, 1000)
-	, savePath = (reqOpts.tmp || req.opts.tmp) + (seq++)
+	, savePath = (reqOpts.tmp || req.opts.tmp) + "-" + (seq++)
 
 	return new Writable({
 		write: function(chunk, enc, cb) {
@@ -187,9 +185,10 @@ function multipart(boundary, reqOpts, req) {
 							if (!remainingFiles--) return writable.destroy({ code: 413, message: "maxFiles exceeded"})
 							if (!req.files) req.files = []
 							req.files.push(negod)
+							negod.tmp = savePath + "-" + remainingFiles
 							req.emit("file", negod, saveTo)
 							if (!fileStream) {
-								saveTo(savePath + "-" + remainingFiles)
+								saveTo(negod.tmp)
 							}
 						}
 						needle = boundary

@@ -124,7 +124,8 @@ describe("content", function() {
 		assert.end()
 	})
 	it("should parse multipart/form-data with files", function(assert) {
-		var boundary = "--" + Math.random().toString(35).slice(2) + Math.random().toString(35).slice(2) + "z"
+		var r
+		, boundary = "--" + Math.random().toString(35).slice(2) + Math.random().toString(35).slice(2) + "z"
 		, body = [
 			"--" + boundary,
 			'Content-Disposition: form-data; name="ab"',
@@ -183,10 +184,20 @@ describe("content", function() {
 		assert.fakeReq(req, result)
 
 		req.body = body.match(/[\s\S]{1,8}/g)
-		assert.fakeReq(req, result)
+		r = assert.fakeReq(req, result)
+		r.on("file", function(negod, saveTo) {
+			var stream = fs.createWriteStream(negod.tmp += ".2")
+			stream._writableState.highWaterMark = 1
+			console.log("highWaterMark", stream._writableState.highWaterMark)
+			saveTo(stream)
+		})
 
 		req.body = body.match(/[\s\S]{1,16}/g)
-		assert.fakeReq(req, result)
+
+		r = assert.fakeReq(req, result)
+		r.on("file", function(negod, saveTo) {
+			saveTo(negod.tmp + ".2")
+		})
 	})
 
 	it("should parse multipart/form-data without files", function(assert) {
