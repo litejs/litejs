@@ -149,7 +149,7 @@ describe("content", function() {
 		].join('\r\n')
 		, req = {
 			headers: {
-				"content-type": "multipart/form-data"
+				"content-type": "multipart/form-data;boundary=" + boundary
 			}
 		}
 		, result = {
@@ -216,11 +216,12 @@ describe("content", function() {
 			'Content-Disposition:form-data;name="c[d][e]"',
 			'',
 			'234',
-			"--" + boundary + "--"
+			"--" + boundary + "--",
+			"This is the epilogue."
 		].join('\r\n')
 		, req = {
 			headers: {
-				"content-type": "multipart/form-data"
+				"content-type": "multipart/form-data;boundary=" + boundary
 			}
 		}
 		, result = {
@@ -252,7 +253,8 @@ describe("content", function() {
 
 		req.body = body.match(/[\s\S]{1,18}/g)
 		req.preamble = "This is the preamble."
-		assert.fakeReq(req, result, {preamble:true})
+		req.epilogue = "This is the epilogue."
+		assert.fakeReq(req, result, {preamble:true, epilogue: true})
 	})
 
 	it("handle errors", function(assert) {
@@ -282,7 +284,7 @@ describe("content", function() {
 
 		assert.fakeReq({
 			headers: {
-				"content-type": "multipart/form-data"
+				"content-type": "multipart/form-data;boundary=" + boundary
 			},
 			body: [
 				"--" + boundary,
@@ -311,7 +313,7 @@ describe("content", function() {
 
 		assert.fakeReq({
 			headers: {
-				"content-type": "multipart/form-data"
+				"content-type": "multipart/form-data;boundary=" + boundary
 			},
 			body: [
 				"--" + boundary,
@@ -386,6 +388,11 @@ describe("content", function() {
 			if (reqOpts && reqOpts.preamble) {
 				assert.planned += 1
 				assert.equal(req.preamble, req_.preamble)
+			}
+
+			if (reqOpts && reqOpts.epilogue) {
+				assert.planned += 1
+				assert.equal(req.epilogue, req_.epilogue)
 			}
 
 			assert.equal(body, expected.body)

@@ -120,8 +120,7 @@ function multipart(boundary, reqOpts, req) {
 	, remainingFields = util.num(reqOpts.maxFields, req.opts.maxFields, 1000)
 	, remainingFiles = util.num(reqOpts.maxFiles, req.opts.maxFiles, 1000)
 	, savePath = (reqOpts.tmp || req.opts.tmp) + "-" + (seq++)
-
-	return new Writable({
+	, writable = {
 		write: function(chunk, enc, cb) {
 			var buf, bufNum, i, j
 			, writable = this
@@ -218,7 +217,16 @@ function multipart(boundary, reqOpts, req) {
 
 			cb()
 		}
-	})
+	}
+
+	if (reqOpts && reqOpts.epilogue) {
+		writable.final = function(cb) {
+			req.epilogue = Buffer.concat(bufs).toString("utf8", 4)
+			cb()
+		}
+	}
+
+	return new Writable(writable)
 
 	function saveTo(stream) {
 		fileStream = (
