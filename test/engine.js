@@ -13,6 +13,34 @@ describe("engine", function() {
 		.equal(new Date(784111777000).toUTCString(), "Sun, 06 Nov 1994 08:49:37 GMT")
 		.end()
 	})
+	.should("loop over object", function(assert) {
+		var hasOwn = {}.hasOwnProperty
+		, map1 = {}
+		, map2 = { map: true }
+		, arr1 = []
+		, arr2 = []
+		arr2.map = 1
+
+		assert.equal(hasOwn.call(map1, "map"), false)
+		assert.equal(hasOwn.call(map2, "map"), true)
+		assert.equal(hasOwn.call(arr1, "map"), false)
+		assert.equal(hasOwn.call(arr2, "map"), true)
+
+		assert.equal(loop(map1), [])
+		assert.equal(loop(map2), ["map"])
+		assert.equal(loop(arr1), [])
+		assert.equal(loop(arr2), ["map"])
+
+		assert.end()
+
+		function loop(obj, fn, scope, key) {
+			var arr = []
+			if (obj) for (key in obj) if (hasOwn.call(obj, key)) {
+				arr.push(key)
+			}
+			return arr
+		}
+	})
 })
 
 

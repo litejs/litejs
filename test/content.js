@@ -188,7 +188,6 @@ describe("content", function() {
 		r.on("file", function(negod, saveTo) {
 			var stream = fs.createWriteStream(negod.tmp += ".2")
 			stream._writableState.highWaterMark = 1
-			console.log("highWaterMark", stream._writableState.highWaterMark)
 			saveTo(stream)
 		})
 
