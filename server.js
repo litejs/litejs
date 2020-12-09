@@ -585,9 +585,11 @@ function listen() {
 		var map = opts[proto]
 		, net = server["_" + proto] && !server["_" + proto].close()
 		if (!map || !map.port) return
-		net = server["_" + proto] = require(proto)[
-			proto == "http2" ? "createSecureServer" : "createServer"
-		](map, map.redirect ? forceHttps : server)
+		net = server["_" + proto] = (
+			proto == "http" ?
+			require(proto).createServer(map.redirect ? forceHttps : server) :
+			require(proto).createSecureServer(map, map.redirect ? forceHttps : server)
+		)
 		.listen(map.port, map.host || "0.0.0.0", function() {
 			var addr = this.address()
 			opts.log.info("Listening %s at %s:%s", proto, addr.address, addr.port)
@@ -600,7 +602,7 @@ function listen() {
 			var sessionStore = {}
 			, timeout = map.sessionTimeout || 300
 
-			server["_" + proto]
+			net
 			.on("newSession", function(id, data, cb) {
 				sessionStore[id] = data
 				cb()
