@@ -228,28 +228,30 @@ function createApp(opts_) {
 		, usePos = 0
 		, forwarded = req.headers[opts.ipHeader || "x-forwarded-for"]
 
-		req.date = new Date()
-		req.ip = forwarded ? forwarded.split(/[\s,]+/)[0] : req.connection && req.connection.remoteAddress
-		req.opts = res.opts = opts
-		req.res = res
-		res.req = req
-		res.send = send
-		res.sendStatus = sendStatus
+		if (!res.send) {
+			req.date = new Date()
+			req.ip = forwarded ? forwarded.split(/[\s,]+/)[0] : req.connection && req.connection.remoteAddress
+			req.opts = res.opts = opts
+			req.res = res
+			res.req = req
+			res.send = send
+			res.sendStatus = sendStatus
 
-		// IE8-10 accept 2083 chars in URL
-		// Sitemaps protocol has a limit of 2048 characters in a URL
-		// Google SERP tool wouldn't cope with URLs longer than 1855 chars
-		if (req.url.length > opts.maxURILength) {
-			return sendError(res, opts, "URI Too Long")
+			// IE8-10 accept 2083 chars in URL
+			// Sitemaps protocol has a limit of 2048 characters in a URL
+			// Google SERP tool wouldn't cope with URLs longer than 1855 chars
+			if (req.url.length > opts.maxURILength) {
+				return sendError(res, opts, "URI Too Long")
+			}
+
+			req.content = content
+			req.cookie = getCookie
+			req.originalUrl = req.url
+
+			res.cookie = setCookie
+			res.link = setLink
+			res.sendFile = sendFile
 		}
-
-		req.content = content
-		req.cookie = getCookie
-		req.originalUrl = req.url
-
-		res.cookie = setCookie
-		res.link = setLink
-		res.sendFile = sendFile
 
 		next()
 
