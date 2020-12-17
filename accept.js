@@ -63,7 +63,7 @@ this.accept = function(choices, priority) {
 		) +
 		'return l}'
 	)(choices, rules, function(op, str) {
-		if (op !== '=') try {
+		try {
 			str = decodeURIComponent(str)
 		} catch (e) {}
 		return str
