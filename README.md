@@ -1,6 +1,8 @@
-[LiteJS]: https://www.litejs.com/
 [npm package]: https://npmjs.org/package/litejs
-[GitHub repo]: https://github.com/litejs/litejs
+[LiteJS]: https://github.com/litejs/litejs
+[UI]: https://github.com/litejs/ui
+[CLI]: https://github.com/litejs/cli
+[web]: https://www.litejs.com/
 [wiki]: https://github.com/litejs/litejs/wiki
 
 [size]: https://packagephobia.now.sh/badge?p=litejs
@@ -11,6 +13,12 @@ LiteJS &ndash; [![size][size]][size-src]
 
 LiteJS is a full-stack web framework in a tiny package.
 
+It is split into three main package by designated install location:
+
+ - **[litejs][LiteJS]** - Server and core libraries installed as `dependencies`
+ - **[@litejs/ui][UI]** - UI engine installed as devDependencies
+ - **[@litejs/cli][CLI]** - Command line tools installed as global package
+
 
 ## Get Started
 
@@ -20,7 +28,7 @@ See [wiki][] for more.
 
 ## External links
 
-[GitHub repo][] |
+[GitHub repo][LiteJS] |
 [npm package][] |
 [Travis CI](https://travis-ci.org/litejs/litejs) |
 [Coveralls code coverage](https://coveralls.io/github/litejs/litejs)
@@ -28,7 +36,7 @@ See [wiki][] for more.
 
 ## Licence
 
-Copyright (c) 2013-2020 Lauri Rooden &lt;lauri@rooden.ee&gt;  
+Copyright (c) 2013-2021 Lauri Rooden &lt;lauri@rooden.ee&gt;  
 [The MIT License](http://lauri.rooden.ee/mit-license.txt)
 
 
