@@ -56,6 +56,9 @@ describe("util", function() {
 		assert.equal(a, c)
 		assert.equal(b.parent, 1)
 
+		util.deepAssign({}, JSON.parse('{"__proto__": {"isAdmin": true}}'))
+		assert.notOk({}.isAdmin)
+
 		assert.end()
 	})
 

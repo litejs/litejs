@@ -31,7 +31,7 @@ var hasOwn = {}.hasOwnProperty
 }
 
 function deepAssign(to) {
-	for (var key, from, a = arguments, i = 1, len = a.length; i < len; ) {
+	if (to !== Object.prototype) for (var key, from, a = arguments, i = 1, len = a.length; i < len; ) {
 		if (from = a[i++]) for (key in from) if (hasOwn.call(from, key)) {
 			if (from[key] === null) delete to[key]
 			else to[key] = (
