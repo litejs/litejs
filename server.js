@@ -172,7 +172,6 @@ var fs = require("fs")
 		510: "Not Extended",
 		511: "Network Authentication Required"
 	},
-	statusCode: 200,
 	tmp: (
 		process.env.TMPDIR ||
 		process.env.TEMP ||
@@ -383,7 +382,7 @@ function send(body, opts_) {
 	, reqHead = res.req.headers
 	, resHead = {}
 	, negod = res.opts._accept(reqHead.accept || reqHead["content-type"])
-	, opts = Object.assign({}, res.opts, negod, opts_)
+	, opts = Object.assign({statusCode: res.statusCode}, res.opts, negod, opts_)
 	, format = negod.subtype || "json"
 	, outStream = opts.stream || res
 
@@ -453,7 +452,7 @@ function send(body, opts_) {
 	}
 
 	if (opts.headers) Object.assign(resHead, opts.headers["*"], opts.headers[opts.url || res.req.url])
-	res.writeHead(opts.statusCode, resHead)
+	res.writeHead(opts.statusCode || 200, resHead)
 
 	if (res.req.method == "HEAD") {
 		return res.end()
