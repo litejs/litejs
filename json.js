@@ -9,7 +9,7 @@
 	, KEYS = Object.keys
 	, FILTER_ERR = "Invalid filter: "
 	, escRe = /['\n\r\u2028\u2029]|\\(?!x2e)/g
-	, pathRe = /(^$|.+?)(?:\[([^\]]*)\]|\{([^}]*)})?(\.(?=[^.])|$)/g
+	, pathRe = /(^$|.+?)(?:\[([^\]]*)\](\*.*)?|\{([^}]*)})?(\.(?=[^.])|$)/g
 	, reEscRe = /[.+^=:${}()|\/\\]/g
 	, keyRe = /\[(.*?)\]/g
 	, globRe = /\[.+?\]|[?*]/
@@ -120,31 +120,33 @@
 		.replace(pathRe, set === true ? pathSet : pathGet)
 	}
 
-	function pathGet(str, path, arr, obj, dot) {
+	function pathGet(str, path, arr, arrExt, obj, dot) {
 		var v = dot ? "(o=" : "(c="
 		, sub = arr || obj
 		if (sub && !(sub = onlyFilterRe.exec(sub))) throw Error(FILTER_ERR + str)
 		return (
 			sub ?
-			pathGet(0, path, 0, 0, 1) + (arr ? "i" : "j") + "(o)&&" + v + (
+			pathGet(0, path, 0, 0, 0, 1) + (arr ? "i" : "j") + "(o)&&" + v + (
+				// TODO:2021-01-22:lauri:Filter with single loop
+				arrExt ? "o.filter(m('" + sub[0] + "'))" + (arrExt === "*" ? "" : ".map(p('" + arrExt.slice(1) + "'))") :
 				sub[1] ? (arr ? "o" : "K(o)") + (sub[0] === "*" ? "" : ".length") :
 				+arr == arr ?  "o[" + (arr < 0 ? "o.length" + arr : arr) + "]" :
-				(arr ? "I" : "J") + "(o,f('" + sub[0] + "'))"
+				(arr ? "I" : "J") + "(o,m('" + sub[0] + "'))"
 			) + ")" :
-			v + "o['" + path + (
-				arr === "" ? "'])&&i(c)&&c" :
-				obj === "" ? "'])&&j(c)&&c" :
-				"'])"
+			v + "o['" + path + "'])" + (
+				arr === "" ? "&&i(c)&&c" :
+				obj === "" ? "&&j(c)&&c" :
+				""
 			)
 		) + (dot ? "&&" : "")
 	}
 
-	function pathSet(str, path, arr, obj, dot) {
+	function pathSet(str, path, arr, arrExt, obj, dot) {
 		var op = "o['" + path + "']"
 		, out = ""
 		, sub = arr || obj
 		if (sub) {
-			out = "(o="+(arr?"i":"j")+"(o['" + path + "'])?o['" + path + "']:(o['" + path + "']="+(arr?"[]":"{}")+"))&&"
+			out = "(o=" + (arr ? "i(" : "j(") + op + ")?" + op + ":(" + op + (arr ? "=[]" : "={}") +"))&&"
 			if (arr === "-") {
 				op = "o[o.length]"
 			} else if (+arr == arr) {
@@ -152,7 +154,7 @@
 			} else {
 				if (!onlyFilterRe.test(arr)) throw Error(FILTER_ERR + str)
 				op = "o[t]"
-				out += "(t="+(arr?"I":"J")+"(o,f('" + sub + "'),1))!=null&&"
+				out += "(t=" + (arr ? "I" : "J") + "(o,m('" + sub + "'),1))!=null&&"
 			}
 		}
 		return out + (dot ?
@@ -164,11 +166,11 @@
 	function pathFn(str, set) {
 		var map = set === true ? setFns : getFns
 		return map[str] || (map[str] = Function(
-			"i,j,I,J,K,f",
+			"i,j,I,J,K,m,p",
 			"return function(d,v,b){var c,o,t;return (o=d)&&" +
 			pathStr(str, set) +
 			(set ? ",c}": "!==void 0?c:v}")
-		)(isArray, isObject, inArray, inObject, KEYS, matcher))
+		)(isArray, isObject, inArray, inObject, KEYS, matcher, pathFn))
 	}
 
 	function clone(obj) {
@@ -194,7 +196,7 @@
 		if (!fn) {
 			for (optimized = key; optimized != (optimized = optimized.replace(cleanRe, "$1")); );
 			fn = filterFns[key] = Function(
-				fns[str] ? "a" : "a,i,j,I,J,K,f,p,t",
+				fns[str] ? "a" : "a,i,j,I,J,K,m,p,t",
 				"return function(d,b){var o;return " + optimized + "}"
 			)
 			fn.source = optimized
@@ -273,7 +275,7 @@
 				v = m[6] == "$" ? "b['"+ m[7] +"']" : arrIdx(arr,
 					m[1] || m[3] ? m[0].slice(m[3] ? m[2].length + 1 : 1, -1) :
 					m[6] ? m[7] :
-					primitiveRe.test(m[0]) ? JSON.parse(m[0]) :
+					primitiveRe.test(m[0]) ? exports.parse(m[0]) :
 					(isRe = globRe.test(m[0])) ? RegExp(
 						"^" + m[0]
 						.replace(reEscRe, "\\$&")
@@ -284,8 +286,8 @@
 					m[0]
 				)
 				idd = (
-					m[2] ? "f." + m[2].toLowerCase() :
-					m[3] ? "f" :
+					m[2] ? "m." + m[2].toLowerCase() :
+					m[3] ? "m" :
 					isArray || attr === "c" ? arrIdx(arr, matcher(isRe ? "~" : op)) :
 					""
 				) + "(" + v
@@ -348,7 +350,7 @@
 		return Function(
 			"g,a",
 			"return function(o,a){return " +
-			JSON.stringify(map).replace(/:(\d+)/g,":g[$1](o)") + "}"
+			exports.stringify(map).replace(/:(\d+)/g,":g[$1](o)") + "}"
 		)(arr, aclFn)
 	}
 

@@ -2,11 +2,10 @@
 
 
 
-describe("json", function() {
+describe("JSON", function() {
 	require("../json")
 	var undef, a, b, c
 	, isArray = Array.isArray
-	, date = new Date()
 	, json = JSON
 	, matcher = json.matcher
 	, filterStr = matcher.str
@@ -26,7 +25,35 @@ describe("json", function() {
 	, obj2 = {
 		"m.n": 9
 	}
-	, tests =
+
+	this
+	.test(".clone()", function(assert, mock) {
+		mock.replace(Object.prototype, "bad", 1)
+
+		var date = new Date()  , dateClone = json.clone(date)
+		, map = {a:3}          , mapClone = json.clone(map)
+		, re1 = /ab/           , re1Clone = json.clone(re1)
+		, re2 = /a\+[]()]b/gim , re2Clone = json.clone(re2)
+		, arr = [1, "2", date, map, re1, re2], arrClone = json.clone(arr)
+
+		assert
+		.notStrictEqual(arr, arrClone)
+		.notStrictEqual(date, dateClone)
+		.notStrictEqual(map, mapClone)
+		.notStrictEqual(re1, re1Clone)
+		.notStrictEqual(re2, re2Clone)
+		.equal(arr, [1, "2", dateClone, mapClone, re1Clone, re2Clone])
+		.end()
+	})
+	.test(".isObject()", function(assert) {
+		assert.equal(
+			[{}, undef, null, "", "a", 0, 1, []].map(json.isObject),
+			[true, false, false, false, false, false, false, false ]
+		)
+		.end()
+	})
+	.test(".mergePatch()", function(assert, mock) {
+		var a, b, tests =
 		[ {"a":"b"}         , {"a":"c"}                 , {"a":"c"}         , ["/a"], {"/a":"b"}
 		, {"a":"b"}         , {"b":"c"}                 , {"a":"b","b":"c"} , ["/b"], {"/b":undef}
 		, {"a":"b"}         , {"a":null}                , {}                , ["/a"], {"/a":"b"}
@@ -62,64 +89,82 @@ describe("json", function() {
 		, {}                , clone1                    , clone1               , ["/foo", "/", "/a~1b", "/c%d", "/e^f", "/g|h", "/i\\j", "/k\"l", "/ ", "/m~0n"], {"/foo":undef, "/":undef, "/a~1b":undef, "/c%d":undef, "/e^f":undef, "/g|h":undef, "/i\\j":undef, "/k\"l":undef, "/ ":undef, "/m~0n":undef}
 		]
 
-	this
-	.describe("mergePatch", function() {
-		this
-		.should("apply merge patches", function(assert, mock) {
-			mock.replace(Object.prototype, "bad", 1)
+		mock.replace(Object.prototype, "bad", 1)
 
-			function addTest(method, a, b, c, d, e) {
-				var changes = []
-				, previous = {}
-				assert.equal(json[method](json.clone(a), b, changes, previous), c)
-				.equal(changes, d)
-				.equal(json[method](json.clone(a), b), c)
+		function addTest(a, b, c, d, e) {
+			var changes = []
+			, previous = {}
+			assert.equal(json.mergePatch(json.clone(a), b, changes, previous), c)
+			.equal(changes, d)
+			.equal(json.mergePatch(json.clone(a), b), c)
 
-				if (e) {
-					assert.equal(previous, e)
-				}
+			if (e) {
+				assert.equal(previous, e)
 			}
-			for (var x = 0; x < tests.length; ) {
-				addTest("mergePatch", tests[x++], tests[x++], tests[x++], tests[x++], tests[x++])
-			}
-			assert.end()
-		})
-		.should("work with old Object.deepMerge tests", function(assert) {
-			a = { a:"A"
-				, b:null
-				, c:"C"
-				, d:null
-				, e:{ea:"EA", eb:null, ec:"EC", ed:null}
-				, f:null
-				, g:{ga:1}
-			}
-			b = { b:"B"
-				, c:null
-				, e: {eb:"EB", ec:null}
-				, f: {fa:1}
-				, g: null
-			}
-			c = []
-			json.mergePatch(a, b, c)
+		}
+		for (var x = 0; x < tests.length; ) {
+			addTest(tests[x++], tests[x++], tests[x++], tests[x++], tests[x++])
+		}
 
-			assert.equal(a, {"a":"A","b":"B","d":null,"e":{"ea":"EA","eb":"EB","ed":null},"f":{"fa":1}})
-			.equal(b, {"b":"B","c":null,"e":{"eb":"EB","ec":null},"f":{"fa":1},"g":null})
-			.equal(c, ["/b","/c","/e/eb","/e/ec","/e","/f/fa","/f","/g"])
-			.end()
-		})
-	})
+		a = { a:"A"
+			, b:null
+			, c:"C"
+			, d:null
+			, e:{ea:"EA", eb:null, ec:"EC", ed:null}
+			, f:null
+			, g:{ga:1}
+		}
+		b = { b:"B"
+			, c:null
+			, e: {eb:"EB", ec:null}
+			, f: {fa:1}
+			, g: null
+		}
+		c = []
+		json.mergePatch(a, b, c)
 
-	.it ("has isObject", function(assert) {
-		assert
-		.equal(json.isObject({}), true)
-		.equal(json.isObject(), false)
-		.equal(json.isObject(null), false)
-		.equal(json.isObject(""), false)
-		.equal(json.isObject("a"), false)
-		.equal(json.isObject(0), false)
-		.equal(json.isObject(1), false)
-		.equal(json.isObject([]), false)
+		assert.equal(a, {"a":"A","b":"B","d":null,"e":{"ea":"EA","eb":"EB","ed":null},"f":{"fa":1}})
+		.equal(b, {"b":"B","c":null,"e":{"eb":"EB","ec":null},"f":{"fa":1},"g":null})
+		.equal(c, ["/b","/c","/e/eb","/e/ec","/e","/f/fa","/f","/g"])
 		.end()
+	})
+	.test(".tr()", function(assert) {
+		var tmp
+		, obj = {
+			id: 1,
+			map: { a: 2, b: 3, c: 4 },
+			firstName: "John",
+			age: 21,
+			rel: [
+				{ type: "father", firstName: "Bob" },
+				{ type: "mother", firstName: "Mary" },
+				{ type: "child", firstName: "Lisa" },
+				{ type: "child", firstName: "Bart" }
+			]
+		}
+
+		tmp = json.tr("id,name:firstName,mother:rel[type=mother|a=':'].firstName")
+		assert.equal(tmp(obj), {
+			id: 1,
+			name: "John",
+			mother: "Mary"
+		})
+
+		// last one owerride previous
+		tmp = json.tr("id,,map,map.a")
+		assert.equal(tmp(obj), { id: 1, map: {a:2} })
+		tmp = json.tr("id,map.a,map")
+		assert.equal(tmp(obj), { id: 1, map: { a: 2, b: 3, c: 4 } })
+		tmp = json.tr("id,map.a,map.c")
+		assert.equal(tmp(obj), { id: 1, map: {a:2,c:4} })
+
+		tmp = json.tr("id,map.a,map.b:map.c")
+		assert.equal(tmp(obj), { id: 1, map: {a:2,b:4} })
+
+		//tmp = json.tr("id,day:text{'kala'}")
+		//assert.equal(tmp(obj), { id: 1, text: "kala" })
+		assert.end()
+
 	})
 
 	.describe("->set/get", function(){
@@ -138,11 +183,12 @@ describe("json", function() {
 		, obj2 = {
 			"a\nb": 10,
 			"m.n": 9,
-			a: [{b:1,c:"2"},{b:3,c:"4"}],
+			a: [{b:1,c:"2"},{b:3,c:"4"},{b:5,d:6}],
 			b: ["A", "B", "C"],
 			list: {
 				a: {x:1},
-				b: {x:2}
+				b: {x:2},
+				c: {y:3}
 			}
 		}
 		, get = json.get
@@ -165,13 +211,13 @@ describe("json", function() {
 			.equal(get.str("ab.cd"), "(o=o['ab'])&&(c=o['cd'])")
 			.equal(get.str("a\n'"), "(c=o['a\\x0A\\x27'])")
 			.equal(get.str("a[]"), "(c=o['a'])&&i(c)&&c")
-			.equal(get.str("a[@]"), "(o=o['a'])&&i(o)&&(c=o.length)")
-			.equal(get.str("a[*]"), "(o=o['a'])&&i(o)&&(c=o)")
 			.equal(get.str("a{}"), "(c=o['a'])&&j(c)&&c")
+			.equal(get.str("a[@]"), "(o=o['a'])&&i(o)&&(c=o.length)")
 			.equal(get.str("a{@}"), "(o=o['a'])&&j(o)&&(c=K(o).length)")
+			.equal(get.str("a[*]"), "(o=o['a'])&&i(o)&&(c=o)")
 			.equal(get.str("a{*}"), "(o=o['a'])&&j(o)&&(c=K(o))")
 			.equal(get.str("a[12]"), "(o=o['a'])&&i(o)&&(c=o[12])")
-			.equal(get.str("ab.cd[ef=gh].ij"), "(o=o['ab'])&&(o=o['cd'])&&i(o)&&(o=I(o,f('ef=gh')))&&(c=o['ij'])")
+			.equal(get.str("ab.cd[ef=gh].ij"), "(o=o['ab'])&&(o=o['cd'])&&i(o)&&(o=I(o,m('ef=gh')))&&(c=o['ij'])")
 
 			// get and set with returning previous value
 			assert
@@ -211,23 +257,31 @@ describe("json", function() {
 
 			.equal(get(obj2, "a[c=2]"  ), obj2.a[0])
 			.equal(get(obj2, "a[c=4]"  ), obj2.a[1])
+			.equal(get(obj2, "a[c]"  ), obj2.a[0])
 			.equal(get(obj2, "list{x=1}"  ), obj2.list.a)
 			.equal(get(obj2, "list{x=2}"  ), obj2.list.b)
-			.equal(get(obj2, "list{@}"    ), 2)
-			.equal(get(obj2, "list{*}"    ), ["a", "b"])
+			.equal(get(obj2, "list{@}"    ), 3)
 
-			.equal(get.str("a[c=2]"), "(o=o['a'])&&i(o)&&(c=I(o,f('c=2')))")
-			.equal(get.str("a[c=3]", true), "(o=i(o['a'])?o['a']:(o['a']=[]))&&(t=I(o,f('c=3'),1))!=null&&((c=o[t]),(o[t]=v),c)")
-			.equal(get.str("a[c=4].b"), "(o=o['a'])&&i(o)&&(o=I(o,f('c=4')))&&(c=o['b'])")
-			.equal(get.str("a[c=5].b", true), "(o=i(o['a'])?o['a']:(o['a']=[]))&&(t=I(o,f('c=5'),1))!=null&&(o=typeof o[t]==='object'&&o[t]||(o[t]={}))&&((c=o['b']),(o['b']=v),c)")
+			.equal(get.str("list{*}.0"), "(o=o['list'])&&j(o)&&(o=K(o))&&(c=o['0'])")
+			.equal(get(obj2, "list{*}"    ), ["a", "b", "c"])
+			.equal(get(obj2, "list{*}.0"    ), "a")
+
+			.equal(get.str("list{x}"), "(o=o['list'])&&j(o)&&(c=J(o,m('x')))")
+			.equal(get(obj2, "list{x}"    ), obj2.list.a)
+			.equal(get(obj2, "list{y}"    ), obj2.list.c)
+
+			.equal(get.str("a[c=2]"), "(o=o['a'])&&i(o)&&(c=I(o,m('c=2')))")
+			.equal(get.str("a[c=3]", true), "(o=i(o['a'])?o['a']:(o['a']=[]))&&(t=I(o,m('c=3'),1))!=null&&((c=o[t]),(o[t]=v),c)")
+			.equal(get.str("a[c=4].b"), "(o=o['a'])&&i(o)&&(o=I(o,m('c=4')))&&(c=o['b'])")
+			.equal(get.str("a[c=5].b", true), "(o=i(o['a'])?o['a']:(o['a']=[]))&&(t=I(o,m('c=5'),1))!=null&&(o=typeof o[t]==='object'&&o[t]||(o[t]={}))&&((c=o['b']),(o['b']=v),c)")
 			.equal(get(obj2, "a[c=2].b"  ), 2)
 			.equal(set(obj2, "a[c=2].b", 1), 2)
 			.equal(get(obj2, "a[c=2].b"  ), 1)
 			.equal(get(obj2, "a[c=3].b"  ), null)
 			.equal(set(obj2, "a[c=3].b", "BB"), null)
-			.equal(get(obj2, "a[2].b"  ), "BB")
+			.equal(get(obj2, "a[3].b"  ), "BB")
 
-			.equal(get.str("list{x=2}.x", true), "(o=j(o['list'])?o['list']:(o['list']={}))&&(t=J(o,f('x=2'),1))!=null&&(o=typeof o[t]==='object'&&o[t]||(o[t]={}))&&((c=o['x']),(o['x']=v),c)")
+			.equal(get.str("list{x=2}.x", true), "(o=j(o['list'])?o['list']:(o['list']={}))&&(t=J(o,m('x=2'),1))!=null&&(o=typeof o[t]==='object'&&o[t]||(o[t]={}))&&((c=o['x']),(o['x']=v),c)")
 			.equal(set(obj2, "list{x=2}.x", 3), 2)
 
 			.equal(get(obj2, "a[c=4].b"  ), 3)
@@ -235,6 +289,16 @@ describe("json", function() {
 			.equal(get.str("a.push(1)"), "(o=o['a'])&&(c=o['push(1)'])")
 			.equal(get.str("a.push(1)", true), "(o=typeof o['a']==='object'&&o['a']||(o['a']={}))&&((c=o['push(1)']),(o['push(1)']=v),c)")
 
+			assert.end()
+		})
+		.it("should get a new array", function(assert) {
+			assert
+			.equal(get.str("a[c]*"), "(o=o['a'])&&i(o)&&(c=o.filter(m('c')))")
+			.equal(get(obj2, "a[c]*"  ), [obj2.a[0], obj2.a[1]])
+			.equal(get.str("a[c]*c"), "(o=o['a'])&&i(o)&&(c=o.filter(m('c')).map(p('c')))")
+			.equal(get(obj2, "a[c]*c"  ), ["2", "4"])
+			//.equal(get.str("list{x}*"), "(o=o['list'])&&j(o)&&(c=J(o,m('x')))")
+			//.equal(get(obj2, "list{x}*"    ), [obj2.list.a, obj2.list.b])
 			assert.end()
 		})
 		.it("should resolve pointers", function(assert) {
@@ -308,45 +372,6 @@ describe("json", function() {
 			.end()
 		})
 
-		.should("transform objects", function(assert) {
-			var tmp
-			, obj = {
-				id: 1,
-				map: { a: 2, b: 3, c: 4 },
-				firstName: "John",
-				age: 21,
-				rel: [
-					{ type: "father", firstName: "Bob" },
-					{ type: "mother", firstName: "Mary" },
-					{ type: "child", firstName: "Lisa" },
-					{ type: "child", firstName: "Bart" }
-				]
-			}
-
-			tmp = json.tr("id,name:firstName,mother:rel[type=mother|a=':'].firstName")
-			assert.equal(tmp(obj), {
-				id: 1,
-				name: "John",
-				mother: "Mary"
-			})
-
-			// last one owerride previous
-			tmp = json.tr("id,,map,map.a")
-			assert.equal(tmp(obj), { id: 1, map: {a:2} })
-			tmp = json.tr("id,map.a,map")
-			assert.equal(tmp(obj), { id: 1, map: { a: 2, b: 3, c: 4 } })
-			tmp = json.tr("id,map.a,map.c")
-			assert.equal(tmp(obj), { id: 1, map: {a:2,c:4} })
-
-			tmp = json.tr("id,map.a,map.b:map.c")
-			assert.equal(tmp(obj), { id: 1, map: {a:2,b:4} })
-
-			//tmp = json.tr("id,day:text{'kala'}")
-			//assert.equal(tmp(obj), { id: 1, text: "kala" })
-			assert.end()
-
-		})
-
 		.test("throw", function(assert) {
 			var arr = [
 				"a{A.push(1)}",
@@ -406,12 +431,12 @@ describe("json", function() {
 				[ "it", "(o=d)&&o['it']", [], []],
 				[ "id=1", "(o=d)&&(o['id']==a[0])", [o1], [1]],
 				[ "id=1,2", "(o=d)&&(o['id']==a[0]||o['id']==a[1])", [o1, o2], [1, 2]],
-				[ "id=1,'a b',{i[]={a='{,^|&}'&b=@c}},'} a'", "(o=d)&&(o['id']==a[0]||o['id']==a[1]||f(a[2])(o[\'id\'])||o['id']==a[3])", [o1], [1, "a b", "i[]={a='{,^|&}'&b=@c}", "} a"]],
+				[ "id=1,'a b',{i[]={a='{,^|&}'&b=@c}},'} a'", "(o=d)&&(o['id']==a[0]||o['id']==a[1]||m(a[2])(o[\'id\'])||o['id']==a[3])", [o1], [1, "a b", "i[]={a='{,^|&}'&b=@c}", "} a"]],
 				[ "id!=1,2", "(o=d)&&!(o['id']==a[0]||o['id']==a[1])", [o3, o4], [1, 2]],
 				[ "id==1", "(o=d)&&(o['id']===a[0])", [o1], [1]],
-				[ "deep={obj=1}", "(o=d)&&(f(a[0])(o['deep']))", [o4], ["obj=1"]],
-				[ "deep={obj>@o2}", "(o=d)&&(f(a[0])(o['deep']))", [o3], ["obj>@o2"]],
-				[ "deep={obj=1,2}", "(o=d)&&(f(a[0])(o['deep']))", [o3, o4], ["obj=1,2"]],
+				[ "deep={obj=1}", "(o=d)&&(m(a[0])(o['deep']))", [o4], ["obj=1"]],
+				[ "deep={obj>@o2}", "(o=d)&&(m(a[0])(o['deep']))", [o3], ["obj>@o2"]],
+				[ "deep={obj=1,2}", "(o=d)&&(m(a[0])(o['deep']))", [o3, o4], ["obj=1,2"]],
 				[ "deep.obj=1",   "(o=d)&&(o=o['deep'])&&(o['obj']==a[0])", [o4], [1]],
 				[ "deep.obj=1,2", "(o=d)&&(o=o['deep'])&&(o['obj']==a[0]||o['obj']==a[1])", [o3, o4], [1, 2]],
 				[ "a4=@deep.obj,", "(o=d)&&(o['a4']!==void 0&&o['a4']==p(a[0])(o))", [o4], ["deep.obj"]],
@@ -456,17 +481,17 @@ describe("json", function() {
 				[ "!arr[]", "(o=d)&&!i(o['arr'])", [o2, o3], []],
 				[ "deep{}", "(o=d)&&j(o['deep'])", [o3, o4], []],
 				[ "!deep{}", "(o=d)&&!j(o['deep'])", [o1, o2], []],
-				[ "deep{a=1}", "(o=d)&&(o=o['deep'])&&j(o)&&J(o,f('a=1'))", [o3], []],
-				[ "deep{a=1}.b=0", "(o=d)&&(o=o['deep'])&&j(o)&&(o=J(o,f('a=1')))&&(o['b']==a[0])", [o3], [0]],
-				[ "deep{a=1}.b>-1", "(o=d)&&(o=o['deep'])&&j(o)&&(o=J(o,f('a=1')))&&(o['b']>a[0])", [o3], [-1]],
+				[ "deep{a=1}", "(o=d)&&(o=o['deep'])&&j(o)&&J(o,m('a=1'))", [o3], []],
+				[ "deep{a=1}.b=0", "(o=d)&&(o=o['deep'])&&j(o)&&(o=J(o,m('a=1')))&&(o['b']==a[0])", [o3], [0]],
+				[ "deep{a=1}.b>-1", "(o=d)&&(o=o['deep'])&&j(o)&&(o=J(o,m('a=1')))&&(o['b']>a[0])", [o3], [-1]],
 				[ "arr[]=a1", "(o=d)&&i(o['arr'])&&(I(o['arr'],a[1](a[0])))", [o1], ['a1', matcher("==")]],
 				[ "arr[]=2",  "(o=d)&&i(o['arr'])&&(I(o['arr'],a[1](a[0])))", [o1], [2, matcher("==")]],
 				[ "arr[]!=2", "(o=d)&&!i(o['arr'])||!(I(o['arr'],a[1](a[0])))", [o2, o3, o4], [2, matcher("==")]],
 				[ "arr[]=*23*" , "(o=d)&&i(o['arr'])&&(I(o['arr'],a[1](a[0])))", [o1], [/^.*23.*$/i, matcher("~")]],
 				[ "arr[]!=*23*", "(o=d)&&!i(o['arr'])||!(I(o['arr'],a[1](a[0])))", [o2, o3, o4], [/^.*23.*$/i, matcher("~")]],
-				[ "arr[]={conf=/a/b}", "(o=d)&&i(o['arr'])&&(I(o['arr'],f(a[0])))", [o1], ["conf=/a/b"]],
-				[ "arr[]={conf='/a/b'}", "(o=d)&&i(o['arr'])&&(I(o['arr'],f(a[0])))", [o1], ["conf='/a/b'"]],
-				[ "arr[]={conf='/a/b'}", "(o=d)&&i(o['arr'])&&(I(o['arr'],f(a[0])))", [o1], ["conf='/a/b'"]],
+				[ "arr[]={conf=/a/b}", "(o=d)&&i(o['arr'])&&(I(o['arr'],m(a[0])))", [o1], ["conf=/a/b"]],
+				[ "arr[]={conf='/a/b'}", "(o=d)&&i(o['arr'])&&(I(o['arr'],m(a[0])))", [o1], ["conf='/a/b'"]],
+				[ "arr[]={conf='/a/b'}", "(o=d)&&i(o['arr'])&&(I(o['arr'],m(a[0])))", [o1], ["conf='/a/b'"]],
 				[ "arr[]!==2", "(o=d)&&!i(o['arr'])||!(I(o['arr'],a[1](a[0])))", [o2, o3, o4], [2, matcher("===")]],
 				[ "arr[]==2", "(o=d)&&i(o['arr'])&&(I(o['arr'],a[1](a[0])))", [o1], [2, matcher("===")]],
 				[ "arr[]==1,2", "(o=d)&&i(o['arr'])&&(I(o['arr'],a[1](a[0]))||I(o['arr'],a[1](a[2])))", [o1, o4], [1, matcher("==="), 2]],
@@ -485,23 +510,23 @@ describe("json", function() {
 				[ "deep{@}=1", "(o=d)&&(o=o['deep'])&&j(o)&&(K(o).length==a[0])", [o4], [1]],
 				[ "deep{}=2,3", "(o=d)&&j(o['deep'])&&(J(o['deep'],a[1](a[0]))||J(o['deep'],a[1](a[2])))", [o3], [2, matcher("=="), 3]],
 				[ "deep{*}=o2,o3", "(o=d)&&(o=o['deep'])&&j(o)&&(c=K(o))&&(I(c,a[1](a[0]))||I(c,a[1](a[2])))", [o3], ["o2", matcher("=="), "o3"]],
-				[ "map[q=123-456].n=N", "(o=d)&&(o=o['map'])&&i(o)&&(o=I(o,f('q=123-456')))&&(o['n']==a[0])", [o2], ["N"]],
-				[ "map[]={q=1,3}", "(o=d)&&i(o['map'])&&(I(o['map'],f(a[0])))", [o2], ["q=1,3"]],
-				[ "map[]!={q=1}", "(o=d)&&!i(o['map'])||!(I(o['map'],f(a[0])))", [o1, o3, o4], ["q=1"]],
-				[ "map[]={q=123-456}", "(o=d)&&i(o['map'])&&(I(o['map'],f(a[0])))", [o2], ["q=123-456"]],
-				[ "map[]={q='123-456'}", "(o=d)&&i(o['map'])&&(I(o['map'],f(a[0])))", [o2], ["q='123-456'"]],
-				[ "map[]={q='123-456'}", "(o=d)&&i(o['map'])&&(I(o['map'],f(a[0])))", [o2], ["q='123-456'"]],
-				[ "map[]={q='123-456'|q=2}", "(o=d)&&i(o['map'])&&(I(o['map'],f(a[0])))", [o1, o2], ["q='123-456'|q=2"]],
-				[ "map[]={n[]={d=3}}", "(o=d)&&i(o['map'])&&(I(o['map'],f(a[0])))", [o2], ["n[]={d=3}"]],
-				[ "u1!=u2&map[]={n[]={d=3}}", "(o=d)&&!(o['u1']==a[0])&&(o=d)&&i(o['map'])&&(I(o['map'],f(a[1])))", [o2], ["u2", "n[]={d=3}"]],
-				[ "dd=Date{M=11}", "(o=d)&&(f.date(a[0])(o['dd']))", [o4], ["M=11"]],
-				[ "dd>=Date{M=9}", "(o=d)&&(f.date(a[0])(o['dd']))", [o3], ["M=9"]],
-				[ "dd=Date{M=9,11}", "(o=d)&&(f.date(a[0])(o['dd']))", [o3, o4], ["M=9,11"]],
-				[ "dd=Date{M=9&D=2}", "(o=d)&&(f.date(a[0])(o['dd']))", [], ["M=9&D=2"]],
-				[ "dd=Date{M=9|D=2}", "(o=d)&&(f.date(a[0])(o['dd']))", [o3, o4], ["M=9|D=2"]],
-				[ "dd=Date{w=2}", "(o=d)&&(f.date(a[0])(o['dd']))", [o3], ["w=2"]],
+				[ "map[q=123-456].n=N", "(o=d)&&(o=o['map'])&&i(o)&&(o=I(o,m('q=123-456')))&&(o['n']==a[0])", [o2], ["N"]],
+				[ "map[]={q=1,3}", "(o=d)&&i(o['map'])&&(I(o['map'],m(a[0])))", [o2], ["q=1,3"]],
+				[ "map[]!={q=1}", "(o=d)&&!i(o['map'])||!(I(o['map'],m(a[0])))", [o1, o3, o4], ["q=1"]],
+				[ "map[]={q=123-456}", "(o=d)&&i(o['map'])&&(I(o['map'],m(a[0])))", [o2], ["q=123-456"]],
+				[ "map[]={q='123-456'}", "(o=d)&&i(o['map'])&&(I(o['map'],m(a[0])))", [o2], ["q='123-456'"]],
+				[ "map[]={q='123-456'}", "(o=d)&&i(o['map'])&&(I(o['map'],m(a[0])))", [o2], ["q='123-456'"]],
+				[ "map[]={q='123-456'|q=2}", "(o=d)&&i(o['map'])&&(I(o['map'],m(a[0])))", [o1, o2], ["q='123-456'|q=2"]],
+				[ "map[]={n[]={d=3}}", "(o=d)&&i(o['map'])&&(I(o['map'],m(a[0])))", [o2], ["n[]={d=3}"]],
+				[ "u1!=u2&map[]={n[]={d=3}}", "(o=d)&&!(o['u1']==a[0])&&(o=d)&&i(o['map'])&&(I(o['map'],m(a[1])))", [o2], ["u2", "n[]={d=3}"]],
+				[ "dd=Date{M=11}", "(o=d)&&(m.date(a[0])(o['dd']))", [o4], ["M=11"]],
+				[ "dd>=Date{M=9}", "(o=d)&&(m.date(a[0])(o['dd']))", [o3], ["M=9"]],
+				[ "dd=Date{M=9,11}", "(o=d)&&(m.date(a[0])(o['dd']))", [o3, o4], ["M=9,11"]],
+				[ "dd=Date{M=9&D=2}", "(o=d)&&(m.date(a[0])(o['dd']))", [], ["M=9&D=2"]],
+				[ "dd=Date{M=9|D=2}", "(o=d)&&(m.date(a[0])(o['dd']))", [o3, o4], ["M=9|D=2"]],
+				[ "dd=Date{w=2}", "(o=d)&&(m.date(a[0])(o['dd']))", [o3], ["w=2"]],
 				//[ "time<time{}", "(o=d)&&(o['time']!==void 0&&o[\'a4\']==p(a[0])(o))", [o1], ["@"]],
-				//[ "dd=time{now}", "(o=d)&&(f.date(a[0])(o['dd']))", [o3], ["w=2"]],
+				//[ "dd=time{now}", "(o=d)&&(m.date(a[0])(o['dd']))", [o3], ["w=2"]],
 				[ "", "1", [o1, o2, o3, o4], []]
 				//[ "toString", "(o=d)&&o['toString']", [], [o1, o2, o3, o4]],
 				//[ "map.toString", "(o=d)&&(o=o['map'])&&o['toString']", [], [o1, o2, o3, o4]],
@@ -614,49 +639,6 @@ describe("json", function() {
 			.end()
 		})
 	})
-
-	.describe ("json.clone")
-	.it("clones objects", function(assert) {
-		Object.prototype.dummy = 123
-		var dateClone = json.clone(date)
-		, map = {a:3}
-		, mapClone = json.clone(map)
-		, re1 = /ab/
-		, re1Clone = json.clone(re1)
-		, re2 = /ab/g
-		, re2Clone = json.clone(re2)
-		, re3 = /ab/i
-		, re3Clone = json.clone(re3)
-		, re4 = /ab/m
-		, re4Clone = json.clone(re4)
-		, re5 = /ab/gim
-		, re5Clone = json.clone(re5)
-		, arr = [1, "2", date, map, re1]
-		, arrClone = json.clone(arr)
-
-		assert.notStrictEqual(arr, arrClone)
-		assert.notStrictEqual(date, dateClone)
-		assert.notStrictEqual(map, mapClone)
-		assert.notStrictEqual(re1, re1Clone)
-		assert.notStrictEqual(re2, re2Clone)
-		assert.notStrictEqual(re3, re3Clone)
-		assert.notStrictEqual(re4, re4Clone)
-		assert.notStrictEqual(re5, re5Clone)
-
-		assert.equal(arr, arrClone)
-		assert.equal(date, dateClone)
-		assert.equal(map, mapClone)
-		assert.equal(re1, re1Clone)
-		assert.equal(re2, re2Clone)
-		assert.equal(re3, re3Clone)
-		assert.equal(re4, re4Clone)
-		assert.equal(re5, re5Clone)
-
-		delete Object.prototype.dummy
-
-		assert.end()
-	})
-
 })
 
 //it("should be V8 friendly").
