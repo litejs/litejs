@@ -382,12 +382,11 @@ function send(body, opts_) {
 	, res = this
 	, reqHead = res.req.headers
 	, resHead = {}
-	, negod = res.opts._accept(reqHead.accept || reqHead["content-type"])
+	, negod = res.opts._accept(reqHead.accept || reqHead["content-type"] || "*/*")
 	, opts = Object.assign({statusCode: res.statusCode}, res.opts, negod, opts_)
-	, format = negod.subtype || "json"
 	, outStream = opts.stream || res
 
-	if (!format) {
+	if (!negod.match) {
 		return res.sendStatus(406) // Not Acceptable
 	}
 
