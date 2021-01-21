@@ -113,7 +113,6 @@ var fs = require("fs")
 		"xml": "text/xml",
 		"zip": "application/zip"
 	},
-	mimeType: "application/octet-stream",
 	rangeSize: 500 * 1024,
 	status: {
 		200: "OK",
@@ -481,7 +480,7 @@ function sendFile(file, opts_, next_) {
 		opts.mtime = stat.mtime
 		opts.size = stat.size
 		opts.filename = opts.download === true ? file.split("/").pop() : opts.download
-		opts.mimeType = res.opts.mime[ file.split(".").pop() ] || res.opts.mimeType
+		opts.mimeType = res.opts.mime[ file.split(".").pop() ] || "application/octet-stream"
 		opts.sendfile = file
 
 		res.send(file, opts)
