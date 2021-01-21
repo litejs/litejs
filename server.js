@@ -21,7 +21,9 @@ var fs = require("fs")
 				data,
 				negod.select ? negod.select.split(",") : null,
 				+negod.space || negod.space
-			)
+			// Line and Paragraph separator needing to be escaped in JavaScript but not in JSON,
+			// escape those so the JSON can be evaluated or directly utilized within JSONP.
+			).replace(/\u2028/g, "\\u2028").replace(/\u2029/g, "\\u2029")
 		},
 		// RFC 4180 optional parameters: charset, header
 		'text/csv;br="\r\n";delimiter=",";fields=;filename=;header=;NULL=;select=': require("./csv.js").encode,
@@ -461,12 +463,7 @@ function send(body, opts_) {
 	if (opts.sendfile) {
 		fs.createReadStream(opts.sendfile, {start: opts.start, end: opts.end}).pipe(outStream)
 	} else {
-		// Line and Paragraph separator needing to be escaped in JavaScript but not in JSON,
-		// escape those so the JSON can be evaluated or directly utilized within JSONP.
-		outStream.end(
-			format === "json" ? body.replace(/\u2028/g, "\\u2028").replace(/\u2029/g, "\\u2029") :
-			body
-		)
+		outStream.end(body)
 	}
 }
 
