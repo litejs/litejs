@@ -1,6 +1,5 @@
 
 var fs = require("fs")
-, accept = require("./accept").accept
 , content = require("./content")
 , event = require("./event")
 , path = require("./path")
@@ -202,8 +201,8 @@ function createApp(opts_) {
 	, opts = util.deepAssign(app.opts = {defaults: defaultOpts}, defaultOpts, opts_)
 
 	event.asEmitter(app)
-	opts._accept = accept(opts.accept)
-	opts._encoding = accept(opts.encoding)
+	if (!opts._accept) opts._accept = require("./accept").accept(opts.accept)
+	if (!opts._encoding) opts._encoding = require("./accept").accept(opts.encoding)
 
 	Object.keys(opts.method).forEach(function(method) {
 		app[opts.method[method]] = function() {
