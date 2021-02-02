@@ -35,6 +35,7 @@ var fs = require("fs")
 			return csv.encode(data, negod)
 		}
 	},
+	bodyRe: /^(?:PATCH|POST|PUT)$/i,
 	charset: "UTF-8",
 	compress: false,
 	encoding: {
@@ -216,6 +217,7 @@ function createApp(opts_) {
 	})
 
 	app.listen = listen
+	app.readBody = readBody
 	app.static = createStatic
 	app.use = use
 
@@ -373,6 +375,14 @@ function createStatic(root_, opts_) {
 		for (file in map) if (hasOwn.call(map, file)) {
 			opts[name][file === "*" ? file : path.resolve(root, file)] = map[file]
 		}
+	}
+}
+
+function readBody(req, res, next, opts) {
+	if (req.body === void 0 && opts.bodyRe.test(req.method)) {
+		req.content(next)
+	} else {
+		next()
 	}
 }
 
