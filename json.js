@@ -2,6 +2,7 @@
 
 
 !function(exports, Object) {
+	/* jshint unused:true, eqnull:true, -W064 */
 	"use strict";
 	var getFns = Object.create(null)
 	, setFns = Object.create(null)
@@ -372,6 +373,6 @@
 		return null
 	}
 // `this` refers to the `window` in browser and to the `exports` in Node.js.
-}(JSON, Object)
+}(JSON, Object) // jshint ignore:line
 
 

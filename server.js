@@ -15,7 +15,7 @@ var fs = require("fs")
 	log: console,
 	exitTime: 5000,
 	accept: {
-		'application/json;filename=;select=;space=': function(data, negod) {
+		"application/json;filename=;select=;space=": function(data, negod) {
 			return JSON.stringify(
 				data,
 				negod.select ? negod.select.split(",") : null,
@@ -25,8 +25,8 @@ var fs = require("fs")
 			).replace(/\u2028/g, "\\u2028").replace(/\u2029/g, "\\u2029")
 		},
 		// RFC 4180 optional parameters: charset, header
-		'text/csv;br="\r\n";delimiter=",";fields=;filename=;header=;NULL=;select=': require("./csv.js").encode,
-		'application/sql;fields=;filename=;NULL=NULL;select=;table=table': function(data, negod) {
+		"text/csv;br=\"\r\n\";delimiter=\",\";fields=;filename=;header=;NULL=;select=": require("./csv.js").encode,
+		"application/sql;fields=;filename=;NULL=NULL;select=;table=table": function(data, negod) {
 			negod.re = /\D/
 			negod.br = "),\n("
 			negod.prefix = "INSERT INTO " +
@@ -455,7 +455,7 @@ function send(body, opts_) {
 		//    Microsoft recommends not to compress if a server uses more than 80% of its computational power.
 		delete resHead["Content-Length"]
 		resHead["Content-Encoding"] = negod.match
-		resHead["Vary"] = "Accept-Encoding"
+		resHead.Vary = "Accept-Encoding"
 		outStream = typeof negod.o === "string" ? require("zlib")[negod.o]() : negod.o()
 		outStream.pipe(res)
 	}
@@ -536,7 +536,7 @@ function setLink(url, rel) {
 		existing = [ existing ]
 	}
 
-	existing.push('<' + encodeURI(url) + '>; rel="' + rel + '"')
+	existing.push("<" + encodeURI(url) + ">; rel=\"" + rel + "\"")
 
 	res.setHeader("Link", existing)
 }
@@ -629,7 +629,7 @@ function listen() {
 		, url = "https://" + (port == 443 ? host : host + ":" + port) + req.url
 
 		res.writeHead(301, {"Content-Type": "text/html", "Location": url})
-		res.end('Redirecting to <a href="' + url + '">' + url + '</a>')
+		res.end("Redirecting to <a href=\"" + url + "\">" + url + "</a>")
 	}
 
 	function exit(code) {
@@ -659,14 +659,14 @@ function listen() {
 function setCookie(opts, value) {
 	var res = this
 	, existing = res.getHeader("set-cookie")
-	, cookie = (typeof opts === "string" ? (opts = { name: opts }) : opts).name
-	+ ("=" + value).replace(cookieRe, encodeURIComponent)
-	+ (opts.maxAge   ? "; Expires=" + new Date(opts.maxAge > 0 ? Date.now() + (opts.maxAge*1000) : 0).toUTCString() : "")
-	+ (opts.path     ? "; Path=" + opts.path : "")
-	+ (opts.domain   ? "; Domain=" + opts.domain : "")
-	+ (opts.secure   ? "; Secure" : "")
-	+ (opts.httpOnly ? "; HttpOnly" : "")
-	+ (opts.sameSite ? "; SameSite=" + opts.sameSite : "")
+	, cookie = (typeof opts === "string" ? (opts = { name: opts }) : opts).name +
+	("=" + value).replace(cookieRe, encodeURIComponent) +
+	(opts.maxAge   ? "; Expires=" + new Date(opts.maxAge > 0 ? Date.now() + (opts.maxAge*1000) : 0).toUTCString() : "") +
+	(opts.path     ? "; Path=" + opts.path : "") +
+	(opts.domain   ? "; Domain=" + opts.domain : "") +
+	(opts.secure   ? "; Secure" : "") +
+	(opts.httpOnly ? "; HttpOnly" : "") +
+	(opts.sameSite ? "; SameSite=" + opts.sameSite : "")
 
 	if (Array.isArray(existing)) {
 		existing.push(cookie)

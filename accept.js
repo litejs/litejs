@@ -3,7 +3,7 @@
 /*! litejs.com/MIT-LICENSE.txt */
 
 this.accept = function(choices, priority) {
-	// jshint quotmark:single, boss:true
+	// jshint quotmark:single, -W064
 	'use strict';
 	var group = 0
 	, ruleSeq = 0
@@ -16,9 +16,8 @@ this.accept = function(choices, priority) {
 		'var r=/(?:^|,\\s*)(?:(' +
 		('' + rules).replace(/[^,;]+|\s*;\s*(\w+)=("([^"]*)"|[^,;\s]*)|,/ig, function add(rule, key, token, qstr, offset, all) {
 			if (key) {
-				fnStr += ',' + key + ':D(m[' + (++group) + '],m[' + (++group + 1) + ']==null?m[' + (group++) + ']||'
-					+ JSON.stringify(qstr == null ? token : qstr)
-					+ ':m[' + group + '])'
+				fnStr += ',' + key + ':D(m[' + (++group) + '],m[' + (++group + 1) + ']==null?m[' + (group++) + ']||' +
+				JSON.stringify(qstr === void 0 ? token : qstr) + ':m[' + group + '])'
 				return '(?=(?:"[^"]*"|[^,])*;\\s*' + key + '(=|\\*=utf-8\'\\w*\')("([^"]*)"|[^\\s,;]+)|)'
 			}
 			if (rule == ',') {
@@ -33,9 +32,9 @@ this.accept = function(choices, priority) {
 			rule = rule.replace(escapeRe, '\\$&')
 			if (key) {
 				// type / [ tree. ] subtype [ +suffix ] [ ; parameters ]
-				fnStr += ',type:' + capture(1, /(.*)\\\//, '($1)\\/')
-				+ ',subtype:' + capture(2, /\/(.+?)(?=\\\+|$)/, '/($1)')
-				+ ',suffix:' + capture(3, /\+(.+)/, '+($1)')
+				fnStr += ',type:' + capture(1, /(.*)\\\//, '($1)\\/') +
+				',subtype:' + capture(2, /\/(.+?)(?=\\\+|$)/, '/($1)') +
+				',suffix:' + capture(3, /\+(.+)/, '+($1)')
 			} else if (key = priority == 'lang' && rule.match(/^..(?=\-)/i)) {
 				// Basic Filtering
 				// https://tools.ietf.org/html/rfc4647#section-3.3.1

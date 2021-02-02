@@ -125,7 +125,7 @@
 		for (var len = path.length - 1, i = len; path.charCodeAt(i) === 47; i--);
 		return i !== len ? path.slice(0, i < 0 ? 1 : i + 1) : path
 	}
-}(this)
+}(this) // jshint ignore:line
 
 
 

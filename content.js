@@ -7,15 +7,15 @@ var fs = require("fs")
 , util = require("./util")
 , rnrn = Buffer.from("\r\n\r\n")
 , negotiateContent = accept({
-	'application/json': function(str) {
+	"application/json": function(str) {
 		return JSON.parse(str || "{}")
 	},
-	'application/x-www-form-urlencoded': querystring,
-	'multipart/*;boundary=': null,
-	'text/csv;br="\r\n";delimiter=",";fields=;header=;NULL=;select=': require("./csv.js").decode
+	"application/x-www-form-urlencoded": querystring,
+	"multipart/*;boundary=": null,
+	"text/csv;br=\"\r\n\";delimiter=\",\";fields=;header=;NULL=;select=": require("./csv.js").decode
 })
 , negotiateDisposition = accept([
-	'form-data;name="";filename=""'
+	"form-data;name=;filename="
 ])
 , seq = 0
 , decompress = {
@@ -162,7 +162,7 @@ function multipart(boundary, reqOpts, req) {
 					}
 					if (needle === boundary) {
 						if (negod) {
-							if (!remainingFields--) return writable.destroy({ code: 413, message: "maxFields exceeded"})
+							if (remainingFields-- < 1) return writable.destroy({ code: 413, message: "maxFields exceeded"})
 							if (negod.preamble) {
 								req.emit("preamble", req.preamble = buf.toString("utf8", 2))
 							} else {
@@ -181,7 +181,7 @@ function multipart(boundary, reqOpts, req) {
 						negod.headers = headers
 
 						if (negod.filename) {
-							if (!remainingFiles--) return writable.destroy({ code: 413, message: "maxFiles exceeded"})
+							if (remainingFiles-- < 1) return writable.destroy({ code: 413, message: "maxFiles exceeded"})
 							if (!req.files) req.files = []
 							req.files.push(negod)
 							negod.tmp = savePath + "-" + remainingFiles

@@ -1,4 +1,7 @@
 
+/* globals console,module,process */
+/* jshint -W097 */
+
 "use strict";
 
 var enableRe
@@ -52,13 +55,13 @@ function setLevels(name) {
 	for (level in levels) {
 		binded[level] = (
 			binded.enabled || levels[level] <= currentLevel ?
-			_log.bind(binded, name, level) :
+			Log.bind(binded, name, level) :
 			log.nop
 		)
 	}
 }
 
-function _log(name, level, msg) {
+function Log(name, level, msg) {
 	var args = arguments.length > 3 ? slice.call(arguments, 3) : null
 	, now = date.setTime(Date.now())
 	, tmp = now - (this.last || now)
@@ -96,7 +99,8 @@ function _log(name, level, msg) {
 }
 
 function debug(filter) {
-	enableRe = filter && RegExp(
+
+	enableRe = filter && RegExp( // jshint ignore:line
 		"^(" +
 		filter
 		.replace(/[.+?^${}()|[\]\\]/g, "\\$&")

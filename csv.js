@@ -28,7 +28,7 @@
 		var opts = _opts || {}
 		, re = opts.re || /[",\r\n]/
 		, escRe = opts.esc || /"/g
-		, escVal = opts.escVal || '""'
+		, escVal = opts.escVal || "\"\""
 		, arr = Array.isArray(obj) ? obj : [ obj ]
 		, keys = opts.select ? opts.select.replace(/\[[^\]]+?\]/g, "").split(",") : Object.keys(arr[0])
 
@@ -37,8 +37,8 @@
 				var value = JSON.get(obj, key)
 				if (Array.isArray(value)) value = value.join(";")
 				return (
-					value == null ? opts.NULL :
-					re.test(value+="") ? '"' + value.replace(escRe, escVal) + '"' :
+					value == null ? opts.NULL : // jshint ignore:line
+					re.test(value += "") ? "\"" + value.replace(escRe, escVal) + "\"" :
 					value
 				)
 			}).join(opts.delimiter)
@@ -71,13 +71,13 @@
 			} else {
 				row[
 					head !== null && head !== row ? head[i] : i
-				] = typeof m[1] === "string" ? m[1].replace(/""/g, '"') : m[0]
+				] = typeof m[1] === "string" ? m[1].replace(/""/g, "\"") : m[0]
 			}
 		}
-		if (i==0) arr.length -= 1
+		if (i === 0) arr.length -= 1
 
 		return arr
 	}
-}(this)
+}(this) // jshint ignore:line
 
 

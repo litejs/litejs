@@ -94,5 +94,5 @@
 	}
 
 // `this` refers to the `window` in browser and to the `exports` in Node.js.
-}(this)
+}(this) // jshint ignore:line
 
