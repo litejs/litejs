@@ -217,7 +217,7 @@
 	// ["1.2.3.4", "127.0.0.1", "192.175.255.254."].map(re.test, re)
 
 	matcher.date = function(str) {
-		return matcher(str, "(t.setTime(+d)>=0)&&", null, dateGetter, tmpDate)
+		return matcher(str, "(t.setTime(typeof d==='string'?Date.parse(d):+d)>=0)&&", null, dateGetter, tmpDate)
 	}
 
 	function dateGetter(name) {

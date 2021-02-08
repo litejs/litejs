@@ -398,7 +398,7 @@ describe("JSON", function() {
 			var fn, str, test
 			, o1 = {id:1, time: Date.now() - 1, a:"1", b:true, n: "Cat", arr: ["a1", 2, "123-456", "3", 567, { conf: "/a/b" }], map: [{q:2}, null]}
 			, o2 = {id:2, deep:[1], a:"21", b:false, n: "Batman", map: [{q:1},{q:"123-456",n:"N"},{n:[{d:3}]}]}
-			, o3 = {deep:{obj:2,o2:1.5,x:{a:1,b:0}}, dd: Date.parse("2015-09-22T12:31:00Z")}
+			, o3 = {deep:{obj:2,o2:1.5,x:{a:1,b:0}}, dd: Date.parse("2015-09-22T12:31:00Z"), d2: "2015-09-22T12:31:00Z", d3: new Date(Date.parse("2015-09-22T12:31:00Z"))}
 			, o4 = {"id.id": 4, colon:"ab:cd","a4":1, arr:[1], deep:{obj:1}, dd: Date.parse("2017-11-02T12:21:00Z")}
 			, oAll = [o1, o2, o3, o4]
 			, tests = [
@@ -521,6 +521,8 @@ describe("JSON", function() {
 				[ "u1!=u2&map[]={n[]={d=3}}", "(o=d)&&!(o['u1']==a[0])&&(o=d)&&i(o['map'])&&(I(o['map'],m(a[1])))", [o2], ["u2", "n[]={d=3}"]],
 				[ "dd=Date{M=11}", "(o=d)&&(m.date(a[0])(o['dd']))", [o4], ["M=11"]],
 				[ "dd>=Date{M=9}", "(o=d)&&(m.date(a[0])(o['dd']))", [o3], ["M=9"]],
+				[ "d2>=Date{M=9}", "(o=d)&&(m.date(a[0])(o['d2']))", [o3], ["M=9"]],
+				[ "d3>=Date{M=9}", "(o=d)&&(m.date(a[0])(o['d3']))", [o3], ["M=9"]],
 				[ "dd=Date{M=9,11}", "(o=d)&&(m.date(a[0])(o['dd']))", [o3, o4], ["M=9,11"]],
 				[ "dd=Date{M=9&D=2}", "(o=d)&&(m.date(a[0])(o['dd']))", [], ["M=9&D=2"]],
 				[ "dd=Date{M=9|D=2}", "(o=d)&&(m.date(a[0])(o['dd']))", [o3, o4], ["M=9|D=2"]],
