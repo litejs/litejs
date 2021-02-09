@@ -195,6 +195,25 @@ describe("JSON", function() {
 		, set = json.set
 
 		this
+		.should("get and set by pointer", function(assert) {
+			var obj = {
+				a: ["A", "B", "C"],
+				b: {"0": "D", "1": "E", "2": "F"},
+				c: 1
+			}
+			assert
+			.equal(get.str("a[@c]"), "(o=o['a'])&&i(o)&&(c=o[p('c')(d)])")
+			.equal(get.str("a[@c]",true), "(o=i(o['a'])?o['a']:(o['a']=[]))&&((c=o[p('c')(d)]),(o[p('c')(d)]=v),c)")
+			.equal(get(obj, "a[@c]"), "B")
+			.equal(set(obj, "a[@c]", "BB"), "B")
+			.equal(get(obj, "a[@c]"), "BB")
+			.equal(get.str("b{@c}"), "(o=o['b'])&&j(o)&&(c=o[p('c')(d)])")
+			.equal(get.str("b{@c}",true), "(o=j(o['b'])?o['b']:(o['b']={}))&&((c=o[p('c')(d)]),(o[p('c')(d)]=v),c)")
+			.equal(get(obj, "b{@c}"), "E")
+			.equal(set(obj, "b{@c}", "EE"), "E")
+			.equal(get(obj, "b{@c}"), "EE")
+			assert.end()
+		})
 		.it("should get", function(assert) {
 			assert
 			.equal(get.str("foo"), "(c=o['foo'])")

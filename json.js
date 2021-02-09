@@ -132,6 +132,7 @@
 				arrExt ? "o.filter(m('" + sub[0] + "'))" + (arrExt === "*" ? "" : ".map(p('" + arrExt.slice(1) + "'))") :
 				sub[1] ? (arr ? "o" : "K(o)") + (sub[0] === "*" ? "" : ".length") :
 				+arr == arr ?  "o[" + (arr < 0 ? "o.length" + arr : arr) + "]" :
+				sub[0].charAt(0) === "@" ? "o[p('" + sub[0].slice(1) + "')(d)]" :
 				(arr ? "I" : "J") + "(o,m('" + sub[0] + "'))"
 			) + ")" :
 			v + "o['" + path + "'])" + (
@@ -152,6 +153,8 @@
 				op = "o[o.length]"
 			} else if (+arr == arr) {
 				op = "o[" + (arr < 0 ? "o.length" + arr : arr) + "]"
+			} else if (sub.charAt(0) === "@") {
+				op = "o[p('" + sub.slice(1) + "')(d)]"
 			} else {
 				if (!onlyFilterRe.test(arr)) throw Error(FILTER_ERR + str)
 				op = "o[t]"
