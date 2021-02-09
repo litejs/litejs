@@ -10,15 +10,17 @@
 	, KEYS = Object.keys
 	, FILTER_ERR = "Invalid filter: "
 	, escRe = /['\n\r\u2028\u2029]|\\(?!x2e)/g
-	, pathRe = /(^$|.+?)(?:\[([^\]]*)\](\*.*)?|\{([^}]*)})?(\.(?=[^.])|$)/g
+	, pathRe = /(^$|[\s\S]+?)(?:(?:\[((?:\[[^\]]+\]|[^\]])*)\]|\{([^}]*)})(?:([*^])(.*))?)?(?:\.(?=([^.]))|(?:;(.+))?$)/g
+	, pathArgs = "i,j,I,J,K,m,p,f,r,e,t"
+	, pattRe = /(\w+)(?::((?:(['"\/])(?:\\\3|.)*?\3[gim]*|[^;])*))?/g
 	, reEscRe = /[.+^=:${}()|\/\\]/g
 	, keyRe = /\[(.*?)\]/g
 	, globRe = /\[.+?\]|[?*]/
 	, globReplace = /\?|(?=\*)/g
 	, globGroup = /\[!(?=.*\])/g
 	, primitiveRe = /^(-?(\d*\.)?\d+|true|false|null)$/
-	, valRe = /("|')(?:\\?[^\\])*?\1|(\w*)\{((?:("|')(?:\\?[^\\])*?\4|\w*\{(?:("|')(?:\\?[^\\])*?\5|[^}])*?\}|.)*?)\}|([@$]?)([^,]+)/g
-	, filterRe = /(!?)(\$?)((?:[-+:.\/\w]+|\[[^\]]+\]|\{[^}]+}|\\x2e)+)(\[]|\{}|)(?:(!(?=\1)==?|(?=\1)[<>=]=?)((?:("|')(?:\\?[^\\])*?\7|\w*\{(?:("|')(?:\\?[^\\])*?\8|\w*\{(?:("|')(?:\\?[^\\])*?\9|[^}])*?\}|.)*?\}|[^|&()])*))?(?=[;)|&]|$)|(([;&|])\11*|([()])|.)/g
+	, valRe = /("|')(?:\\\1|.)*?\1|(\w*)\{((?:("|')(?:\\\4|.)*?\4|\w*\{(?:("|')(?:\\\5|.)*?\5|[^}])*?\}|.)*?)\}|([@$]?)([^,]+)/g
+	, filterRe = /(!?)(\$?)((?:[-+:.\/\w]|\[[^\]]+\]|\{[^}]+}|\\x2e)+)(\[]|\{}|)(?:(!(?=\1)==?|(?=\1)[<>=]=?)((?:("|')(?:\\\7|.)*?\7|\w*\{(?:("|')(?:\\\8|.)*?\8|\{(?:("|')(?:\\\9|.)*?\9|[^}])*?\}|.)*?\}|[^|&()])*))?(?=[;)|&]|$)|(([;&|])\11*|([()])|.)/g
 	, onlyFilterRe = RegExp("^(?:([@*])|" + filterRe.source.slice(0, -10) + "))+$")
 	, cleanRe = /(\(o=d\)&&(?!.*o=o).*)\(o=d\)&&/g
 	, fns = {
@@ -58,6 +60,22 @@
 	matcher.re = filterRe
 	matcher.str = filterStr
 	matcher.valRe = valRe
+
+	exports.ext = {
+		num: function(str, dec) {
+			var out = typeof str === "string" ? parseFloat(
+				dec ?
+				str.replace(dec, "\ufdff").replace(/[^-e\d\ufdff]/g, "").replace("\ufdff", ".") :
+				str.replace(/[^-e\d.]/g, "")
+			) : NaN
+			return out === out ? out : null
+		},
+		date: Date.parse
+	}
+
+	function quote(str) {
+		return "'" + (str || "").replace(escRe, escFn) + "'"
+	}
 
 	/**
 	 * JSON Merge Patch
@@ -117,34 +135,38 @@
 			str.slice(1).replace(/\./g, "\\x2e").replace(/\//g, ".").replace(/~1/g, "/").replace(/~0/g, "~") :
 			str
 		)
-		.replace(escRe, escFn)
 		.replace(pathRe, set === true ? pathSet : pathGet)
 	}
 
-	function pathGet(str, path, arr, arrExt, obj, dot) {
+	function pathGet(str, path, arr, obj, arrExt, arrSup, dot, ext) {
 		var v = dot ? "(o=" : "(c="
 		, sub = arr || obj
 		if (sub && !(sub = onlyFilterRe.exec(sub))) throw Error(FILTER_ERR + str)
-		return (
+		v = (
 			sub ?
-			pathGet(0, path, 0, 0, 0, 1) + (arr ? "i" : "j") + "(o)&&" + v + (
-				// TODO:2021-01-22:lauri:Filter with single loop
-				arrExt ? "o.filter(m('" + sub[0] + "'))" + (arrExt === "*" ? "" : ".map(p('" + arrExt.slice(1) + "'))") :
+			pathGet(0, path, 0, 0, 0, 0, 1) + (arr ? "i" : "j") + "(o)&&" + v + (
+				arrExt ? "f(o,m(" + quote(sub[0]) + ")" + (
+					arrSup ? (arrExt === "*" ? ",p(" : ",r(") + quote(arrSup) + "))" : ")"
+				) :
 				sub[1] ? (arr ? "o" : "K(o)") + (sub[0] === "*" ? "" : ".length") :
 				+arr == arr ?  "o[" + (arr < 0 ? "o.length" + arr : arr) + "]" :
-				sub[0].charAt(0) === "@" ? "o[p('" + sub[0].slice(1) + "')(d)]" :
-				(arr ? "I" : "J") + "(o,m('" + sub[0] + "'))"
+				sub[0].charAt(0) === "@" ? "o[p(" + quote(sub[0].slice(1)) + ")(d)]" :
+				(arr ? "I" : "J") + "(o,m(" + quote(sub[0]) + "))"
 			) + ")" :
-			v + "o['" + path + "'])" + (
+			v + "o[" + quote(path) + "])" + (
 				arr === "" ? "&&i(c)&&c" :
 				obj === "" ? "&&j(c)&&c" :
 				""
 			)
 		) + (dot ? "&&" : "")
+		if (ext) for (; sub = pattRe.exec(ext); ) {
+			v = "(c=e." + sub[1] + "(" + v + (sub[2] ? "," + sub[2] : "") + "))"
+		}
+		return v
 	}
 
-	function pathSet(str, path, arr, arrExt, obj, dot) {
-		var op = "o['" + path + "']"
+	function pathSet(str, path, arr, obj, arrExt, arrSup, dot) {
+		var op = "o[" + quote(path) + "]"
 		, out = ""
 		, sub = arr || obj
 		if (sub) {
@@ -154,11 +176,11 @@
 			} else if (+arr == arr) {
 				op = "o[" + (arr < 0 ? "o.length" + arr : arr) + "]"
 			} else if (sub.charAt(0) === "@") {
-				op = "o[p('" + sub.slice(1) + "')(d)]"
+				op = "o[p(" + quote(sub.slice(1)) + ")(d)]"
 			} else {
 				if (!onlyFilterRe.test(arr)) throw Error(FILTER_ERR + str)
 				op = "o[t]"
-				out += "(t=" + (arr ? "I" : "J") + "(o,m('" + sub + "'),1))!=null&&"
+				out += "(t=" + (arr ? "I" : "J") + "(o,m(" + quote(sub) + "),1))!=null&&"
 			}
 		}
 		return out + (dot ?
@@ -170,11 +192,11 @@
 	function pathFn(str, set) {
 		var map = set === true ? setFns : getFns
 		return map[str] || (map[str] = Function(
-			"i,j,I,J,K,m,p",
-			"return function(d,v,b){var c,o,t;return (o=d)&&" +
+			pathArgs,
+			"return function(d,v,b){var c,o;return (o=d)&&" +
 			pathStr(str, set) +
 			(set ? ",c}": "!==void 0?c:v}")
-		)(isArray, isObject, inArray, inObject, KEYS, matcher, pathFn))
+		)(isArray, isObject, inArray, inObject, KEYS, matcher, pathFn, filterObj, tr, exports.ext))
 	}
 
 	function clone(obj) {
@@ -200,13 +222,13 @@
 		if (!fn) {
 			for (optimized = key; optimized != (optimized = optimized.replace(cleanRe, "$1")); );
 			fn = filterFns[key] = Function(
-				fns[str] ? "a" : "a,i,j,I,J,K,m,p,t",
+				fns[str] ? "a" : "a," + pathArgs,
 				"return function(d,b){var o;return " + optimized + "}"
 			)
 			fn.source = optimized
 		}
 		return fns[str] ? fn : fn(
-			arr, isArray, isObject, inArray, inObject, KEYS, matcher, pathFn, tmp
+			arr, isArray, isObject, inArray, inObject, KEYS, matcher, pathFn, filterObj, tr, exports.ext, tmp
 		)
 	}
 
@@ -374,6 +396,22 @@
 			if (fn(o[key])) return idx == null ? o[key] : key
 		}
 		return null
+	}
+
+	function filterObj(a, match, get) {
+		var out = []
+		, i = -1
+		, len = a.length
+		if (isObject(a)) {
+			for (i in a) if (hasOwn.call(a, i) && match(a[i])) {
+				out.push(get ? get(a[i]) : a[i])
+			}
+		} else {
+			for (; ++i < len; ) if (match(a[i])) {
+				out.push(get ? get(a[i]) : a[i])
+			}
+		}
+		return out
 	}
 // `this` refers to the `window` in browser and to the `exports` in Node.js.
 }(JSON, Object) // jshint ignore:line

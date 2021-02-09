@@ -214,6 +214,32 @@ describe("JSON", function() {
 			.equal(get(obj, "b{@c}"), "EE")
 			assert.end()
 		})
+		.should("apply extensions", function(assert) {
+			var obj = {
+				a: "21.1",
+				b: "21,2",
+				c: null,
+				d: "null",
+				e: "2009-02-13T23:31:30Z"
+			}
+			assert.equal(get(obj, "a;num"), 21.1)
+			assert.equal(get(obj, "b;num:','"), 21.2)
+			assert.equal(get(obj, "c;num"), null)
+			assert.equal(get(obj, "d;num"), null)
+			assert.equal(get(obj, "e;date"), 1234567890000)
+			assert.end()
+		})
+		.should("get a new array or map", function(assert) {
+			assert
+			.equal(get.str("a[c]*"), "(o=o['a'])&&i(o)&&(c=f(o,m('c')))")
+			.equal(get.str("a[c]*na.me"), "(o=o['a'])&&i(o)&&(c=f(o,m('c'),p('na.me')))")
+			.equal(get.str("a[c]^na.me"), "(o=o['a'])&&i(o)&&(c=f(o,m('c'),r('na.me')))")
+			.equal(get(obj2, "a[c]*"  ), [obj2.a[0], obj2.a[1]])
+			.equal(get(obj2, "a[c]*c"  ), ["2", "4"])
+			.equal(get(obj2, "list{x}*"    ), [obj2.list.a, obj2.list.b])
+			.equal(get(obj2, "list{x}^i:x"    ), [{i:1},{i:2}])
+			.end()
+		})
 		.it("should get", function(assert) {
 			assert
 			.equal(get.str("foo"), "(c=o['foo'])")
@@ -237,6 +263,7 @@ describe("JSON", function() {
 			.equal(get.str("a{*}"), "(o=o['a'])&&j(o)&&(c=K(o))")
 			.equal(get.str("a[12]"), "(o=o['a'])&&i(o)&&(c=o[12])")
 			.equal(get.str("ab.cd[ef=gh].ij"), "(o=o['ab'])&&(o=o['cd'])&&i(o)&&(o=I(o,m('ef=gh')))&&(c=o['ij'])")
+			.equal(get.str("ab.cd[ef=[gh]*].ij"), "(o=o['ab'])&&(o=o['cd'])&&i(o)&&(o=I(o,m('ef=[gh]*')))&&(c=o['ij'])")
 
 			// get and set with returning previous value
 			assert
@@ -308,16 +335,6 @@ describe("JSON", function() {
 			.equal(get.str("a.push(1)"), "(o=o['a'])&&(c=o['push(1)'])")
 			.equal(get.str("a.push(1)", true), "(o=typeof o['a']==='object'&&o['a']||(o['a']={}))&&((c=o['push(1)']),(o['push(1)']=v),c)")
 
-			assert.end()
-		})
-		.it("should get a new array", function(assert) {
-			assert
-			.equal(get.str("a[c]*"), "(o=o['a'])&&i(o)&&(c=o.filter(m('c')))")
-			.equal(get(obj2, "a[c]*"  ), [obj2.a[0], obj2.a[1]])
-			.equal(get.str("a[c]*c"), "(o=o['a'])&&i(o)&&(c=o.filter(m('c')).map(p('c')))")
-			.equal(get(obj2, "a[c]*c"  ), ["2", "4"])
-			//.equal(get.str("list{x}*"), "(o=o['list'])&&j(o)&&(c=J(o,m('x')))")
-			//.equal(get(obj2, "list{x}*"    ), [obj2.list.a, obj2.list.b])
 			assert.end()
 		})
 		.it("should resolve pointers", function(assert) {
@@ -646,6 +663,7 @@ describe("JSON", function() {
 		.it ( "should translate query string to javascript", function(assert) {
 			assert
 
+			.equal(filterStr("id",{},[]), "(o=d)&&o['id']")
 			.equal(filterStr("id=1,2",{},[]), "(o=d)&&(o['id']==a[0]||o['id']==a[1])")
 			.equal(filterStr("id=1,2&name=test",{},[]), "(o=d)&&(o['id']==a[0]||o['id']==a[1])&&(o=d)&&(o['name']==a[2])")
 
