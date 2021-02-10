@@ -5,10 +5,10 @@
 	var currentLang, currentMap
 	, isArray = Array.isArray
 	, cache = {}
-	, formatRe = /{(?!;)({[\s\S]*}|\[[\s\S]*]|(?:("|')(?:\\?.)*?\2|[^;{}])+?)(?:;((?:(['"\/])(?:\\?.)*?\4[gim]*|[^}])*))?}/g
-	, exprRe = /(['"\/])(?:\\?.)*?\1[gim]*|\b(?:[$_]|false|in|null|true|typeof|void)\b|\.\w+|\w+\s*:|\s+/g
+	, formatRe = /{(?!;)({[\s\S]*}|\[[\s\S]*]|(?:("|')(?:\\\2|.)*?\2|[^;{}])+?)(?:;((?:(['"\/])(?:\\\4|.)*?\4[gim]*|[^}])*))?}/g
+	, exprRe = /(['"\/])(?:\\\1|.)*?\1[gim]*|\b(?:[$_]|false|in|null|true|typeof|void)\b|\.\w+|\w+\s*:|\s+/g
 	, wordRe = /(\$?)([a-z_][\w$]*)/ig
-	, pattRe = /(\w+)(?::((?:(['"\/])(?:\\?.)*?\3[gim]*|[^;])*))?/g
+	, pattRe = /(\w+)(?::((?:(['"\/])(?:\\\3|.)*?\3[gim]*|[^;])*))?/g
 	, pointerRe = /^([\w ]+)\.([\w ]+)$/
 	, globalTexts = {}
 	, globalVals = i18n.vals = {}
@@ -321,7 +321,7 @@
 			lastLen ? "?r.slice(0,-" + (lastLen + dec) + "):" : "?r:"
 		) + (
 			len < 16 ? numJunk(arr, i?i-1:i, len, dec) : "r.slice(0,-" + (lastLen + dec) + ")"
-		) + "+'" + arr[i].charAt(0).replace("'", "\\'") + "'+r.slice(-" + (len + dec) + (
+		) + "+" + quote(arr[i].charAt(0)) + "+r.slice(-" + (len + dec) + (
 			lastLen ? ",-" + (lastLen + dec) : ""
 		) + "))"
 	}
