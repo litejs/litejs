@@ -222,11 +222,11 @@ describe("JSON", function() {
 				d: "null",
 				e: "2009-02-13T23:31:30Z"
 			}
-			assert.equal(get(obj, "a;num"), 21.1)
-			assert.equal(get(obj, "b;num:','"), 21.2)
-			assert.equal(get(obj, "c;num"), null)
-			assert.equal(get(obj, "d;num"), null)
-			assert.equal(get(obj, "e;date"), 1234567890000)
+			assert.equal(get(obj, "a;toNum"), 21.1)
+			assert.equal(get(obj, "b;toNum:','"), 21.2)
+			assert.equal(get(obj, "c;toNum"), null)
+			assert.equal(get(obj, "d;toNum"), null)
+			assert.equal(get(obj, "e;toDate"), 1234567890000)
 			assert.end()
 		})
 		.should("get a new array or map", function(assert) {

@@ -62,15 +62,13 @@
 	matcher.valRe = valRe
 
 	exports.ext = {
-		num: function(str, dec) {
+		toNum: function(str, dec) {
 			var out = typeof str === "string" ? parseFloat(
-				dec ?
-				str.replace(dec, "\ufdff").replace(/[^-e\d\ufdff]/g, "").replace("\ufdff", ".") :
-				str.replace(/[^-e\d.]/g, "")
+				str.replace(dec || ".", "\ufdff").replace(/[^-e\d\ufdff]/g, "").replace("\ufdff", ".")
 			) : NaN
 			return out === out ? out : null
 		},
-		date: Date.parse
+		toDate: Date.parse
 	}
 
 	function quote(str) {
