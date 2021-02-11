@@ -230,14 +230,42 @@ describe("JSON", function() {
 			assert.end()
 		})
 		.should("get a new array or map", function(assert) {
+			var obj = {
+				a: [{b:1,c:"2"},{b:3,c:"4"},{b:5,d:6}],
+				list: { a: {x:1}, b: {x:2}, c: {y:3} }
+			}
 			assert
+
+			.equal(get.str("a[]*"), "(o=o['a'])&&i(o)&&(c=f(o,1))")
+			.equal(get.str("a{}*"), "(o=o['a'])&&j(o)&&(c=f(o,1))")
+			.equal(get.str("a[]*",true), "(o=i(o['a'])?o['a']:(o['a']=[]))&&(c=f(o,1,0,v))")
+			.equal(get.str("a{}*",true), "(o=j(o['a'])?o['a']:(o['a']={}))&&(c=f(o,1,0,v))")
+
 			.equal(get.str("a[c]*"), "(o=o['a'])&&i(o)&&(c=f(o,m('c')))")
-			.equal(get.str("a[c]*na.me"), "(o=o['a'])&&i(o)&&(c=f(o,m('c'),p('na.me')))")
-			.equal(get.str("a[c]^na.me"), "(o=o['a'])&&i(o)&&(c=f(o,m('c'),r('na.me')))")
-			.equal(get(obj2, "a[c]*"  ), [obj2.a[0], obj2.a[1]])
-			.equal(get(obj2, "a[c]*c"  ), ["2", "4"])
-			.equal(get(obj2, "list{x}*"    ), [obj2.list.a, obj2.list.b])
-			.equal(get(obj2, "list{x}^i:x"    ), [{i:1},{i:2}])
+			.equal(get.str("a{c}*"), "(o=o['a'])&&j(o)&&(c=f(o,m('c')))")
+			.equal(get.str("a[c]*", true), "(o=i(o['a'])?o['a']:(o['a']=[]))&&(c=f(o,m('c'),0,v))")
+			.equal(get.str("a{c}*", true), "(o=j(o['a'])?o['a']:(o['a']={}))&&(c=f(o,m('c'),0,v))")
+
+			.equal(get.str("a[c]*d"), "(o=o['a'])&&i(o)&&(c=f(o,m('c'),p('d')))")
+			.equal(get.str("a{c}*d"), "(o=o['a'])&&j(o)&&(c=f(o,m('c'),p('d')))")
+			.equal(get.str("a[c]*d", true), "(o=i(o['a'])?o['a']:(o['a']=[]))&&(c=f(o,m('c'),p('d',true),v))")
+			.equal(get.str("a{c}*d", true), "(o=j(o['a'])?o['a']:(o['a']={}))&&(c=f(o,m('c'),p('d',true),v))")
+
+			.equal(get.str("a[c]^d"), "(o=o['a'])&&i(o)&&(c=f(o,m('c'),r('d')))")
+			.equal(get.str("a{c}^d"), "(o=o['a'])&&j(o)&&(c=f(o,m('c'),r('d')))")
+
+			.equal(get.str("a[c=a[bc]]*na.me"), "(o=o['a'])&&i(o)&&(c=f(o,m('c=a[bc]'),p('na.me')))")
+
+			.equal(get(obj, "a[]*"  ), [{b:1,c:"2"},{b:3,c:"4"},{b:5,d:6}])
+			.equal(get(obj, "a[!c]*"  ), [{b:5,d:6}])
+			.equal(get(obj, "a[c]*c"  ), ["2", "4"])
+			.equal(set(obj, "a[c]*c", 5), ["2", "4"])
+			.equal(get(obj, "a[c]*c"  ), [5, 5])
+			.equal(get(obj, "list{}*"), [{x:1}, {x:2}, {y:3}])
+			.equal(get(obj, "list{x}*"    ), [{x:1}, {x:2}])
+			.equal(get(obj, "list{x}^i:x"    ), [{i:1},{i:2}])
+			.equal(set(obj, "list{}*", false ), [{x:1}, {x:2}, {y:3}])
+			.equal(get(obj, "list{}*"), [false, false, false])
 			.end()
 		})
 		.it("should get", function(assert) {

@@ -141,9 +141,9 @@
 		, sub = arr || obj
 		if (sub && !(sub = onlyFilterRe.exec(sub))) throw Error(FILTER_ERR + str)
 		v = (
-			sub ?
-			pathGet(0, path, 0, 0, 0, 0, 1) + (arr ? "i" : "j") + "(o)&&" + v + (
-				arrExt ? "f(o,m(" + quote(sub[0]) + ")" + (
+			sub || arrExt ?
+			pathGet(0, path, 0, 0, 0, 0, 1) + (arr || arr === "" ? "i" : "j") + "(o)&&" + v + (
+				arrExt ? "f(o," + (sub ? "m(" + quote(sub[0]) + ")" : "1") + (
 					arrSup ? (arrExt === "*" ? ",p(" : ",r(") + quote(arrSup) + "))" : ")"
 				) :
 				sub[1] ? (arr ? "o" : "K(o)") + (sub[0] === "*" ? "" : ".length") :
@@ -167,21 +167,24 @@
 		var op = "o[" + quote(path) + "]"
 		, out = ""
 		, sub = arr || obj
-		if (sub) {
-			out = "(o=" + (arr ? "i(" : "j(") + op + ")?" + op + ":(" + op + (arr ? "=[]" : "={}") +"))&&"
+		if (sub || arrExt) {
+			out = "(o=" + (arr || arr === "" ? "i(" : "j(") + op + ")?" + op + ":(" + op + (arr || arr === "" ? "=[]" : "={}") +"))&&"
 			if (arr === "-") {
 				op = "o[o.length]"
 			} else if (+arr == arr) {
 				op = "o[" + (arr < 0 ? "o.length" + arr : arr) + "]"
 			} else if (sub.charAt(0) === "@") {
 				op = "o[p(" + quote(sub.slice(1)) + ")(d)]"
-			} else {
+			} else if (!arrExt) {
 				if (!onlyFilterRe.test(arr)) throw Error(FILTER_ERR + str)
 				op = "o[t]"
 				out += "(t=" + (arr ? "I" : "J") + "(o,m(" + quote(sub) + "),1))!=null&&"
 			}
 		}
-		return out + (dot ?
+		return out + (
+			arrExt ?
+			"(c=f(o," + (sub ? "m(" + quote(sub) + ")" : 1) + (arrSup ? ",p(" + quote(arrSup) + ",true),v))" : ",0,v))") :
+			dot ?
 			"(o=typeof " + op + "==='object'&&" + op + "||(" + op + "={}))&&" :
 			"((c=" + op + "),(" + op + "=v),c)"
 		)
@@ -396,17 +399,19 @@
 		return null
 	}
 
-	function filterObj(a, match, get) {
+	function filterObj(a, match, get, val) {
 		var out = []
 		, i = -1
 		, len = a.length
 		if (isObject(a)) {
-			for (i in a) if (hasOwn.call(a, i) && match(a[i])) {
-				out.push(get ? get(a[i]) : a[i])
+			for (i in a) if (hasOwn.call(a, i) && (match === 1 || match(a[i]))) {
+				out.push(get ? get(a[i], val) : a[i])
+				if (get === 0) a[i] = val
 			}
 		} else {
-			for (; ++i < len; ) if (match(a[i])) {
-				out.push(get ? get(a[i]) : a[i])
+			for (; ++i < len; ) if (match === 1 || match(a[i])) {
+				out.push(get ? get(a[i], val) : a[i])
+				if (get === 0) a[i] = val
 			}
 		}
 		return out
