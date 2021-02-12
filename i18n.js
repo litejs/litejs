@@ -76,7 +76,7 @@
 			lastIndex = m.index + m[0].length
 		}
 
-		if (fn[0]) try {
+		if (fn) try {
 			return Function("$,_,$g", args + ";return(" + fn + (
 				lastIndex < str.length ? ")+" + quote(str.slice(lastIndex)) : ")"
 			))
