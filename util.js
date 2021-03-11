@@ -19,10 +19,11 @@ exports.ip2int = ip2int
 exports.ipInNet = ipInNet
 
 var hasOwn = {}.hasOwnProperty
-, numRe = /^(-?\d+\.?\d*) *(|[kMGTP]i?)$/
+, numRe = /^(-?\d+\.?\d*) *($|[kMGTP]i?$|(?:sec|min|hr|day|week|month|year)(?=s?$))/
 , numMap = {
 	"": 1,
 	k: 1e3, M: 1e6, G: 1e9, T: 1e12, P: 1e15,
+	sec: 1e3, min: 6e4, hr: 36e5, day: 864e5, week: 6048e5, month: 2629742400, year: 31556908800,
 	ki: 1024,
 	Mi: 1048576,
 	Gi: 1073741824,
