@@ -28,7 +28,7 @@ describe("JSON", function() {
 
 	this
 	.test(".clone()", function(assert, mock) {
-		mock.replace(Object.prototype, "bad", 1)
+		mock.swap(Object.prototype, "bad", 1)
 
 		var date = new Date()  , dateClone = json.clone(date)
 		, map = {a:3}          , mapClone = json.clone(map)
@@ -89,7 +89,7 @@ describe("JSON", function() {
 		, {}                , clone1                    , clone1               , ["/foo", "/", "/a~1b", "/c%d", "/e^f", "/g|h", "/i\\j", "/k\"l", "/ ", "/m~0n"], {"/foo":undef, "/":undef, "/a~1b":undef, "/c%d":undef, "/e^f":undef, "/g|h":undef, "/i\\j":undef, "/k\"l":undef, "/ ":undef, "/m~0n":undef}
 		]
 
-		mock.replace(Object.prototype, "bad", 1)
+		mock.swap(Object.prototype, "bad", 1)
 
 		function addTest(a, b, c, d, e) {
 			var changes = []

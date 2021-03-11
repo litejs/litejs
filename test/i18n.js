@@ -52,7 +52,7 @@ describe("i18n", function() {
 
 		assert.equal(i18n.detect(), "et")
 		// i18n.detect
-		mock.replace(global, "Intl", null)
+		mock.swap(global, "Intl", null)
 		mod.navigator = {language: "et-EE"}
 		assert.equal(i18n.detect(), "et")
 		mod.navigator = {languages: ["zh-CN", "en-US", "ja-JP"]}

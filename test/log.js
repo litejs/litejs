@@ -13,8 +13,8 @@ describe.it("should handle logs", function(assert, mock) {
 	, err2 = Error("log 4")
 
 	mock.time("2018-06-03T09:41:08.698Z")
-	mock.replace(console, "log", mock.fn())
-	mock.replace(Array.prototype, "pluck", function(name) {
+	mock.swap(console, "log", mock.fn())
+	mock.swap(Array.prototype, "pluck", function(name) {
 		for (var arr = this, i = arr.length, out = []; i--; ) {
 			out[i] = arr[i][name]
 		}
