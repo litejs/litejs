@@ -353,7 +353,7 @@ function createStatic(root_, opts_) {
 			file = opts.url = path.resolve(root, (
 				req.url === "/" ?
 				opts.index :
-				"." + decodeURIComponent(req.url.split("?")[0].replace(/\+/g, " "))
+				"./" + decodeURIComponent(req.url.split("?")[0].replace(/\+/g, " "))
 			))
 		} catch (e) {
 			return res.sendStatus(400)
@@ -419,7 +419,7 @@ function send(body, opts_) {
 		opts.charset && opts.mimeType.slice(0, 5) === "text/" ? "; charset=" + opts.charset : ""
 	)
 
-	if (opts.size > 0 || opts.size === 0) {
+	if (opts.size >= 0) {
 		resHead["Content-Length"] = opts.size
 		if (opts.size > opts.rangeSize) {
 			resHead["Accept-Ranges"] = "bytes"
@@ -476,7 +476,7 @@ function send(body, opts_) {
 
 function sendFile(file, opts_, next_) {
 	var res = this
-	, opts = typeof opts_ === "function" ? (next = opts_) && {} : opts_ || {}
+	, opts = typeof opts_ === "function" ? (next_ = opts_) && {} : opts_ || {}
 	, next = typeof next_ === "function" ? next_ : function(code) {
 		res.sendStatus(code)
 	}
