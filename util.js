@@ -18,18 +18,18 @@ exports.ip2buf = ip2buf
 exports.ip2int = ip2int
 exports.ipInNet = ipInNet
 
-var hasOwn = {}.hasOwnProperty
-, numRe = /^(-?\d+\.?\d*) *($|[kMGTP]i?$|(?:sec|min|hr|day|week|month|year)(?=s?$))/
+var numRe = /^(-?\d+\.?\d*) *([kMGTP]i?|sec|min|hr|day|week|month|year|).?$/
 , numMap = {
 	"": 1,
-	k: 1e3, M: 1e6, G: 1e9, T: 1e12, P: 1e15,
 	sec: 1e3, min: 6e4, hr: 36e5, day: 864e5, week: 6048e5, month: 2629742400, year: 31556908800,
+	k: 1e3, M: 1e6, G: 1e9, T: 1e12, P: 1e15,
 	ki: 1024,
 	Mi: 1048576,
 	Gi: 1073741824,
 	Ti: 1099511627776,
 	Pi: 1125899906842624
 }
+, hasOwn = numMap.hasOwnProperty
 
 function deepAssign(to) {
 	if (to !== Object.prototype) for (var key, from, a = arguments, i = 1, len = a.length; i < len; ) {
