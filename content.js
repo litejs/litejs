@@ -85,11 +85,11 @@ function getContent(next, reqOpts) {
 				next(e)
 			}
 			next = null
-			if (req.files) {
+			if (req.files) req.res.on("finish", function() {
 				for (var i = req.files.length; i--; ) {
 					if (req.files[i].tmp) fs.unlink(req.files[i].tmp, util.nop)
 				}
-			}
+			})
 		}
 	}
 }

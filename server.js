@@ -327,6 +327,7 @@ function createApp(opts_) {
 function createStatic(root_, opts_) {
 	var root = path.resolve(root_)
 	, opts = util.deepAssign({
+		root: root,
 		index: "index.html",
 		maxAge: "1 year",
 		cache: {
@@ -342,12 +343,14 @@ function createStatic(root_, opts_) {
 		var file
 
 		if (req.method !== "GET" && req.method !== "HEAD") {
+			if (opts.otherMethod) return opts.otherMethod(req, res, next, opts)
 			res.setHeader("Allow", "GET, HEAD")
 			return res.sendStatus(405) // Method not allowed
 		}
 
 		if (req.url === "/") {
 			if (!opts.index) return res.sendStatus(404)
+			if (typeof opts.index === "function") return opts.index(req, res, next, opts)
 			file = path.resolve(root, opts.index)
 		} else try {
 			file = path.resolve(root, "." + decodeURIComponent(req.url.split("?")[0].replace(/\+/g, " ")))

@@ -364,6 +364,7 @@ describe("content", function() {
 			maxBodySize: 1000,
 			maxFiles: 2
 		}, req_)
+		req.res = {on: function(){}}
 
 		req.getContent(function(err, body, files, negod) {
 			assert.planned += 1
