@@ -57,7 +57,7 @@ describe("cookie", function() {
 			[
 				"a=1; Path=/; Domain=example.com; b=2; Expires=Tue, 17 Nov 2020 10:42:06 GMT; foo=bar; Secure; HttpOnly; SameSite=Lax",
 				{ name:"a", domain: "example.com", path: "/" }, "1",
-				{ name: "b", maxAge: 60 }, 2,
+				{ name: "b", maxAge: "1 min" }, 2,
 				{ name: "foo", secure: true, httpOnly: 1, sameSite: "Lax" }, "bar"
 			]
 		]

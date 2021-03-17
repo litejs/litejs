@@ -191,6 +191,7 @@ var fs = require("fs")
 , hasOwn = defaultOpts.hasOwnProperty
 , cookieRe = /[^!#-~]|[%,;\\]/g
 , rangeRe = /^bytes=(\d*)-(\d*)^/
+, tmpDate = new Date()
 
 module.exports = createApp
 createApp.setCookie = setCookie
@@ -327,14 +328,14 @@ function createStatic(root_, opts_) {
 	var root = path.resolve(root_)
 	, opts = util.deepAssign({
 		index: "index.html",
-		maxAge: 31536000, // One year
+		maxAge: "1 year",
 		cache: {
 			"cache.manifest": 0,
 			"worker.js": 0
 		}
 	}, opts_)
 
-	resolveFile("cache")
+	resolveFile("cache", util.num)
 	resolveFile("headers")
 
 	return function(req, res, next) {
@@ -367,13 +368,13 @@ function createStatic(root_, opts_) {
 		})
 	}
 
-	function resolveFile(name) {
+	function resolveFile(name, util) {
 		if (!opts[name]) return
 		var file
 		, map = opts[name]
 		opts[name] = {}
 		for (file in map) if (hasOwn.call(map, file)) {
-			opts[name][file === "*" ? file : path.resolve(root, file)] = map[file]
+			opts[name][file === "*" ? file : path.resolve(root, file)] = util ? util(map[file]) : map[file]
 		}
 	}
 }
@@ -399,10 +400,10 @@ function send(body, opts_) {
 		return res.sendStatus(406) // Not Acceptable
 	}
 
-	tmp = opts.cache && opts.filename && opts.cache[opts.filename] || opts.maxAge
+	tmp = util.num(opts.cache && opts.filename && opts.cache[opts.filename], opts.maxAge)
 	if (typeof tmp === "number") {
 		// max-age=N is relative to the time of the request
-		resHead["Cache-Control"] = tmp > 0 ? "public, max-age=" + tmp : "no-cache, max-age=0"
+		resHead["Cache-Control"] = tmp > 0 ? "public, max-age=" + (0|(tmp/1000)) : "no-cache, max-age=0"
 	}
 
 	if (opts.mtime && opts.mtime > Date.parse(reqHead["if-modified-since"])) {
@@ -655,13 +656,12 @@ function listen() {
 	}
 }
 
-
 function setCookie(opts, value) {
 	var res = this
 	, existing = res.getHeader("set-cookie")
 	, cookie = (typeof opts === "string" ? (opts = { name: opts }) : opts).name +
 	("=" + value).replace(cookieRe, encodeURIComponent) +
-	(opts.maxAge   ? "; Expires=" + new Date(opts.maxAge > 0 ? Date.now() + (opts.maxAge*1000) : 0).toUTCString() : "") +
+	(opts.maxAge   ? "; Expires=" + (tmpDate.setTime(opts.maxAge < 1 ? 0 : Date.now() + util.num(opts.maxAge)), tmpDate).toUTCString() : "") +
 	(opts.path     ? "; Path=" + opts.path : "") +
 	(opts.domain   ? "; Domain=" + opts.domain : "") +
 	(opts.secure   ? "; Secure" : "") +
