@@ -279,7 +279,7 @@ function createApp(opts_) {
 					oldPath = req.baseUrl
 					oldUrl = req.url
 					req.baseUrl = path
-					req.url = req.url.slice(path.length) || "/"
+					req.url = req.url === path ? "/" : req.url.slice(path.slice(-1) === "/" ? path.length - 1 : path.length)
 				}
 				if (tryCatch === true) {
 					tryCatch = false
@@ -346,16 +346,11 @@ function createStatic(root_, opts_) {
 			return res.sendStatus(405) // Method not allowed
 		}
 
-		if (req.url === "/" && !opts.index) {
-			return res.sendStatus(404)
-		}
-
-		try {
-			file = opts.url = path.resolve(root, (
-				req.url === "/" ?
-				opts.index :
-				"./" + decodeURIComponent(req.url.split("?")[0].replace(/\+/g, " "))
-			))
+		if (req.url === "/") {
+			if (!opts.index) return res.sendStatus(404)
+			file = path.resolve(root, opts.index)
+		} else try {
+			file = path.resolve(root, "." + decodeURIComponent(req.url.split("?")[0].replace(/\+/g, " ")))
 		} catch (e) {
 			return res.sendStatus(400)
 		}
@@ -461,7 +456,7 @@ function send(body, opts_) {
 		outStream.pipe(res)
 	}
 
-	if (opts.headers) Object.assign(resHead, opts.headers["*"], opts.headers[opts.url || res.req.url])
+	if (opts.headers) Object.assign(resHead, opts.headers["*"], opts.headers[opts.sendfile || res.req.url])
 	res.writeHead(opts.statusCode || 200, resHead)
 
 	if (res.req.method == "HEAD") {
