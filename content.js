@@ -207,15 +207,16 @@ function multipart(boundary, reqOpts, req) {
 				bufsBytes += bufs[bufs.length - 1].length
 			}
 
-			if (fileStream) {
-				for (; bufs.length > 1 && bufsBytes - bufs[bufs.length - 1].length > needle.length; ) {
-					if (!fileStream.write(bufs.pop())) {
-						return fileStream.once("drain", cb)
-					}
+			writeChunk()
+
+			function writeChunk() {
+				if (fileStream && bufs[1] && bufsBytes - bufs[0].length > needle.length) {
+					bufsBytes -= bufs[0].length
+					fileStream.write(bufs.shift(), writeChunk)
+				} else {
+					process.nextTick(cb)
 				}
 			}
-
-			cb()
 		}
 	}
 
