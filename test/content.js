@@ -144,7 +144,7 @@ describe("content", function() {
 			'Content-Disposition: form-data; name="file_1"; filename="abc.txt"',
 			'Content-Type: application/octet-stream',
 			'',
-			'abcdefgh',
+			'abcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefgabcdefghhhhhhhhhhhabcdefgh',
 			"--" + boundary + "--"
 		].join('\r\n')
 		, req = {
@@ -364,7 +364,9 @@ describe("content", function() {
 			maxBodySize: 1000,
 			maxFiles: 2
 		}, req_)
-		req.res = {on: function(){}}
+		req.res = {on: function(ev, fn){
+			if (ev === "close") process.nextTick(fn)
+		}}
 
 		req.getContent(function(err, body, files, negod) {
 			assert.planned += 1

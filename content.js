@@ -57,6 +57,11 @@ function getContent(next, reqOpts) {
 	}
 
 	if (negod.type === "multipart") {
+		;(req.res || req).on("close", function() {
+			if (req.files) for (var i = req.files.length; i--; ) {
+				if (req.files[i].tmp) fs.unlink(req.files[i].tmp, util.nop)
+			}
+		})
 		stream = stream
 		.pipe(multipart(negod.boundary, reqOpts || {}, req))
 		.on("finish", handleEnd)
@@ -85,11 +90,6 @@ function getContent(next, reqOpts) {
 				next(e)
 			}
 			next = null
-			if (req.files) req.res.on("finish", function() {
-				for (var i = req.files.length; i--; ) {
-					if (req.files[i].tmp) fs.unlink(req.files[i].tmp, util.nop)
-				}
-			})
 		}
 	}
 }
@@ -157,12 +157,12 @@ function multipart(boundary, reqOpts, req) {
 						bufs.push(chunk)
 						buf = Buffer.concat(bufs, pos + bufsBytes - needle.length + 1)
 						bufsBytes = bufs.length = 0
-					} else if (cut > 0 || pos < len - 1) {
+					} else if (cut > 0) {
 						buf = buf.slice(cut, pos - needle.length + 1)
 					}
 					if (needle === boundary) {
 						if (negod) {
-							if (remainingFields-- < 1) return writable.destroy({ code: 413, message: "maxFields exceeded"})
+							if (remainingFields-- < 1) return cb({ code: 413, message: "maxFields exceeded"})
 							if (negod.preamble) {
 								req.emit("preamble", req.preamble = buf.toString("utf8", 2))
 							} else {
@@ -181,7 +181,7 @@ function multipart(boundary, reqOpts, req) {
 						negod.headers = headers
 
 						if (negod.filename) {
-							if (remainingFiles-- < 1) return writable.destroy({ code: 413, message: "maxFiles exceeded"})
+							if (remainingFiles-- < 1) return cb({ code: 413, message: "maxFiles exceeded"})
 							if (!req.files) req.files = []
 							req.files.push(negod)
 							negod.tmp = savePath + "-" + remainingFiles
