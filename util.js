@@ -105,11 +105,12 @@ function uuid4(a, b) {
 	return b
 }
 
-function rand(len) {
-	for (var out = ""; out.length < len; ) {
-		out += (Date.now() * Math.random()).toString(36).split(".")[0]
+function rand(min, max) {
+	if (typeof max === "number") return Math.random() * (max - min) + min
+	for (var out = ""; out.length < min; ) {
+		out += Math.random().toString(36).slice(2)
 	}
-	return out.slice(-len)
+	return out.slice(-min)
 }
 
 // Rounding Errors

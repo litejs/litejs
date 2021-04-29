@@ -287,11 +287,14 @@ describe("util", function() {
 
 		assert.end()
 	})
-	it("should have uuid4/rand/round", function(assert) {
+	it("should have uuid4/rand/round", function(assert, mock) {
+		mock.rand(12345)
 		assert
 		.equal(util.uuid4().length, 36)
-		.equal(util.rand(36).length, 36)
+		.equal(util.rand(15), "9zgvprzwauak3nm")
+		.equal(util.rand(-5, 5), -4.829521910247747)
 		.equal(util.round(1.005, 2), 1.01)
+		.notOk(util.nop())
 		.end()
 	})
 	it("should have lineEmitter", function(assert) {
