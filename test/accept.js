@@ -293,7 +293,7 @@ describe("accept", function() {
 	})
 
 	it("allows to define quality factor", function(assert) {
-		var nego = accept("gzip;q=0.5,br")
+		var nego = accept("gzip;q=0.5,br,undefined,1")
 		, nego1 = accept("")
 		, nego2 = accept([])
 		, nego3 = accept({})
@@ -304,7 +304,11 @@ describe("accept", function() {
 		.equal(nego("gzip").match, "gzip")
 		.equal(nego("br").match, "br")
 		.equal(nego("gzip;q=0.8,br").match, "br")
+		.notOk(nego().match)
+		.notOk(nego(1).match)
+		.notOk(nego("").match)
 		.notOk(nego1("gzip").match)
+		.notOk(nego1().match)
 		.notOk(nego2("gzip").match)
 		.notOk(nego3("gzip").match)
 		.end()

@@ -9,7 +9,7 @@ this.accept = function(choices, priority) {
 	, ruleSeq = 0
 	, rules = choices.constructor == Object ? Object.keys(choices) : choices
 	, escapeRe = /[.+?^!:${}()|\[\]\/\\]/g
-	, fnStr = 'for(;(m=r.exec(i))&&(m='
+	, fnStr = 'if(typeof i=="string")for(;(m=r.exec(i))&&(m='
 
 	return Function(
 		'c,R,D',
