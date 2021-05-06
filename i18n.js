@@ -39,7 +39,9 @@
 			(tmp = pointerRe.exec(str)) && (
 				typeof currentMap[tmp[1]] === "object" &&
 				currentMap[tmp[1]][tmp[2]] ||
-				currentMap[tmp[2]]
+				currentMap[tmp[2]] ||
+				fallback ||
+				tmp[2]
 			) || fallback
 		) :
 		isArray(str) ?
@@ -334,7 +336,7 @@
 	function pick(val, word) {
 		for (var arr = getStr("?", word, word).replace(pickRe1, "$1=$1;").split(pickRe2), i = 1|arr.length; i > 0; ) {
 			if ((i-=2) < 0 || arr[i] && (arr[i] == "" + val || +arr[i] <= val)) {
-				return arr[i + 1] || ""
+				return arr[i + 1] ? arr[i + 1].replace("#", val) : ""
 			}
 		}
 	}

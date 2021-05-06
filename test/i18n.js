@@ -28,10 +28,12 @@ describe("i18n", function() {
 			page: {
 				title: "Title"
 			},
+			hide: "Hide",
 			save: "Save",
 			user: {
 				"": "User",
 				"*": "one user;# users",
+				"?": "A # user;pro=Pro user",
 				"save": "Save User"
 			}
 		})
@@ -42,9 +44,17 @@ describe("i18n", function() {
 		.equal(i18n("page.title"), "Title")
 		.equal(i18n("save"), "Save")
 		.equal(i18n("unknown.save"), "Save")
-		.equal(i18n("unknown.txt"), "unknown.txt")
-		.equal(i18n("user"), "User")
-		.equal(i18n("user.save"), "Save User")
+		.equal(i18n("unknown.txt"), "txt")
+
+		.equal(i18n("user"), "User")                                 // Resolve "" key in map
+		.equal(i18n("user.save"), "Save User")                       // Resolve nested key
+		.equal(i18n("user.hide"), "Hide")                            // Fallback to root translation
+		.equal(i18n("user.none"), "none")                            // Remove namespace
+		.equal(i18n("{level;?user}", {level:"pro"}), "Pro user")     // Pick a value
+		.equal(i18n("{level;?user}", {level:"new"}), "A new user")   // Pick and replace value
+		.equal(i18n("{count;*user}", {count:0}), "0 users")          // Plural
+		.equal(i18n("{count;*user}", {count:1}), "one user")
+		.equal(i18n("{count;*user}", {count:2}), "2 users")
 		.end()
 	})
 
@@ -397,7 +407,7 @@ describe("i18n", function() {
 		.equal(i18n.pick("", "low;30=med;;"), "low")
 		.equal(i18n.pick("male", "They;male=He;female=She"), "He")
 		.equal(i18n.pick("other", "They;male=He;female=She"), "They")
-		.equal(i18n("was {sex;?They}", {sex:"male"}), "was He")
+		.equal(i18n("{sex;?They} was", {sex:"male"}), "He was")
 		assert.end()
 	})
 
