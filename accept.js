@@ -12,11 +12,11 @@ this.accept = function(choices, priority) {
 	, fnStr = 'if(typeof i=="string")for(;(m=r.exec(i))&&(m='
 
 	return Function(
-		'c,R,D',
+		'c,R,D,u',
 		'var r=/(?:^|,\\s*)(?:(' +
 		('' + rules).replace(/[^,;]+|\s*;\s*(\w+)=("([^"]*)"|[^,;\s]*)|,/ig, function add(rule, key, token, qstr, offset, all) {
 			if (key) {
-				fnStr += ',' + key + ':D(m[' + (++group) + '],m[' + (++group + 1) + ']==null?m[' + (group++) + ']||' +
+				fnStr += ',' + key + ':D(m[' + (group += 3) + ']===u?m[' + (group - 1) + ']||' +
 				JSON.stringify(qstr === void 0 ? token : qstr) + ':m[' + group + '])'
 				return '(?=(?:"[^"]*"|[^,])*;\\s*' + key + '(=|\\*=utf-8\'\\w*\')("([^"]*)"|[^\\s,;]+)|)'
 			}
@@ -61,9 +61,9 @@ this.accept = function(choices, priority) {
 			')l=m}' : ''
 		) +
 		'return l}'
-	)(choices, rules, function(op, str) {
+	)(choices, rules, function(str) {
 		try {
-			str = decodeURIComponent(str)
+			return decodeURIComponent(str)
 		} catch (e) {}
 		return str
 	})
