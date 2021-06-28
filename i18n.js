@@ -139,7 +139,8 @@
 		return currentMap && (
 			isObject(currentMap[word]) && currentMap[word][sub] ||
 			isObject(currentMap[sub]) && currentMap[sub][word] ||
-			currentMap[word || sub]
+			isString(currentMap[sub + word]) && currentMap[sub + word] ||
+			isString(currentMap[word]) && currentMap[word]
 		) || isString(fallback) && fallback || ""
 	}
 	function quote(str) {
