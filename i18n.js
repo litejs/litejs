@@ -354,7 +354,8 @@
 	/**/
 
 	i18n.map = function(input, str, sep, lastSep) {
-		if (!isArray(input)) return input
+		if (isObject(input)) input = Object.values(input)
+		else if (!isArray(input)) return input
 		var arr = input.map(function(data) {
 			return i18n(str, data)
 		})
