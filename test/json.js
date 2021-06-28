@@ -133,21 +133,23 @@ describe("JSON", function() {
 		, obj = {
 			id: 1,
 			map: { a: 2, b: 3, c: 4 },
-			firstName: "John",
-			age: 21,
+			firstName: "Homer",
+			age: 39,
 			rel: [
-				{ type: "father", firstName: "Bob" },
-				{ type: "mother", firstName: "Mary" },
+				{ type: "father", firstName: "Abraham" },
+				{ type: "mother", firstName: "Mona" },
+				{ type: "child", firstName: "Bart" },
 				{ type: "child", firstName: "Lisa" },
-				{ type: "child", firstName: "Bart" }
+				{ type: "child", firstName: "Maggie" }
 			]
 		}
 
-		tmp = json.tr("id,name:firstName,mother:rel[type=mother|a=':'].firstName")
+		tmp = json.tr("id,name:firstName,mother:rel[type=mother|a=':'].firstName,childs:rel[type=child]*firstName")
 		assert.equal(tmp(obj), {
 			id: 1,
-			name: "John",
-			mother: "Mary"
+			name: "Homer",
+			mother: "Mona",
+			childs: [ "Bart", "Lisa", "Maggie" ]
 		})
 
 		// last one owerride previous

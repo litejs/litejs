@@ -1,6 +1,6 @@
 {
   "name": "litejs",
-  "version": "21.3.1",
+  "version": "21.6.0",
   "description": "Full-stack web framework in a tiny package",
   "license": "MIT",
   "author": "Lauri Rooden <lauri@rooden.ee>",
@@ -23,6 +23,7 @@
     "/*.js"
   ],
   "litejs": {
+    "build": false,
     "lint": "jshint *.js"
   },
   "jshintConfig": {
