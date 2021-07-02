@@ -331,7 +331,7 @@
 	/**/
 
 	/*** i18n.pick ***/
-	var pickRe1 = /(\w+)\?/g
+	var pickRe1 = /([^;=,]+?)\?/g
 	, pickRe2 = /[;=,]/
 	i18n[ext["?"] = "pick"] = pick
 	function pick(val, word) {
