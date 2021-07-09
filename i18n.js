@@ -4,6 +4,7 @@
 	"use strict";
 	var currentLang, currentMap
 	, isArray = Array.isArray
+	, create = Object.create
 	, cache = {}
 	, formatRe = /{(?!;)({[\s\S]*}|\[[\s\S]*]|(?:("|')(?:\\\2|.)*?\2|[^;{}])+?)(?:;((?:(['"\/])(?:\\\4|.)*?\4[gim]*|[^}])*))?}/g
 	, exprRe = /(['"\/])(?:\\\1|.)*?\1[gim]*|\b(?:[$_]|false|in|null|true|typeof|void)\b|\.\w+|\w+\s*:|\s+/g
@@ -25,10 +26,10 @@
 
 	function i18n(str, data) {
 		if (typeof str === "number") return "" + str
-		var out = cache[str] || (
+		str = cache[str] || (
 			cache[str] = makeFn(get(str) || str)
 		)
-		return isString(out) ? out : out(data || {}, i18n, globalVals)
+		return isString(str) ? str : str(data || {}, i18n, globalVals)
 	}
 
 	function get(str, fallback) {
@@ -93,7 +94,7 @@
 
 	function add(lang, texts) {
 		if (list.indexOf(lang) < 0) {
-			i18n[lang] = Object.create(globalTexts)
+			i18n[lang] = create(globalTexts)
 			list.push(lang)
 			if (!currentLang) use(lang)
 		}
@@ -102,7 +103,7 @@
 
 	function merge(target, map) {
 		for (var k in map) {
-			target[k] = map[k] && map[k].constructor === Object ? merge(Object.create(target), map[k]) : map[k]
+			target[k] = map[k] && map[k].constructor === Object ? merge(create(target), map[k]) : map[k]
 		}
 		return target
 	}
@@ -152,7 +153,7 @@
 	// P3Y6M4DT12H30M5S - P is the duration designator (referred to as "period")
 	//
 	var dateRe = /([Md])\1\1\1?|([yMdHhmswSZ])(\2?)|[uUaSeoQ]|'((?:''|[^'])*)'|(["\\\n\r\u2028\u2029])/g
-	, fns = Object.create(null)
+	, fns = create(null)
 	, tmp1 = new Date()
 	, tmp2 = new Date()
 	, map = {
@@ -197,7 +198,7 @@
 		var get = "d.get" + (utc ? "UTC" : "")
 		, setA = "a.setTime(+d+((4-(" + get + map.e + "))*864e5))"
 		return (utc ? mask.slice(4) : mask).replace(dateRe, function(match, MD, single, pad, text, esc) {
-			var str = (
+			mask = (
 				esc            ? escape(esc).replace(/%u/g, "\\u").replace(/%/g, "\\x") :
 				text !== void 0 ? text.replace(/''/g, "'") :
 				MD             ? "l.names[" + get + (MD == "M" ? "Month" : "Day" ) + "()+" + (match == "ddd" ? 24 : MD == "d" ? 31 : match == "MMM" ? 0 : 12) + "]" :
@@ -211,10 +212,10 @@
 				single == "w"  ? "Math.ceil(((" + setA + "-a.s" + get.slice(3) + "Month(0,1))/864e5+1)/7)" :
 				get + map[single || match]
 			)
-			return text !== void 0 || esc ? str : "\"+(" + (
-				match == "SS" ? "(t=" + str + ")>9?t>99?t:'0'+t:'00'+t" :
-				pad && single != "Z" ? "(t=" + str + ")>9?t:'0'+t" :
-				str
+			return text !== void 0 || esc ? mask : "\"+(" + (
+				match == "SS" ? "(t=" + mask + ")>9?t>99?t:'0'+t:'00'+t" :
+				pad && single != "Z" ? "(t=" + mask + ")>9?t:'0'+t" :
+				mask
 			) + ")+\""
 		})
 	}
@@ -237,8 +238,8 @@
 	, numRe2 = /([.,\/])(\d*)$/
 
 	i18n[ext["#"] = ext["+"] = "number"] = number
-	function number(input, _format) {
-		var format = getStr("#", _format.slice(1), _format)
+	function number(input, format) {
+		format = getStr("#", format.slice(1), format)
 		return (cache[format] || (cache[format] = Function(
 			"d,g",
 			"var N=d<0&&(d=-d),n,r,o;return " + numStr(format)
@@ -357,11 +358,11 @@
 	i18n.map = function(input, str, sep, lastSep) {
 		if (isObject(input)) input = Object.values(input)
 		else if (!isArray(input)) return input
-		var arr = input.map(function(data) {
+		input = input.map(function(data) {
 			return i18n(str, data)
 		})
-		, end = lastSep && arr.length > 1 ? lastSep + arr.pop() : ""
-		return arr.join(sep || ", ") + end
+		lastSep = lastSep && input.length > 1 ? lastSep + input.pop() : ""
+		return input.join(sep || ", ") + lastSep
 	}
 	i18n.upcase = function(str) {
 		return isString(str) ? str.toUpperCase() : "" + str
