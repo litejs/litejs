@@ -126,7 +126,7 @@ function multipart(boundary, reqOpts, req) {
 			, writable = this
 			, pos = nextPos
 			, len = chunk.length
-			, last = needle[needle.length - 1]
+			, last = needle.readUInt8(needle.length - 1)
 			, cut = 0
 
 			if (pos > len) {
@@ -137,7 +137,7 @@ function multipart(boundary, reqOpts, req) {
 			}
 
 			jump:for (; pos < len; ) {
-				if (chunk[pos] === last) {
+				if (chunk.readUInt8(pos) === last) {
 					buf = chunk
 					bufNum = bufs.length
 					i = needle.length - 1
@@ -147,7 +147,7 @@ function multipart(boundary, reqOpts, req) {
 							buf = bufs[--bufNum]
 							j = buf.length
 						}
-						if (needle[--i] !== buf[--j]) {
+						if (needle.readUInt8(--i) !== buf.readUInt8(--j)) {
 							pos += needle.jump[last]
 							continue jump
 						}
@@ -193,10 +193,10 @@ function multipart(boundary, reqOpts, req) {
 						needle = boundary
 					}
 					cut = pos + 1
-					last = needle[needle.length - 1]
+					last = needle.readUInt8(needle.length - 1)
 					pos += needle.length
 				} else {
-					pos += needle.jump[chunk[pos]]
+					pos += needle.jump[chunk.readUInt8(pos)]
 				}
 			}
 
@@ -227,7 +227,9 @@ function multipart(boundary, reqOpts, req) {
 		}
 	}
 
-	return new Writable(writable)
+	var stream = new Writable(writable)
+	if (stream._readyToWrite) stream._readyToWrite()
+	return stream
 
 	function saveTo(stream) {
 		fileStream = (
@@ -271,7 +273,7 @@ function makeTable(buf) {
 	, jump = buf.jump = new Uint8Array(256).fill(len)
 
 	for (; i < pos; ++i) {
-		jump[buf[i]] = pos - i
+		jump[buf.readUInt8(i)] = pos - i
 	}
 }
 

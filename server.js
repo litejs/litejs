@@ -523,7 +523,7 @@ function sendError(res, opts, e) {
 	res.send(error)
 
 	opts.log.error(
-		(e.stack || (e.name || "Error") + ": " + error.message).replace(":", ":" + error.id)
+		(Array.isArray(e.stack) ? e.stack.join("\n") : e.stack || (e.name || "Error") + ": " + error.message).replace("Error:", "Error:" + error.id)
 	)
 }
 
@@ -548,7 +548,7 @@ function listen() {
 	process.on("uncaughtException", function(e) {
 		if (opts.log) opts.log.error(
 			"\nUNCAUGHT EXCEPTION!\n" +
-			(e.stack || (e.name || "Error") + ": " + (e.message || e))
+			(Array.isArray(e.stack) ? e.message + "\n" + e.stack.join("\n") : e.stack || (e.name || "Error") + ": " + (e.message || e))
 		)
 		else throw e
 		;(opts.exit || exit).call(server, 1)
