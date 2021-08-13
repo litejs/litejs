@@ -14,8 +14,14 @@ if (!Buffer.from) {
 	}
 }
 
-if (!fs.copyFileSync) {
+if (!fs.copyFile) {
 	// Added in: v8.5.0
+	fs.copyFile = function(src, dest, mode, cb) {
+		if (typeof mode === "function") cb = mode
+		var source = fs.createReadStream(src)
+		if (cb) source.on("end", cb)
+		source.pipe(fs.createWriteStream(dest))
+	}
 	fs.copyFileSync = function(src, dest, mode) {
 		fs.writeFileSync(dest, fs.readFileSync(src))
 	}
