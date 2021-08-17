@@ -9,6 +9,8 @@ var enableRe
 , namespaces = log.namespaces = {}
 , slice = [].slice
 , date = new Date()
+, green = "\x1b[32m"
+, reset = "\x1b[0m"
 
 log.levels = {
 	"error": 0,
@@ -65,12 +67,7 @@ function Log(name, level, msg) {
 	var args = arguments.length > 3 ? slice.call(arguments, 3) : null
 	, now = date.setTime(Date.now())
 	, tmp = now - (this.last || now)
-	, out = date.toISOString() + " " + name + " +" + (
-		tmp > 36e4 ? (tmp / 36e4).toFixed(1) + "h" :
-		tmp > 6e4  ? (tmp / 6e4).toFixed(1) + "m" :
-		tmp > 1e3  ? (tmp / 1e3 | 0) + "s" :
-		tmp + "ms"
-	).replace(".0", "")
+	, out = date.toISOString() + " " + name
 
 	if (log.rawStream) {
 		log.rawStream.write([now, name, level, msg, args])
@@ -87,7 +84,12 @@ function Log(name, level, msg) {
 		}
 	}
 
-	out += " " + (args === null ? msg : format(msg, args))
+	out += " " + (args === null ? msg : format(msg, args)) + green + " +" + (
+		tmp > 36e4 ? (tmp / 36e4).toFixed(1) + "h" :
+		tmp > 6e4  ? (tmp / 6e4).toFixed(1) + "m" :
+		tmp > 1e3  ? (tmp / 1e3 | 0) + "s" :
+		tmp + "ms"
+	).replace(".0", "") + reset
 
 	if (log.prettyStream) {
 		log.prettyStream.write(out + "\n")
