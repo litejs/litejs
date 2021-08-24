@@ -325,17 +325,17 @@ function createApp(opts_) {
 	}
 }
 
-function createStatic(root_, opts_) {
-	var root = path.resolve(root_)
-	, opts = util.deepAssign({
-		root: root,
+function createStatic(root, opts) {
+	root = path.resolve(root)
+	opts = util.deepAssign({
+		fallthrough: true,
 		index: "index.html",
 		maxAge: "1 year",
 		cache: {
 			"cache.manifest": 0,
 			"worker.js": 0
 		}
-	}, opts_)
+	}, opts)
 
 	resolveFile("cache", util.num)
 	resolveFile("headers")
@@ -345,26 +345,27 @@ function createStatic(root_, opts_) {
 
 		if (req.method !== "GET" && req.method !== "HEAD") {
 			if (opts.otherMethod) return opts.otherMethod(req, res, next, opts)
-			res.setHeader("Allow", "GET, HEAD")
-			return res.sendStatus(405) // Method not allowed
+			if (opts.fallthrough !== true) res.setHeader("Allow", "GET, HEAD")
+			return fall(405) // Method not allowed
 		}
 
 		if (req.url === "/") {
-			if (!opts.index) return res.sendStatus(404)
+			if (!opts.index) return fall(404)
 			if (typeof opts.index === "function") return opts.index(req, res, next, opts)
 			file = path.resolve(root, opts.index)
 		} else try {
 			file = path.resolve(root, "." + decodeURIComponent(req.url.split("?")[0].replace(/\+/g, " ")))
 		} catch (e) {
-			return res.sendStatus(400)
+			return fall(400)
 		}
 
 		if (file.slice(0, root.length) !== root) {
-			return res.sendStatus(404)
+			return fall(404)
 		}
-		res.sendFile(file, opts, function(err) {
-			next()
-		})
+		sendFile.call(res, file, opts, fall)
+		function fall(err) {
+			next(opts.fallthrough === true ? null: err)
+		}
 	}
 
 	function resolveFile(name, util) {
@@ -478,7 +479,7 @@ function sendFile(file, opts_, next_) {
 	var res = this
 	, opts = typeof opts_ === "function" ? (next_ = opts_) && {} : opts_ || {}
 	, next = typeof next_ === "function" ? next_ : function(code) {
-		res.sendStatus(code)
+		sendStatus.call(res, code)
 	}
 
 	fs.stat(file, function(err, stat) {
@@ -491,7 +492,7 @@ function sendFile(file, opts_, next_) {
 		opts.mimeType = res.opts.mime[ file.split(".").pop() ] || "application/octet-stream"
 		opts.sendfile = file
 
-		res.send(file, opts)
+		send.call(res, file, opts)
 	})
 }
 
