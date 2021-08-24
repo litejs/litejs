@@ -194,8 +194,9 @@ var fs = require("fs")
 , tmpDate = new Date()
 
 module.exports = createApp
-createApp.setCookie = setCookie
 createApp.getCookie = getCookie
+createApp.setCookie = setCookie
+createApp.static = createStatic
 
 function createApp(opts_) {
 	var key
@@ -219,6 +220,7 @@ function createApp(opts_) {
 
 	app.listen = listen
 	app.readBody = readBody
+	// TODO:2021-08-24:lauri:Remove on next major
 	app.static = createStatic
 	app.use = use
 
