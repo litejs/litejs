@@ -36,6 +36,7 @@ var fs = require("fs")
 		}
 	},
 	bodyRe: /^(?:PATCH|POST|PUT)$/i,
+	catch: sendError,
 	charset: "UTF-8",
 	compress: false,
 	encoding: {
@@ -199,8 +200,7 @@ createApp.setCookie = setCookie
 createApp.static = createStatic
 
 function createApp(opts_) {
-	var key
-	, uses = []
+	var uses = []
 	, opts = util.deepAssign(app.opts = {defaults: defaultOpts}, defaultOpts, opts_)
 
 	event.asEmitter(app)
@@ -245,7 +245,7 @@ function createApp(opts_) {
 			// Sitemaps protocol has a limit of 2048 characters in a URL
 			// Google SERP tool wouldn't cope with URLs longer than 1855 chars
 			if (req.url.length > opts.maxURILength) {
-				return sendError(res, opts, "URI Too Long")
+				return opts.catch("URI Too Long", req, res, opts)
 			}
 
 			req.content = content
@@ -261,7 +261,7 @@ function createApp(opts_) {
 
 		function next(err) {
 			if (err) {
-				return sendError(res, opts, err)
+				return opts.catch(err, req, res, opts)
 			}
 			var method = uses[usePos]
 			, path = uses[usePos + 1]
@@ -273,7 +273,7 @@ function createApp(opts_) {
 				if (typeof _next === "function") {
 					_next()
 				} else {
-					res.sendStatus(404)
+					opts.catch(404, req, res, opts)
 				}
 			} else {
 				method = uses[pos - 1]
@@ -288,7 +288,7 @@ function createApp(opts_) {
 					try {
 						method.call(app, req, res, path ? nextPath : next, opts)
 					} catch(e) {
-						return sendError(res, opts, e)
+						return opts.catch(e, req, res, opts)
 					}
 				} else {
 					method.call(app, req, res, path ? nextPath : next, opts)
@@ -306,8 +306,7 @@ function createApp(opts_) {
 	}
 
 	function use(method, path) {
-		var fn
-		, arr = Array.from(arguments)
+		var arr = Array.from(arguments)
 		, len = arr.length
 		, i = 2
 		if (typeof method === "function") {
@@ -510,12 +509,12 @@ function sendStatus(code, message) {
 	res.end()
 }
 
-function sendError(res, opts, e) {
+function sendError(e, req, res, opts) {
 	var message = typeof e === "string" ? e : e.message
 	, map = opts.error && (opts.error[message] || opts.error[e.name]) || {}
 	, error = {
 		id: Math.random().toString(36).slice(2,10),
-		time: res.req.date,
+		time: req.date,
 		code: map.code || e.code || 500,
 		message: map.message || message
 	}
