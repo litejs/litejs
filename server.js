@@ -344,7 +344,6 @@ function createStatic(root, opts) {
 		var file
 
 		if (req.method !== "GET" && req.method !== "HEAD") {
-			if (opts.otherMethod) return opts.otherMethod(req, res, next, opts)
 			if (opts.fallthrough !== true) res.setHeader("Allow", "GET, HEAD")
 			return fall(405) // Method not allowed
 		}
