@@ -498,10 +498,12 @@ function sendFile(file, opts_, next_) {
 function sendStatus(code, message) {
 	var res = this
 	res.statusCode = code
-	if (code > 199 && code != 204 && code != 304) {
-		res.setHeader("Content-Type", "text/plain")
+	if (code == 204 || code == 205 || code == 304) {
+		res.setHeader("Content-Length", 0)
+	} else if (code > 199) {
 		message = (message || res.opts.status[code] || code) + "\n"
 		res.setHeader("Content-Length", message.length)
+		res.setHeader("Content-Type", "text/plain")
 		if ("HEAD" != res.req.method) {
 			res.write(message)
 		}
