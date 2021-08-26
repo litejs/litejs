@@ -392,7 +392,10 @@ function send(body, opts_) {
 	, reqHead = res.req.headers
 	, resHead = {}
 	, negod = res.opts._accept(reqHead.accept || reqHead["content-type"] || "*/*")
-	, opts = Object.assign({statusCode: res.statusCode}, res.opts, negod, opts_)
+	, opts = Object.assign({
+		statusCode: res.statusCode,
+		mimeType: negod.rule
+	}, res.opts, negod, opts_)
 	, outStream = opts.stream || res
 
 	if (!negod.match) {
@@ -412,7 +415,6 @@ function send(body, opts_) {
 	if (typeof body !== "string") {
 		negod.select = opts && opts.select || res.req.url.split("$select")[1] || ""
 		body = negod.o(body, negod)
-		opts.mimeType = negod.rule
 	}
 
 	resHead["Content-Type"] = opts.mimeType + (
