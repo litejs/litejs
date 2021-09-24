@@ -65,7 +65,6 @@ if (!Object.assign) {
 module.exports.version = process.versions.litejs = require("./package.json").version
 module.exports.server = require("./server")
 module.exports.log = require("./log")
-module.exports.log.debug(process.env.DEBUG)
 
 
 
