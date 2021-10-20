@@ -1,10 +1,5 @@
 
-var fs = require("fs")
-, content = require("./content")
-, event = require("./event")
-, path = require("./path")
-, util = require("./util")
-, defaultOpts = {
+var defaultOpts = {
 	maxBodySize:  1e6,
 	maxNameSize:  100,
 	maxFields:    1000,
@@ -189,6 +184,11 @@ var fs = require("fs")
 		port: 8080
 	}
 }
+, fs = require("fs")
+, content = require("./content")
+, event = require("./event")
+, path = require("./path")
+, util = require("./util")
 , hasOwn = defaultOpts.hasOwnProperty
 , cookieRe = /[^!#-~]|[%,;\\]/g
 , rangeRe = /^bytes=(\d*)-(\d*)^/
@@ -363,7 +363,7 @@ function createStatic(root, opts) {
 		}
 		sendFile.call(res, file, opts, fall)
 		function fall(err) {
-			next(opts.fallthrough === true ? null: err)
+			next(opts.fallthrough === true ? null : err)
 		}
 	}
 
