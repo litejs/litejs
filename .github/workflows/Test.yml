@@ -10,15 +10,22 @@ on:
 jobs:
   coverage:
     runs-on: ubuntu-latest
+    env:
+      TZ: Europe/Tallinn
 
     steps:
       - uses: actions/checkout@v2
-      - uses: actions/setup-node@v1
-      - name: Install and run
-        run: |
-          npm install -g nyc @litejs/cli
-          nyc -r lcovonly -r text lj test
-      - name: Coveralls
+      - uses: actions/setup-node@v2
+        with:
+          cache: npm
+          cache-dependency-path: 'package.json'
+      - name: Install
+        run: npm install -g c8 @litejs/cli
+      - name: Lint
+        run: lj lint
+      - name: Run
+        run: c8 -r lcov -r text-summary --check-coverage --branches=70 --functions=70 --lines=70 --statements=70 lj test --no-color
+      - name: Upload to Coveralls
         uses: coverallsapp/github-action@master
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}

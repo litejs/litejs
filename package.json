@@ -33,16 +33,5 @@
     "laxcomma": true,
     "maxdepth": 6,
     "quotmark": "double"
-  },
-  "nyc": {
-    "exclude": [
-      "coverage/**",
-      "test/**"
-    ],
-    "reporter": [
-      "lcov",
-      "text",
-      "html"
-    ]
   }
 }
