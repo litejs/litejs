@@ -9,8 +9,11 @@ var enableRe
 , namespaces = log.namespaces = {}
 , slice = [].slice
 , date = new Date()
+, color = (process.stdout || /* c8 ignore next */ process).isTTY && process.argv.indexOf("--no-color") < 0
 , green = "\x1b[32m"
 , reset = "\x1b[0m"
+
+if (!color) green = reset = ""
 
 log.levels = {
 	"error": 0,

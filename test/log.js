@@ -71,12 +71,12 @@ describe.it("should handle logs", function(assert, mock) {
 	b("log 222")
 	assert.equal(prettyWrite.called, 6)
 	tmp = prettyWrite.calls.pluck("args").pluck("0")
-	assert.equal(tmp[0], "2018-06-03T09:41:08.698Z main:b +0ms " + err1.stack + "\n")
-	assert.equal(tmp[1], "2018-06-03T09:41:08.698Z main:b +0ms " + err2.message + "\n")
-	assert.equal(tmp[2], "2018-06-03T09:41:08.699Z other:c +1ms " + err2.message + " x\n")
-	assert.equal(tmp[3], "2018-06-03T09:41:10.198Z main:b +1s log 2\n")
-	assert.equal(tmp[4], "2018-06-03T09:42:11.698Z main:b +1m log 2 2\n")
-	assert.equal(tmp[5], "2018-06-03T10:42:13.198Z main:b +10h log 222\n")
+	assert.equal(tmp[0], "2018-06-03T09:41:08.698Z main:b " + err1.stack + " +0ms\n")
+	assert.equal(tmp[1], "2018-06-03T09:41:08.698Z main:b " + err2.message + " +0ms\n")
+	assert.equal(tmp[2], "2018-06-03T09:41:08.699Z other:c " + err2.message + " x +1ms\n")
+	assert.equal(tmp[3], "2018-06-03T09:41:10.198Z main:b log 2 +1s\n")
+	assert.equal(tmp[4], "2018-06-03T09:42:11.698Z main:b log 2 2 +1m\n")
+	assert.equal(tmp[5], "2018-06-03T10:42:13.198Z main:b log 222 +10h\n")
 	assert.equal(errorWrite.called, 1)
 	assert.equal(errorWrite.calls.pluck("args").pluck("0"), [
 		"2018-06-03T09:41:08.699Z other:c " + err2.stack + "\n"
