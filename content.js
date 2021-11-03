@@ -267,13 +267,12 @@ function parseHeaders(str) {
 }
 
 function makeTable(buf) {
-	var len = buf.length
-	, i = 0
-	, pos = len - 1
-	, jump = buf.jump = new Uint8Array(256).fill(len)
+	var i = 0
+	, pos = buf.length - 1
+	, jump = buf.jump = new Uint8Array(256).fill(pos + 1)
 
-	for (; i < pos; ++i) {
-		jump[buf.readUInt8(i)] = pos - i
+	for (; i < pos; ) {
+		jump[buf.readUInt8(i)] = pos - i++
 	}
 }
 
