@@ -20,7 +20,7 @@ jobs:
           cache: npm
           cache-dependency-path: 'package.json'
       - name: Install
-        run: npm install -g c8 @litejs/cli
+        run: npm install -g c8 jshint @litejs/cli
       - name: Lint
         run: lj lint
       - name: Run
