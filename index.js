@@ -17,19 +17,25 @@ if (!Buffer.from) {
 if (!fs.copyFile) {
 	// Added in: v8.5.0
 	fs.copyFile = function(src, dest, mode, cb) {
-		if (typeof mode === "function") cb = mode
+		if (typeof mode === "function") {
+			cb = mode
+		}
 		var source = fs.createReadStream(src)
-		if (cb) source.on("end", cb)
+		if (cb) {
+			source.on("end", cb)
+		}
 		source.pipe(fs.createWriteStream(dest))
 	}
-	fs.copyFileSync = function(src, dest, mode) {
+	fs.copyFileSync = function(src, dest) {
 		fs.writeFileSync(dest, fs.readFileSync(src))
 	}
 }
 
 if (!process.versions) {
 	process.versions = {}
-	if (process.iotjs) process.versions.iotjs = process.version
+	if (process.iotjs) {
+		process.versions.iotjs = process.version
+	}
 }
 
 if (!process.hrtime) {

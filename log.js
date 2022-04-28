@@ -1,8 +1,5 @@
 
-/* globals console,module,process */
-/* jshint -W097 */
-
-"use strict";
+"use strict"
 
 var enableRe
 , currentLevel = 2
@@ -26,7 +23,7 @@ module.exports = log
 
 log.debug = debug
 log.level = level
-// expose nop for testing purpose
+// expose nop for testing
 log.nop = function nop() {}
 log.format = format
 

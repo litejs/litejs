@@ -20,11 +20,9 @@ jobs:
           cache: npm
           cache-dependency-path: 'package.json'
       - name: Install
-        run: npm install -g c8 jshint @litejs/cli
-      - name: Lint
-        run: lj lint
-      - name: Run
-        run: c8 -r lcov -r text-summary --check-coverage --branches=70 --functions=70 --lines=70 --statements=70 lj test --no-color
+        run: npm install -g c8 @litejs/cli
+      - name: Test
+        run: c8 -r lcov -r text-summary --check-coverage --branches=70 --functions=70 --lines=70 --statements=70 lj test test/index.js --no-color
       - name: Upload to Coveralls
         uses: coverallsapp/github-action@master
         with:

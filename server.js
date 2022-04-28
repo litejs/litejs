@@ -27,7 +27,7 @@ var defaultOpts = {
 			negod.prefix = "INSERT INTO " +
 			negod.table + (negod.fields ? " (" + negod.fields + ")" : "") + " VALUES ("
 			negod.postfix = ");"
-			return csv.encode(data, negod)
+			return require("./csv.js").encode(data, negod)
 		}
 	},
 	bodyRe: /^(?:PATCH|POST|PUT)$/i,
@@ -174,12 +174,12 @@ var defaultOpts = {
 		process.env.TEMP ||
 		process.env.TMP ||
 		(
-			process.platform === "win32" ?
+			process.platform === "win32"
 			/* istanbul ignore next */
-			(process.env.SystemRoot || process.env.windir) + "\\temp" :
-			"/tmp"
+			? (process.env.SystemRoot || process.env.windir) + "\\temp"
+			: "/tmp"
 		)
-	).replace(/([^:])[\/\\]+$/, "$1") + "/up-" + process.pid + "-",
+	).replace(/([^:])[/\\]+$/, "$1") + "/up-" + process.pid + "-",
 	http: {
 		port: 8080
 	}
@@ -427,9 +427,9 @@ function send(body, opts_) {
 			resHead["Accept-Ranges"] = "bytes"
 			resHead["Content-Length"] = opts.size
 
-			if (tmp = reqHead.range && !reqHead["if-range"] && rangeRe.exec(reqHead.range)) {
-				opts.start = range[1] ? +range[1] : range[2] ? opts.size - range[2] - 1 : 0
-				opts.end = range[1] && range[2] ? +range[2] : opts.size - 1
+			if ((tmp = reqHead.range && !reqHead["if-range"] && rangeRe.exec(reqHead.range))) {
+				opts.start = tmp[1] ? +tmp[1] : tmp[2] ? opts.size - tmp[2] - 1 : 0
+				opts.end = tmp[1] && tmp[2] ? +tmp[2] : opts.size - 1
 
 				if (opts.start > opts.end || opts.end >= opts.size) {
 					opts.start = 0
@@ -465,7 +465,7 @@ function send(body, opts_) {
 	if (opts.headers) Object.assign(resHead, opts.headers["*"], opts.headers[opts.sendfile || res.req.url])
 	res.writeHead(opts.statusCode || 200, resHead)
 
-	if (res.req.method == "HEAD") {
+	if (res.req.method === "HEAD") {
 		return res.end()
 	}
 
@@ -500,13 +500,13 @@ function sendFile(file, opts_, next_) {
 function sendStatus(code, message) {
 	var res = this
 	res.statusCode = code
-	if (code == 204 || code == 205 || code == 304) {
+	if (code === 204 || code === 205 || code === 304) {
 		res.setHeader("Content-Length", 0)
 	} else if (code > 199) {
 		message = (message || res.opts.status[code] || code) + "\n"
 		res.setHeader("Content-Length", message.length)
 		res.setHeader("Content-Type", "text/plain")
-		if ("HEAD" != res.req.method) {
+		if ("HEAD" !== res.req.method) {
 			res.write(message)
 		}
 	}
@@ -517,7 +517,7 @@ function sendError(e, req, res, opts) {
 	var message = typeof e === "string" ? e : e.message
 	, map = opts.error && (opts.error[message] || opts.error[e.name]) || {}
 	, error = {
-		id: Math.random().toString(36).slice(2,10),
+		id: Math.random().toString(36).slice(2, 10),
 		time: req.date,
 		code: map.code || e.code || 500,
 		message: map.message || message
@@ -581,7 +581,7 @@ function listen() {
 	})
 
 	server.listen = opts.listen || function() {
-		;["http", "https", "http2"].forEach(createNet)
+		["http", "https", "http2"].forEach(createNet)
 	}
 
 	server.listen()
@@ -593,7 +593,7 @@ function listen() {
 		, net = server["_" + proto] && !server["_" + proto].close()
 		if (!map || !map.port) return
 		net = server["_" + proto] = (
-			proto == "http" ?
+			proto === "http" ?
 			require(proto).createServer(map.redirect ? forceHttps : server) :
 			require(proto).createSecureServer(map, map.redirect ? forceHttps : server)
 		)
@@ -607,7 +607,6 @@ function listen() {
 		})
 		if (map.sessionReuse) {
 			var sessionStore = {}
-			, timeout = map.sessionTimeout || 300
 
 			net
 			.on("newSession", function(id, data, cb) {
@@ -630,7 +629,7 @@ function listen() {
 		// IE10+, Chrome 11+, Firefox 4+, and Opera will all "reattach" the original URI's fragment after following a 3xx redirection.
 		var port = opts.https && opts.https.port || 8443
 		, host = (req.headers.host || "localhost").split(":")[0]
-		, url = "https://" + (port == 443 ? host : host + ":" + port) + req.url
+		, url = "https://" + (port === 443 ? host : host + ":" + port) + req.url
 
 		res.writeHead(301, {"Content-Type": "text/html", "Location": url})
 		res.end("Redirecting to <a href=\"" + url + "\">" + url + "</a>")
@@ -684,7 +683,7 @@ function getCookie(opts) {
 	, junks = ("; " + req.headers.cookie).split("; " + name + "=")
 
 	if (junks.length > 2) {
-		;(opts.path || "").split("/").map(function(val, key, arr) {
+		(opts.path || "").split("/").map(function(val, key, arr) {
 			var map = {
 				name: name,
 				maxAge: -1,

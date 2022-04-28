@@ -24,14 +24,56 @@
   ],
   "litejs": {
     "build": false,
-    "lint": "jshint *.js"
+    "global": "jscpd jshint c8",
+    "lint": [
+	    "jshint *.js",
+	    "jscpd --exitCode 1 --pattern *.js"
+    ]
+  },
+  "eslintConfig": {
+    "root": true,
+    "env": {
+      "browser": true,
+      "node": true
+    },
+    "extends": "eslint:recommended",
+    "rules": {
+      "comma-dangle": ["error", "never"],
+      "comma-spacing": ["error", { "before": false, "after": true }],
+      "comma-style": ["error", "first", { "exceptions": { "ArrayExpression": true, "ObjectExpression": true } }],
+      "eqeqeq": ["error", "always", {"null": "ignore"}],
+      "func-call-spacing": ["error", "never"],
+      "func-style": ["error", "declaration", { "allowArrowFunctions": true }],
+      "indent": ["error", "tab", {
+        "VariableDeclarator": 0,
+	"MemberExpression": 0,
+	"ignoredNodes": ["ConditionalExpression"],
+	"flatTernaryExpressions": true,
+        "offsetTernaryExpressions": true
+      }],
+      "max-depth": ["error", 6],
+      "max-params": ["error", 6],
+      "new-cap": "error",
+      "no-empty": ["error", { "allowEmptyCatch": true }],
+      "semi": ["error", "never", { "beforeStatementContinuationChars": "always" }],
+      "semi-spacing": ["error", {"before": false, "after": true}],
+      "space-unary-ops": ["error", {"words": true, "nonwords": false }]
+    }
   },
   "jshintConfig": {
     "asi": true,
-    "boss": true,
+    "esversion": 3,
+    "curly": true,
+    "eqeqeq": true,
+    "eqnull": true,
     "evil": true,
+    "nonbsp": true,
     "laxcomma": true,
+    "latedef": "nofunc",
     "maxdepth": 6,
+    "unused": true,
+    "undef": true,
+    "predef": ["require", "process", "Buffer", "module", "exports"  ],
     "quotmark": "double"
   }
 }

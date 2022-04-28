@@ -65,7 +65,7 @@
 			expr = m[1]
 			if (pattern = get(m[3], m[3])) {
 				if (ext[tmp = pattern.charAt(0)]) {
-					expr = "_." + ext[tmp] + "(" + expr + "," + quote(pattern.slice(tmp == "#" ? 0 : 1)) + ")"
+					expr = "_." + ext[tmp] + "(" + expr + "," + quote(pattern.slice(tmp === "#" ? 0 : 1)) + ")"
 				} else {
 					for (; tmp = pattRe.exec(pattern); ) {
 						expr = "_." + tmp[1] + ".call($," + expr + (tmp[2] ? "," + tmp[2] : "") + ")"
@@ -123,7 +123,7 @@
 
 	function use(lang) {
 		lang = getLang(lang)
-		if (lang && currentLang != lang) {
+		if (lang && currentLang !== lang) {
 			cache = {}
 			currentMap = i18n[currentLang = i18n.current = lang] = i18n[currentLang]
 		}
@@ -175,7 +175,7 @@
 		, locale = currentMap["@"]
 		, mask = locale[_mask] || _mask || locale.iso
 		, zone = _zone != undef ? _zone : Date._tz != undef ? Date._tz : undef
-		, utc = mask.slice(0, 4) == "UTC:"
+		, utc = mask.slice(0, 4) === "UTC:"
 		if (zone != undef && !utc) {
 			offset = 60 * zone
 			tmp1.setTime(d + offset * 6e4)
@@ -201,20 +201,20 @@
 			mask = (
 				esc            ? escape(esc).replace(/%u/g, "\\u").replace(/%/g, "\\x") :
 				text !== void 0 ? text.replace(/''/g, "'") :
-				MD             ? "l.names[" + get + (MD == "M" ? "Month" : "Day" ) + "()+" + (match == "ddd" ? 24 : MD == "d" ? 31 : match == "MMM" ? 0 : 12) + "]" :
-				match == "u"   ? "(d/1000)>>>0" :
-				match == "U"   ? "+d" :
-				match == "Q"   ? "((" + get + "Month()/3)|0)+1" :
-				match == "a"   ? "l[" + get + map.H + ">11?'pm':'am']" :
-				match == "o"   ? setA + ",a" + get.slice(1) + "FullYear()" :
-				single == "y"  ? get + "FullYear()" + (pad == "y" ? "%100" : "") :
-				single == "Z"  ? "(t=o)?(t<0?((t=-t),'-'):'+')+(t<600?'0':'')+(0|(t/60))" + (pad ? "" : "+':'") + "+((t%=60)>9?t:'0'+t):'Z'" :
-				single == "w"  ? "Math.ceil(((" + setA + "-a.s" + get.slice(3) + "Month(0,1))/864e5+1)/7)" :
+				MD             ? "l.names[" + get + (MD === "M" ? "Month" : "Day" ) + "()+" + (match === "ddd" ? 24 : MD === "d" ? 31 : match === "MMM" ? 0 : 12) + "]" :
+				match === "u"   ? "(d/1000)>>>0" :
+				match === "U"   ? "+d" :
+				match === "Q"   ? "((" + get + "Month()/3)|0)+1" :
+				match === "a"   ? "l[" + get + map.H + ">11?'pm':'am']" :
+				match === "o"   ? setA + ",a" + get.slice(1) + "FullYear()" :
+				single === "y"  ? get + "FullYear()" + (pad === "y" ? "%100" : "") :
+				single === "Z"  ? "(t=o)?(t<0?((t=-t),'-'):'+')+(t<600?'0':'')+(0|(t/60))" + (pad ? "" : "+':'") + "+((t%=60)>9?t:'0'+t):'Z'" :
+				single === "w"  ? "Math.ceil(((" + setA + "-a.s" + get.slice(3) + "Month(0,1))/864e5+1)/7)" :
 				get + map[single || match]
 			)
 			return text !== void 0 || esc ? mask : "\"+(" + (
-				match == "SS" ? "(t=" + mask + ")>9?t>99?t:'0'+t:'00'+t" :
-				pad && single != "Z" ? "(t=" + mask + ")>9?t:'0'+t" :
+				match === "SS" ? "(t=" + mask + ")>9?t>99?t:'0'+t:'00'+t" :
+				pad && single !== "Z" ? "(t=" + mask + ")>9?t:'0'+t" :
 				mask
 			) + ")+\""
 		})
@@ -270,7 +270,7 @@
 			"d>1e-" + (decimals + 1) + "?(n=(d+'e" + decimals + "')/" + (step + "e" + decimals) + "":
 			"d>"+num+"e-1?(n=d/" + num
 		) + ",Math.floor(n" + (
-			conf[6] == 1 ? "%1?n+1:n" : "+" + (conf[6] || 0.5)
+			conf[6] === "1" ? "%1?n+1:n" : "+" + (conf[6] || 0.5)
 		) + ")*" + step + "):0,r=" + (
 			m2[5] ? "(''+(+n.toPrecision(" + (m2[5]) + ")))" :
 			decimals ? "n.toFixed(" + decimals + ")" :
@@ -278,13 +278,13 @@
 		)
 
 		if (decimals) {
-			if (decSep == "/") {
+			if (decSep === "/") {
 				fn += ".replace(/\\.\\d+/,'" + (
-					m3[2] == 5 ?
+					m3[2] === "5" ?
 					"⅕⅖⅗⅘'.charAt(5" :
 					"⅛¼⅜½⅝¾⅞'.charAt(8"
 				) + "*(n%1)-1))"
-			} else if (decSep != ".") {
+			} else if (decSep !== ".") {
 				fn += ".replace('.','" + decSep + "')"
 			}
 			if (sLen === 0) {
@@ -300,7 +300,7 @@
 			fn += ",r=" + numJunk(num, num.length - 1, 0, decimals ? decimals + 1 : 0)
 		}
 
-		if (m2[4] == "o") {
+		if (m2[4] === "o") {
 			number.post.o = "r+(o=g.o," + (
 				fnScope.o = get("ordinal").split(";")
 			).pop() + ")"
@@ -337,7 +337,7 @@
 	i18n[ext["?"] = "pick"] = pick
 	function pick(val, word) {
 		for (var arr = getStr("?", word, word).replace(pickRe1, "$1=$1;").split(pickRe2), i = 1|arr.length; i > 0; ) {
-			if ((i-=2) < 0 || arr[i] && (arr[i] == "" + val || +arr[i] <= val)) {
+			if ((i-=2) < 0 || arr[i] && (arr[i] === "" + val || +arr[i] <= val)) {
 				return arr[i + 1] ? arr[i + 1].replace("#", val) : ""
 			}
 		}
