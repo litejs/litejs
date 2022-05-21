@@ -34,7 +34,7 @@ describe("JSON", function() {
 		, map = {a:3}          , mapClone = json.clone(map)
 		, re1 = /ab/           , re1Clone = json.clone(re1)
 		, re2 = /a\+[]()]b/gim , re2Clone = json.clone(re2)
-		, arr = [1, "2", date, map, re1, re2], arrClone = json.clone(arr)
+		, arr = [null, 0, 1, "2", date, map, re1, re2], arrClone = json.clone(arr)
 
 		assert
 		.notStrictEqual(arr, arrClone)
@@ -42,7 +42,7 @@ describe("JSON", function() {
 		.notStrictEqual(map, mapClone)
 		.notStrictEqual(re1, re1Clone)
 		.notStrictEqual(re2, re2Clone)
-		.equal(arr, [1, "2", dateClone, mapClone, re1Clone, re2Clone])
+		.equal(arr, [null, 0, 1, "2", dateClone, mapClone, re1Clone, re2Clone])
 		.end()
 	})
 	.test(".isObject()", function(assert) {

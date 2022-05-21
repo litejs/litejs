@@ -47,7 +47,6 @@
 	, tmpDate = new Date()
 	, isArray = Array.isArray
 
-	exports.clone = clone
 	exports.matcher = matcher
 	exports.get = function(obj, pointer, fallback) { return pathFn(pointer)(obj, fallback) }
 	exports.isObject = isObject
@@ -200,12 +199,12 @@
 		)(isArray, isObject, inArray, inObject, KEYS, matcher, pathFn, filterObj, tr, exports.ext))
 	}
 
-	function clone(obj) {
+	exports.clone = function clone(obj) {
 		var temp, key
-		if (obj && typeof obj == "object") {
+		if (obj && typeof obj === "object") {
 			// new Date().constructor() returns a string
-			temp = obj instanceof Date ? new Date(+obj) :
-				obj instanceof RegExp ? RegExp(obj.source, (""+obj).split("/").pop()) :
+			temp = obj instanceof Date ? new Date(obj) :
+				obj instanceof RegExp ? RegExp(obj.source, ("" + obj).split("/").pop()) :
 				obj.constructor()
 			for (key in obj) if (hasOwn.call(obj, key)) {
 				temp[key] = clone(obj[key])
