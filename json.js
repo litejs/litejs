@@ -364,14 +364,10 @@
 	}
 
 	function tr(attrs, aclFn) {
-		var attr, tmp
-		, arr = []
-		, map = {}
-		, i = 0
-		for (; attr = valRe.exec(attrs); ) {
+		for (var attr, tmp, i = 0, arr = [], map = {}; attr = valRe.exec(attrs); ) {
 			tmp = attr[0].split(":")
-			exports.set(map, tmp[0], i)
-			arr[i++] = pathFn(tmp[1] ? attr[0].slice(tmp[0].length+1) : tmp[0])
+			pathFn(tmp[0], true)(map, i)
+			arr[i++] = pathFn(tmp[1] ? attr[0].slice(tmp[0].length + 1) : tmp[0])
 		}
 		return Function(
 			"g,a",
