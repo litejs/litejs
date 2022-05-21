@@ -46,10 +46,8 @@ describe("JSON", function() {
 		.end()
 	})
 	.test(".isObject()", function(assert) {
-		assert.equal(
-			[{}, undef, null, "", "a", 0, 1, []].map(json.isObject),
-			[true, false, false, false, false, false, false, false ]
-		)
+		assert.equal(true, json.isObject({}))
+		.equal(false, [null, undef, "", "a", 0, 1, []].some(json.isObject))
 		.end()
 	})
 	.test(".mergePatch()", function(assert, mock) {
