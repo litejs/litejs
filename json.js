@@ -89,7 +89,7 @@
 				target = {}
 			}
 			for (key in patch) if (
-				undef !== (oldVal = target[key], val = patch[key]) &&
+				undef !== (oldVal = isObject(target[key]) ? Object.assign({}, target[key]) : target[key], val = patch[key]) &&
 				hasOwn.call(patch, key) &&
 				(
 					undef == val ?
@@ -104,7 +104,7 @@
 				}
 				if (len === false || changed && len != changed.length) {
 					changed.push(nextPointer)
-					if (previous && !isObject(oldVal)) {
+					if (previous) {
 						previous[nextPointer] = oldVal
 					}
 				}
