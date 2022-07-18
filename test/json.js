@@ -292,8 +292,8 @@ describe("JSON", function() {
 			.equal(get.str("a[*]"), "(o=o['a'])&&i(o)&&(c=o)")
 			.equal(get.str("a{*}"), "(o=o['a'])&&j(o)&&(c=K(o))")
 			.equal(get.str("a[12]"), "(o=o['a'])&&i(o)&&(c=o[12])")
-			.equal(get.str("ab.cd[ef=gh].ij"), "(o=o['ab'])&&(o=o['cd'])&&i(o)&&(o=I(o,m('ef=gh')))&&(c=o['ij'])")
-			.equal(get.str("ab.cd[ef=[gh]*].ij"), "(o=o['ab'])&&(o=o['cd'])&&i(o)&&(o=I(o,m('ef=[gh]*')))&&(c=o['ij'])")
+			.equal(get.str("ab.cd[ef=gh].ij"), "(o=o['ab'])&&(o=o['cd'])&&i(o)&&(o=I(o,m('ef=gh'),0,b))&&(c=o['ij'])")
+			.equal(get.str("ab.cd[ef=[gh]*].ij"), "(o=o['ab'])&&(o=o['cd'])&&i(o)&&(o=I(o,m('ef=[gh]*'),0,b))&&(c=o['ij'])")
 
 			// get and set with returning previous value
 			assert
@@ -342,14 +342,14 @@ describe("JSON", function() {
 			.equal(get(obj2, "list{*}"    ), ["a", "b", "c"])
 			.equal(get(obj2, "list{*}.0"    ), "a")
 
-			.equal(get.str("list{x}"), "(o=o['list'])&&j(o)&&(c=J(o,m('x')))")
+			.equal(get.str("list{x}"), "(o=o['list'])&&j(o)&&(c=J(o,m('x'),0,b))")
 			.equal(get(obj2, "list{x}"    ), obj2.list.a)
 			.equal(get(obj2, "list{y}"    ), obj2.list.c)
 
-			.equal(get.str("a[c=2]"), "(o=o['a'])&&i(o)&&(c=I(o,m('c=2')))")
-			.equal(get.str("a[c=3]", true), "(o=i(o['a'])?o['a']:(o['a']=[]))&&(t=I(o,m('c=3'),1))!=null&&((c=o[t]),(o[t]=v),c)")
-			.equal(get.str("a[c=4].b"), "(o=o['a'])&&i(o)&&(o=I(o,m('c=4')))&&(c=o['b'])")
-			.equal(get.str("a[c=5].b", true), "(o=i(o['a'])?o['a']:(o['a']=[]))&&(t=I(o,m('c=5'),1))!=null&&(o=typeof o[t]==='object'&&o[t]||(o[t]={}))&&((c=o['b']),(o['b']=v),c)")
+			.equal(get.str("a[c=2]"), "(o=o['a'])&&i(o)&&(c=I(o,m('c=2'),0,b))")
+			.equal(get.str("a[c=3]", true), "(o=i(o['a'])?o['a']:(o['a']=[]))&&(t=I(o,m('c=3'),1,b))!=null&&((c=o[t]),(o[t]=v),c)")
+			.equal(get.str("a[c=4].b"), "(o=o['a'])&&i(o)&&(o=I(o,m('c=4'),0,b))&&(c=o['b'])")
+			.equal(get.str("a[c=5].b", true), "(o=i(o['a'])?o['a']:(o['a']=[]))&&(t=I(o,m('c=5'),1,b))!=null&&(o=typeof o[t]==='object'&&o[t]||(o[t]={}))&&((c=o['b']),(o['b']=v),c)")
 			.equal(get(obj2, "a[c=2].b"  ), 2)
 			.equal(set(obj2, "a[c=2].b", 1), 2)
 			.equal(get(obj2, "a[c=2].b"  ), 1)
@@ -357,7 +357,7 @@ describe("JSON", function() {
 			.equal(set(obj2, "a[c=3].b", "BB"), null)
 			.equal(get(obj2, "a[3].b"  ), "BB")
 
-			.equal(get.str("list{x=2}.x", true), "(o=j(o['list'])?o['list']:(o['list']={}))&&(t=J(o,m('x=2'),1))!=null&&(o=typeof o[t]==='object'&&o[t]||(o[t]={}))&&((c=o['x']),(o['x']=v),c)")
+			.equal(get.str("list{x=2}.x", true), "(o=j(o['list'])?o['list']:(o['list']={}))&&(t=J(o,m('x=2'),1,b))!=null&&(o=typeof o[t]==='object'&&o[t]||(o[t]={}))&&((c=o['x']),(o['x']=v),c)")
 			.equal(set(obj2, "list{x=2}.x", 3), 2)
 
 			.equal(get(obj2, "a[c=4].b"  ), 3)
@@ -547,44 +547,44 @@ describe("JSON", function() {
 				[ "!arr[]", "(o=d)&&!i(o['arr'])", [o2, o3], []],
 				[ "deep{}", "(o=d)&&j(o['deep'])", [o3, o4], []],
 				[ "!deep{}", "(o=d)&&!j(o['deep'])", [o1, o2], []],
-				[ "deep{a=1}", "(o=d)&&(o=o['deep'])&&j(o)&&J(o,m('a=1'))", [o3], []],
-				[ "deep{a=1}.b=0", "(o=d)&&(o=o['deep'])&&j(o)&&(o=J(o,m('a=1')))&&(o['b']==a[0])", [o3], [0]],
-				[ "deep{a=1}.b>-1", "(o=d)&&(o=o['deep'])&&j(o)&&(o=J(o,m('a=1')))&&(o['b']>a[0])", [o3], [-1]],
-				[ "arr[]=a1", "(o=d)&&i(o['arr'])&&(I(o['arr'],a[1](a[0])))", [o1], ['a1', matcher("==")]],
-				[ "arr[]=2",  "(o=d)&&i(o['arr'])&&(I(o['arr'],a[1](a[0])))", [o1], [2, matcher("==")]],
-				[ "arr[]!=2", "(o=d)&&!i(o['arr'])||!(I(o['arr'],a[1](a[0])))", [o2, o3, o4], [2, matcher("==")]],
-				[ "arr[]=*23*" , "(o=d)&&i(o['arr'])&&(I(o['arr'],a[1](a[0])))", [o1], [/^.*23.*$/i, matcher("~")]],
-				[ "arr[]!=*23*", "(o=d)&&!i(o['arr'])||!(I(o['arr'],a[1](a[0])))", [o2, o3, o4], [/^.*23.*$/i, matcher("~")]],
-				[ "arr[]={conf=/a/b}", "(o=d)&&i(o['arr'])&&(I(o['arr'],m(a[0])))", [o1], ["conf=/a/b"]],
-				[ "arr[]={conf='/a/b'}", "(o=d)&&i(o['arr'])&&(I(o['arr'],m(a[0])))", [o1], ["conf='/a/b'"]],
-				[ "arr[]={conf='/a/b'}", "(o=d)&&i(o['arr'])&&(I(o['arr'],m(a[0])))", [o1], ["conf='/a/b'"]],
-				[ "arr[]!==2", "(o=d)&&!i(o['arr'])||!(I(o['arr'],a[1](a[0])))", [o2, o3, o4], [2, matcher("===")]],
-				[ "arr[]==2", "(o=d)&&i(o['arr'])&&(I(o['arr'],a[1](a[0])))", [o1], [2, matcher("===")]],
-				[ "arr[]==1,2", "(o=d)&&i(o['arr'])&&(I(o['arr'],a[1](a[0]))||I(o['arr'],a[1](a[2])))", [o1, o4], [1, matcher("==="), 2]],
-				[ "arr[]=='2'", "(o=d)&&i(o['arr'])&&(I(o['arr'],a[1](a[0])))", [], ["2", matcher("===")]],
-				[ "arr[]>=2", "(o=d)&&i(o['arr'])&&(I(o['arr'],a[1](a[0])))", [o1], [2, matcher(">=")]],
-				[ "arr[]<=2", "(o=d)&&i(o['arr'])&&(I(o['arr'],a[1](a[0])))", [o1, o4], [2, matcher("<=")]],
-				[ "arr[]>2", "(o=d)&&i(o['arr'])&&(I(o['arr'],a[1](a[0])))", [o1], [2, matcher(">")]],
-				[ "arr[]<2", "(o=d)&&i(o['arr'])&&(I(o['arr'],a[1](a[0])))", [o4], [2, matcher("<")]],
-				[ "arr[]=567", "(o=d)&&i(o['arr'])&&(I(o['arr'],a[1](a[0])))", [o1], [567, matcher("==")]],
-				[ "arr[]=3", "(o=d)&&i(o['arr'])&&(I(o['arr'],a[1](a[0])))", [o1], [3, matcher("==")]],
-				[ "arr[]==3", "(o=d)&&i(o['arr'])&&(I(o['arr'],a[1](a[0])))", [], [3, matcher("===")]],
-				[ "arr[]=='3'", "(o=d)&&i(o['arr'])&&(I(o['arr'],a[1](a[0])))", [o1], ["3", matcher("===")]],
+				[ "deep{a=1}", "(o=d)&&(o=o['deep'])&&j(o)&&J(o,m('a=1'),0,b)", [o3], []],
+				[ "deep{a=1}.b=0", "(o=d)&&(o=o['deep'])&&j(o)&&(o=J(o,m('a=1'),0,b))&&(o['b']==a[0])", [o3], [0]],
+				[ "deep{a=1}.b>-1", "(o=d)&&(o=o['deep'])&&j(o)&&(o=J(o,m('a=1'),0,b))&&(o['b']>a[0])", [o3], [-1]],
+				[ "arr[]=a1", "(o=d)&&i(o['arr'])&&(I(o['arr'],a[1](a[0]),0,b))", [o1], ['a1', matcher("==")]],
+				[ "arr[]=2",  "(o=d)&&i(o['arr'])&&(I(o['arr'],a[1](a[0]),0,b))", [o1], [2, matcher("==")]],
+				[ "arr[]!=2", "(o=d)&&!i(o['arr'])||!(I(o['arr'],a[1](a[0]),0,b))", [o2, o3, o4], [2, matcher("==")]],
+				[ "arr[]=*23*" , "(o=d)&&i(o['arr'])&&(I(o['arr'],a[1](a[0]),0,b))", [o1], [/^.*23.*$/i, matcher("~")]],
+				[ "arr[]!=*23*", "(o=d)&&!i(o['arr'])||!(I(o['arr'],a[1](a[0]),0,b))", [o2, o3, o4], [/^.*23.*$/i, matcher("~")]],
+				[ "arr[]={conf=/a/b}", "(o=d)&&i(o['arr'])&&(I(o['arr'],m(a[0]),0,b))", [o1], ["conf=/a/b"]],
+				[ "arr[]={conf='/a/b'}", "(o=d)&&i(o['arr'])&&(I(o['arr'],m(a[0]),0,b))", [o1], ["conf='/a/b'"]],
+				[ "arr[]={conf='/a/b'}", "(o=d)&&i(o['arr'])&&(I(o['arr'],m(a[0]),0,b))", [o1], ["conf='/a/b'"]],
+				[ "arr[]!==2", "(o=d)&&!i(o['arr'])||!(I(o['arr'],a[1](a[0]),0,b))", [o2, o3, o4], [2, matcher("===")]],
+				[ "arr[]==2", "(o=d)&&i(o['arr'])&&(I(o['arr'],a[1](a[0]),0,b))", [o1], [2, matcher("===")]],
+				[ "arr[]==1,2", "(o=d)&&i(o['arr'])&&(I(o['arr'],a[1](a[0]),0,b)||I(o['arr'],a[1](a[2]),0,b))", [o1, o4], [1, matcher("==="), 2]],
+				[ "arr[]=='2'", "(o=d)&&i(o['arr'])&&(I(o['arr'],a[1](a[0]),0,b))", [], ["2", matcher("===")]],
+				[ "arr[]>=2", "(o=d)&&i(o['arr'])&&(I(o['arr'],a[1](a[0]),0,b))", [o1], [2, matcher(">=")]],
+				[ "arr[]<=2", "(o=d)&&i(o['arr'])&&(I(o['arr'],a[1](a[0]),0,b))", [o1, o4], [2, matcher("<=")]],
+				[ "arr[]>2", "(o=d)&&i(o['arr'])&&(I(o['arr'],a[1](a[0]),0,b))", [o1], [2, matcher(">")]],
+				[ "arr[]<2", "(o=d)&&i(o['arr'])&&(I(o['arr'],a[1](a[0]),0,b))", [o4], [2, matcher("<")]],
+				[ "arr[]=567", "(o=d)&&i(o['arr'])&&(I(o['arr'],a[1](a[0]),0,b))", [o1], [567, matcher("==")]],
+				[ "arr[]=3", "(o=d)&&i(o['arr'])&&(I(o['arr'],a[1](a[0]),0,b))", [o1], [3, matcher("==")]],
+				[ "arr[]==3", "(o=d)&&i(o['arr'])&&(I(o['arr'],a[1](a[0]),0,b))", [], [3, matcher("===")]],
+				[ "arr[]=='3'", "(o=d)&&i(o['arr'])&&(I(o['arr'],a[1](a[0]),0,b))", [o1], ["3", matcher("===")]],
 				[ "arr[1]=2", "(o=d)&&(o=o['arr'])&&i(o)&&(o[1]==a[0])", [o1], [2]],
 				[ "arr[-5]=2", "(o=d)&&(o=o['arr'])&&i(o)&&(o[o.length-5]==a[0])", [o1], [2]],
 				[ "arr[@]>5", "(o=d)&&(o=o['arr'])&&i(o)&&(o.length>a[0])", [o1], [5]],
 				[ "deep{@}=1", "(o=d)&&(o=o['deep'])&&j(o)&&(K(o).length==a[0])", [o4], [1]],
-				[ "deep{}=2,3", "(o=d)&&j(o['deep'])&&(J(o['deep'],a[1](a[0]))||J(o['deep'],a[1](a[2])))", [o3], [2, matcher("=="), 3]],
-				[ "deep{*}=o2,o3", "(o=d)&&(o=o['deep'])&&j(o)&&(c=K(o))&&(I(c,a[1](a[0]))||I(c,a[1](a[2])))", [o3], ["o2", matcher("=="), "o3"]],
-				[ "map[q=123-456].n=N", "(o=d)&&(o=o['map'])&&i(o)&&(o=I(o,m('q=123-456')))&&(o['n']==a[0])", [o2], ["N"]],
-				[ "map[]={q=1,3}", "(o=d)&&i(o['map'])&&(I(o['map'],m(a[0])))", [o2], ["q=1,3"]],
-				[ "map[]!={q=1}", "(o=d)&&!i(o['map'])||!(I(o['map'],m(a[0])))", [o1, o3, o4], ["q=1"]],
-				[ "map[]={q=123-456}", "(o=d)&&i(o['map'])&&(I(o['map'],m(a[0])))", [o2], ["q=123-456"]],
-				[ "map[]={q='123-456'}", "(o=d)&&i(o['map'])&&(I(o['map'],m(a[0])))", [o2], ["q='123-456'"]],
-				[ "map[]={q='123-456'}", "(o=d)&&i(o['map'])&&(I(o['map'],m(a[0])))", [o2], ["q='123-456'"]],
-				[ "map[]={q='123-456'|q=2}", "(o=d)&&i(o['map'])&&(I(o['map'],m(a[0])))", [o1, o2], ["q='123-456'|q=2"]],
-				[ "map[]={n[]={d=3}}", "(o=d)&&i(o['map'])&&(I(o['map'],m(a[0])))", [o2], ["n[]={d=3}"]],
-				[ "u1!=u2&map[]={n[]={d=3}}", "(o=d)&&!(o['u1']==a[0])&&(o=d)&&i(o['map'])&&(I(o['map'],m(a[1])))", [o2], ["u2", "n[]={d=3}"]],
+				[ "deep{}=2,3", "(o=d)&&j(o['deep'])&&(J(o['deep'],a[1](a[0]),0,b)||J(o['deep'],a[1](a[2]),0,b))", [o3], [2, matcher("=="), 3]],
+				[ "deep{*}=o2,o3", "(o=d)&&(o=o['deep'])&&j(o)&&(c=K(o))&&(I(c,a[1](a[0]),0,b)||I(c,a[1](a[2]),0,b))", [o3], ["o2", matcher("=="), "o3"]],
+				[ "map[q=123-456].n=N", "(o=d)&&(o=o['map'])&&i(o)&&(o=I(o,m('q=123-456'),0,b))&&(o['n']==a[0])", [o2], ["N"]],
+				[ "map[]={q=1,3}", "(o=d)&&i(o['map'])&&(I(o['map'],m(a[0]),0,b))", [o2], ["q=1,3"]],
+				[ "map[]!={q=1}", "(o=d)&&!i(o['map'])||!(I(o['map'],m(a[0]),0,b))", [o1, o3, o4], ["q=1"]],
+				[ "map[]={q=123-456}", "(o=d)&&i(o['map'])&&(I(o['map'],m(a[0]),0,b))", [o2], ["q=123-456"]],
+				[ "map[]={q='123-456'}", "(o=d)&&i(o['map'])&&(I(o['map'],m(a[0]),0,b))", [o2], ["q='123-456'"]],
+				[ "map[]={q='123-456'}", "(o=d)&&i(o['map'])&&(I(o['map'],m(a[0]),0,b))", [o2], ["q='123-456'"]],
+				[ "map[]={q='123-456'|q=2}", "(o=d)&&i(o['map'])&&(I(o['map'],m(a[0]),0,b))", [o1, o2], ["q='123-456'|q=2"]],
+				[ "map[]={n[]={d=3}}", "(o=d)&&i(o['map'])&&(I(o['map'],m(a[0]),0,b))", [o2], ["n[]={d=3}"]],
+				[ "u1!=u2&map[]={n[]={d=3}}", "(o=d)&&!(o['u1']==a[0])&&(o=d)&&i(o['map'])&&(I(o['map'],m(a[1]),0,b))", [o2], ["u2", "n[]={d=3}"]],
 				[ "dd=Date{M=11}", "(o=d)&&(m.date(a[0])(o['dd']))", [o4], ["M=11"]],
 				[ "dd>=Date{M=9}", "(o=d)&&(m.date(a[0])(o['dd']))", [o3], ["M=9"]],
 				[ "d2>=Date{M=9}", "(o=d)&&(m.date(a[0])(o['d2']))", [o3], ["M=9"]],
@@ -702,9 +702,9 @@ describe("JSON", function() {
 			.equal(filterStr("id[]",{},[]), "(o=d)&&i(o['id'])")
 			.equal(filterStr("id[]&$select=ab",{},[]), "(o=d)&&i(o['id'])")
 			.equal(filterStr("id[]&$select=ab",null,[]), "(o=d)&&i(o['id'])")
-			.equal(filterStr("id[]=2",{},[]), "(o=d)&&i(o['id'])&&(I(o['id'],a[1](a[0])))")
-			.equal(filterStr('id[]="2"',{},[]), "(o=d)&&i(o['id'])&&(I(o['id'],a[1](a[0])))")
-			.equal(filterStr('id[]>2',{},[]), "(o=d)&&i(o['id'])&&(I(o['id'],a[1](a[0])))")
+			.equal(filterStr("id[]=2",{},[]), "(o=d)&&i(o['id'])&&(I(o['id'],a[1](a[0]),0,b))")
+			.equal(filterStr('id[]="2"',{},[]), "(o=d)&&i(o['id'])&&(I(o['id'],a[1](a[0]),0,b))")
+			.equal(filterStr('id[]>2',{},[]), "(o=d)&&i(o['id'])&&(I(o['id'],a[1](a[0]),0,b))")
 			.end()
 		})
 	})

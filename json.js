@@ -148,7 +148,7 @@
 				sub[1] ? (arr ? "o" : "K(o)") + (sub[0] === "*" ? "" : ".length") :
 				+arr == arr ?  "o[" + (arr < 0 ? "o.length" + arr : arr) + "]" :
 				sub[0].charAt(0) === "@" ? "o[p(" + quote(sub[0].slice(1)) + ")(d)]" :
-				(arr ? "I" : "J") + "(o,m(" + quote(sub[0]) + "))"
+				(arr ? "I" : "J") + "(o,m(" + quote(sub[0]) + "),0,b)"
 			) + ")" :
 			v + "o[" + quote(path) + "])" + (
 				arr === "" ? "&&i(c)&&c" :
@@ -177,7 +177,7 @@
 			} else if (!arrExt) {
 				if (!onlyFilterRe.test(arr)) throw Error(FILTER_ERR + str)
 				op = "o[t]"
-				out += "(t=" + (arr ? "I" : "J") + "(o,m(" + quote(sub) + "),1))!=null&&"
+				out += "(t=" + (arr ? "I" : "J") + "(o,m(" + quote(sub) + "),1,b))!=null&&"
 			}
 		}
 		return out + (
@@ -318,7 +318,7 @@
 					""
 				) + "(" + v
 				a.push(
-					isArray || attr === "c" ? (isArray == "{}" ? "J(" : "I(") + attr + "," + idd + "))" :
+					isArray || attr === "c" ? (isArray == "{}" ? "J(" : "I(") + attr + "," + idd + "),0,b)" :
 					m[2] || m[3] ? idd + ")(" + attr + ")" :
 					isRe ? "typeof " + attr + "==='string'&&" + v + ".test(" + attr + ")" :
 					m[6] ? attr + "!==void 0&&" + attr + op + (
@@ -380,16 +380,18 @@
 		return !!obj && obj.constructor === Object
 	}
 
-	function inArray(a, fn, idx) {
+	function inArray(a, fn, idx, params) {
 		for (var i = -1, len = a.length; ++i < len; ) {
-			if (fn(a[i])) return idx == null ? a[i] : i
+			if (fn(a[i], params)) {
+				return idx === 0 ? a[i] : i
+			}
 		}
-		return idx != null && len
+		return idx !== 0 && len
 	}
 
-	function inObject(o, fn, idx) {
+	function inObject(o, fn, idx, params) {
 		for (var key in o) {
-			if (fn(o[key])) return idx == null ? o[key] : key
+			if (fn(o[key], params)) return idx === 0 ? o[key] : key
 		}
 		return null
 	}
