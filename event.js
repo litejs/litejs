@@ -64,9 +64,9 @@
 		, emitter = this === exports ? empty : this
 		, _e = emitter._e
 		, arr = _e ? (_e[type] || empty).concat(_e["*"] || empty) : empty
-		if ((i = _e = arr.length)) {
-			for (args = arr.slice.call(arguments, 1); i--; ) {
-				arr[i--].apply(arr[--i] || emitter, args)
+		if ((_e = arr.length)) {
+			for (i = _e - 1, args = arr.slice.call(arguments, 1); i > 1; i -= 3) {
+				arr[i] && arr[i].apply(arr[i - 2] || emitter, args)
 			}
 		}
 		return _e / 3
