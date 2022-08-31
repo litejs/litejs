@@ -33,6 +33,7 @@
 		"~": "typeof d==='string'&&a.test(d)"
 	}
 	, fnMap = {
+		R: "Time()-Date.now()",
 		w: "Day()||7",
 		Y: "FullYear()%100",
 		M: "Month()+1",

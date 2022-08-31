@@ -460,7 +460,8 @@ describe("JSON", function() {
 
 	.describe("->filter", function(){
 		this
-		.test("it should filter", function(assert) {
+		.test("it should filter", function(assert, mock) {
+			mock.time("2015-09-22T12:31:00Z")
 			var fn, str, test
 			, o1 = {id:1, time: Date.now() - 1, a:"1", b:true, n: "Cat", arr: ["a1", 2, "123-456", "3", 567, { conf: "/a/b" }], map: [{q:2}, null]}
 			, o2 = {id:2, deep:[1], a:"21", b:false, n: "Batman", map: [{q:1},{q:"123-456",n:"N"},{n:[{d:3}]}]}
@@ -593,6 +594,8 @@ describe("JSON", function() {
 				[ "dd=Date{M=9&D=2}", "(o=d)&&(m.date(a[0])(o['dd']))", [], ["M=9&D=2"]],
 				[ "dd=Date{M=9|D=2}", "(o=d)&&(m.date(a[0])(o['dd']))", [o3, o4], ["M=9|D=2"]],
 				[ "dd=Date{w=2}", "(o=d)&&(m.date(a[0])(o['dd']))", [o3], ["w=2"]],
+				[ "dd=Date{R=0}", "(o=d)&&(m.date(a[0])(o['dd']))", [o3], ["R=0"]],
+				[ "dd=Date{R>0}", "(o=d)&&(m.date(a[0])(o['dd']))", [o4], ["R>0"]],
 				//[ "time<time{}", "(o=d)&&(o['time']!==void 0&&o[\'a4\']==p(a[0])(o))", [o1], ["@"]],
 				//[ "dd=time{now}", "(o=d)&&(m.date(a[0])(o['dd']))", [o3], ["w=2"]],
 				[ "", "1", [o1, o2, o3, o4], []]
