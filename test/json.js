@@ -201,19 +201,32 @@ describe("JSON", function() {
 			var obj = {
 				a: ["A", "B", "C"],
 				b: {"0": "D", "1": "E", "2": "F"},
-				c: 1
+				c: 1,
+				map: {
+					a: { id: 1, val: "A" },
+					b: { id: 2, val: "B" },
+					c: { id: 0, val: "C" },
+				}
+			}
+			function change(path, from, to, expectedTo) {
+				assert.equal(get(obj, path), from)
+				assert.equal(set(obj, path, to), from)
+				assert.equal(get(obj, path), expectedTo || to)
 			}
 			assert
 			.equal(get.str("a[@c]"), "(o=o['a'])&&i(o)&&(c=o[p('c')(d)])")
 			.equal(get.str("a[@c]",true), "(o=i(o['a'])?o['a']:(o['a']=[]))&&((c=o[p('c')(d)]),(o[p('c')(d)]=v),c)")
-			.equal(get(obj, "a[@c]"), "B")
-			.equal(set(obj, "a[@c]", "BB"), "B")
-			.equal(get(obj, "a[@c]"), "BB")
 			.equal(get.str("b{@c}"), "(o=o['b'])&&j(o)&&(c=o[p('c')(d)])")
 			.equal(get.str("b{@c}",true), "(o=j(o['b'])?o['b']:(o['b']={}))&&((c=o[p('c')(d)]),(o[p('c')(d)]=v),c)")
-			.equal(get(obj, "b{@c}"), "E")
-			.equal(set(obj, "b{@c}", "EE"), "E")
-			.equal(get(obj, "b{@c}"), "EE")
+
+			change("a[@c]", "B", "BB")
+			change("b{@c}", "E", "EE")
+			change("map{id=1}.val", "A", "AA")
+			change("map.a.val", "AA", "A")
+			change("map{id>0}*val", ["A", "B"], "D", ["D", "D"])
+			change("map{id>0}*", [obj.map.a, obj.map.b], null, [])
+
+			change("c", 1, null)
 			assert.end()
 		})
 		.should("apply extensions", function(assert) {
