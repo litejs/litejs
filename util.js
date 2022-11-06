@@ -18,7 +18,7 @@ exports.ip2buf = ip2buf
 exports.ip2int = ip2int
 exports.ipInNet = ipInNet
 
-var numRe = /^(-?\d+\.?\d*) *([kMGTP]i?|sec|min|hr|day|week|month|year|).?$/
+var numRe = /^(-?\d+(?:\.\d*)?) *([kMGTP]i?|sec|min|hr|day|week|month|year|).?$/
 , numMap = {
 	"": 1,
 	sec: 1e3, min: 6e4, hr: 36e5, day: 864e5, week: 6048e5, month: 2629742400, year: 31556908800,
