@@ -22,6 +22,12 @@
   "files": [
     "/*.js"
   ],
+  "scripts": {
+    "test": "TZ='Europe/Tallinn' c8 -r lcov -r text-summary --check-coverage --branches=70 --functions=70 --lines=70 --statements=70 lj test test/index.js --no-color --brief"
+  },
+  "devDependencies": {
+    "@litejs/cli": "22.8.0"
+  },
   "litejs": {
     "build": false,
     "global": "jscpd jshint c8",
