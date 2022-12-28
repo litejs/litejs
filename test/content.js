@@ -279,7 +279,10 @@ describe("content", function() {
 				"content-type": "application/json"
 			},
 			body: 'a=1&b=2'
-		}, { error: "Unexpected token a in JSON at position 0" })
+		}, { error: [
+			"Unexpected token 'a', \"a=1&b=2\" is not valid JSON",
+			"Unexpected token a in JSON at position 0"
+		]})
 
 		assert.fakeReq({
 			headers: {
@@ -370,7 +373,14 @@ describe("content", function() {
 
 		req.getContent(function(err, body, files, negod) {
 			assert.planned += 1
-			assert.equal(err && err.message || err, expected.error || null)
+			if (expected.error) {
+				assert.anyOf(
+					err && err.message || err,
+					Array.isArray(expected.error) ? expected.error : [expected.error]
+				)
+			} else {
+				assert.equal(err, null)
+			}
 
 			assert.planned += 1
 			assert.equal(files ? files.map(function(negod) {
