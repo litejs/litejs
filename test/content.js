@@ -367,8 +367,10 @@ describe("content", function() {
 			maxBodySize: 1000,
 			maxFiles: 2
 		}, req_)
-		req.res = {on: function(ev, fn){
-			if (ev === "close") process.nextTick(fn)
+		req.res = {on: function(ev, fn) {
+			if (ev === "close") req.on("end", function() {
+				process.nextTick(fn)
+			})
 		}}
 
 		req.getContent(function(err, body, files, negod) {

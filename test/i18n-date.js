@@ -18,6 +18,11 @@ describe(".date()", function() {
 		i18n.use("et")
 		i18n.add("et", {
 			"@": {
+				names: (
+					"jaan veeb märts apr mai juuni juuli aug sept okt nov dets " +
+					"jaanuar veebruar märts aprill mai juuni juuli august september oktoober november detsember " +
+					"P E T K N R L pühapäev esmaspäev teisipäev kolmapäev neljapäev reede laupäev"
+				).split(" "),
 				am: "AM",
 				pm: "PM",
 				iso:   "UTC:y-MM-dd'T'HH:mm:ss'Z'",
@@ -31,7 +36,9 @@ describe(".date()", function() {
 		})
 
 		assert
-		.equal( i18n.date(d1, "yy-MM-dd y/M/d"), "01-02-03 1/2/3" )
+		.equal( i18n.date(d1, "yy-MM-dd\ny/M/d"), "01-02-03\n1/2/3" )
+		.equal( i18n.date(d2n, "U u SS MMM MMMM ddd dddd"), "1234567890123 1234567890 123 veeb veebruar L laupäev" )
+		.equal( i18n.date(d2n, "Q Z ZZ"), "1 +02:00 +0200" )
 
 		// Pattern	Result (in a particular locale)
 		// yyyy.MM.dd G 'at' HH:mm:ss zzz	1996.07.10 AD at 15:08:56 PDT

@@ -57,7 +57,7 @@ function getContent(next, reqOpts) {
 	}
 
 	if (negod.type === "multipart") {
-		;(req.res || req).on("close", function() {
+		;req.res.on("close", function() {
 			if (req.files) for (var i = req.files.length; i--; ) {
 				if (req.files[i].tmp) fs.unlink(req.files[i].tmp, util.nop)
 			}
@@ -227,7 +227,8 @@ function multipart(boundary, reqOpts, req) {
 	}
 
 	var stream = new Writable(writable)
-	if (stream._readyToWrite) stream._readyToWrite()
+	/* c8 ignore next */
+	if (stream._readyToWrite) stream._readyToWrite() // iotjs stream
 	return stream
 
 	function saveTo(stream) {
