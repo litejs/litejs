@@ -62,7 +62,7 @@
 			row = arr[0] = head === null ? [] : {}
 		}
 
-		for (; m = re.exec(str); ) {
+		for (; (m = re.exec(str)); ) {
 			if (m[0] === "\n" || m[0] === "\r\n") {
 				arr.push(row = head === null ? [] : {})
 				i = 0

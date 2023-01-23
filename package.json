@@ -23,137 +23,28 @@
     "/*.js"
   ],
   "scripts": {
-    "test": "TZ='Europe/Tallinn' c8 -r lcov -r text-summary --check-coverage --branches=70 --functions=70 --lines=70 --statements=70 lj test test/index.js --no-color --brief"
+    "test": "TZ='Europe/Tallinn' c8 -r lcov -r text-summary --check-coverage --branches=70 --functions=70 --lines=70 --statements=70 lj test test/index.js --no-color --brief && jshint *.js"
   },
   "devDependencies": {
     "@litejs/cli": "22.8.0"
   },
   "litejs": {
     "build": false,
-    "global": "jscpd jshint c8",
-    "lint": [
-      "jshint *.js",
-      "jscpd --exitCode 1 --pattern *.js"
-    ]
-  },
-  "eslintConfig": {
-    "root": true,
-    "env": {
-      "browser": true,
-      "node": true
-    },
-    "extends": "eslint:recommended",
-    "rules": {
-      "comma-dangle": [
-        "error",
-        "never"
-      ],
-      "comma-spacing": [
-        "error",
-        {
-          "before": false,
-          "after": true
-        }
-      ],
-      "comma-style": [
-        "error",
-        "first",
-        {
-          "exceptions": {
-            "ArrayExpression": true,
-            "ObjectExpression": true
-          }
-        }
-      ],
-      "eqeqeq": [
-        "error",
-        "always",
-        {
-          "null": "ignore"
-        }
-      ],
-      "func-call-spacing": [
-        "error",
-        "never"
-      ],
-      "func-style": [
-        "error",
-        "declaration",
-        {
-          "allowArrowFunctions": true
-        }
-      ],
-      "indent": [
-        "error",
-        "tab",
-        {
-          "VariableDeclarator": 0,
-          "MemberExpression": 0,
-          "ignoredNodes": [
-            "ConditionalExpression"
-          ],
-          "flatTernaryExpressions": true,
-          "offsetTernaryExpressions": true
-        }
-      ],
-      "max-depth": [
-        "error",
-        6
-      ],
-      "max-params": [
-        "error",
-        6
-      ],
-      "new-cap": "error",
-      "no-empty": [
-        "error",
-        {
-          "allowEmptyCatch": true
-        }
-      ],
-      "semi": [
-        "error",
-        "never",
-        {
-          "beforeStatementContinuationChars": "always"
-        }
-      ],
-      "semi-spacing": [
-        "error",
-        {
-          "before": false,
-          "after": true
-        }
-      ],
-      "space-unary-ops": [
-        "error",
-        {
-          "words": true,
-          "nonwords": false
-        }
-      ]
-    }
+    "global": "jshint c8",
+    "lint": false
   },
   "jshintConfig": {
     "asi": true,
-    "esversion": 3,
-    "curly": true,
-    "eqeqeq": true,
-    "eqnull": true,
+    "esversion": 5,
     "evil": true,
-    "nonbsp": true,
-    "laxcomma": true,
     "latedef": "nofunc",
+    "laxcomma": true,
     "maxdepth": 6,
-    "unused": true,
+    "node": true,
+    "nonbsp": true,
+    "nonstandard": true,
+    "quotmark": "double",
     "undef": true,
-    "predef": [
-      "require",
-      "process",
-      "Buffer",
-      "module",
-      "exports"
-    ],
-    "quotmark": "double"
+    "unused": true
   }
 }

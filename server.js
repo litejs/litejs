@@ -172,12 +172,8 @@ var defaultOpts = {
 	tmp: (
 		process.env.TMPDIR ||
 		process.env.TEMP ||
-		process.env.TMP ||
-		(
-			process.platform === "win32"
-			/* istanbul ignore next */
-			? (process.env.SystemRoot || process.env.windir) + "\\temp"
-			: "/tmp"
+		process.env.TMP || (
+			process.platform === "win32" ? (process.env.SystemRoot || process.env.windir) + "\\temp" : "/tmp"
 		)
 	).replace(/([^:])[/\\]+$/, "$1") + "/up-" + process.pid + "-",
 	http: {

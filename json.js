@@ -157,7 +157,7 @@
 				""
 			)
 		) + (dot ? "&&" : "")
-		if (ext) for (; sub = pattRe.exec(ext); ) {
+		if (ext) for (; (sub = pattRe.exec(ext)); ) {
 			v = "(c=e." + sub[1] + "(" + v + (sub[2] ? "," + sub[2] : "") + "))"
 		}
 		return v
@@ -271,7 +271,7 @@
 
 			attr = (getter || pathStr)(attr)
 
-			if (m = attr.match(/\(c=(.*?)\)$/)) {
+			if ((m = attr.match(/\(c=(.*?)\)$/))) {
 				if (m[1] == "K(o)") {
 					pre += attr + "&&"
 					attr = "c"
@@ -295,7 +295,7 @@
 
 			if (op == "=" || op == "==") op += "="
 			if (val === "") val="''"
-			for (; m = valRe.exec(val); ) {
+			for (; (m = valRe.exec(val)); ) {
 				// quote, extension, subquery, subQuote, subSubQuote, at
 				// Parameterized query ?name=$name|name=:name
 				isRe = 0
@@ -347,7 +347,7 @@
 	}
 
 	function setForm(map, key_, val) {
-		for (var match, key = key_, step = map; match = keyRe.exec(key_); ) {
+		for (var match, key = key_, step = map; (match = keyRe.exec(key_)); ) {
 			if (step === map) key = key.slice(0, match.index)
 			match = match[1]
 			step = step[key] || (
@@ -365,7 +365,7 @@
 	}
 
 	function tr(attrs, aclFn) {
-		for (var attr, tmp, i = 0, arr = [], map = {}; attr = valRe.exec(attrs); ) {
+		for (var attr, tmp, i = 0, arr = [], map = {}; (attr = valRe.exec(attrs)); ) {
 			tmp = attr[0].split(":")
 			pathFn(tmp[0], true)(map, i)
 			arr[i++] = pathFn(tmp[1] ? attr[0].slice(tmp[0].length + 1) : tmp[0])

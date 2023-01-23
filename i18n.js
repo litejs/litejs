@@ -56,18 +56,18 @@
 		, args = ""
 		, fn = ""
 		, lastIndex = 0
-		for (; m = formatRe.exec(str); ) {
-			for (expr = m[1].replace(exprRe, ""); tmp = wordRe.exec(expr); ) {
+		for (; (m = formatRe.exec(str)); ) {
+			for (expr = m[1].replace(exprRe, ""); (tmp = wordRe.exec(expr)); ) {
 				args += (args ? "," : "var ") + tmp[0] + (
 					tmp[1] ? "=" : "=$['" + tmp[0] + "']!=null?$['" + tmp[0] + "']:"
 				) + "$g['" + tmp[2] + "']!=null?$g['" + tmp[2] + "']:''"
 			}
 			expr = m[1]
-			if (pattern = get(m[3], m[3])) {
-				if (ext[tmp = pattern.charAt(0)]) {
+			if ((pattern = get(m[3], m[3]))) {
+				if ((ext[tmp = pattern.charAt(0)])) {
 					expr = "_." + ext[tmp] + "(" + expr + "," + quote(pattern.slice(tmp === "#" ? 0 : 1)) + ")"
 				} else {
-					for (; tmp = pattRe.exec(pattern); ) {
+					for (; (tmp = pattRe.exec(pattern)); ) {
 						expr = "_." + tmp[1] + ".call($," + expr + (tmp[2] ? "," + tmp[2] : "") + ")"
 					}
 				}
@@ -296,7 +296,7 @@
 			fn += ",r=(r.length<" + sLen + "?(1e15+r).slice(-" + sLen + "):r)"
 		}
 
-		if (num = full.match(/[^\d#][\d#]+/g)) {
+		if ((num = full.match(/[^\d#][\d#]+/g))) {
 			fn += ",r=" + numJunk(num, num.length - 1, 0, decimals ? decimals + 1 : 0)
 		}
 

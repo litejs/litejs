@@ -66,7 +66,7 @@
 		, arr = _e ? (_e[type] || empty).concat(_e["*"] || empty) : empty
 		if ((_e = arr.length)) {
 			for (i = _e - 1, args = arr.slice.call(arguments, 1); i > 1; i -= 3) {
-				arr[i] && arr[i].apply(arr[i - 2] || emitter, args)
+				if (arr[i]) arr[i].apply(arr[i - 2] || emitter, args)
 			}
 		}
 		return _e / 3

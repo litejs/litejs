@@ -33,7 +33,7 @@ var numRe = /^(-?\d+(?:\.\d*)?) *([kMGTP]i?|sec|min|hr|day|week|month|year|).?$/
 
 function deepAssign(to) {
 	if (to !== Object.prototype) for (var key, from, a = arguments, i = 1, len = a.length; i < len; ) {
-		if (from = a[i++]) for (key in from) if (hasOwn.call(from, key)) {
+		if ((from = a[i++])) for (key in from) if (hasOwn.call(from, key)) {
 			if (from[key] === null) delete to[key]
 			else to[key] = (
 				from[key] && from[key].constructor === Object ?

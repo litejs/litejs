@@ -123,7 +123,6 @@ function multipart(boundary, reqOpts, req) {
 	, writable = {
 		write: function(chunk, enc, cb) {
 			var buf, bufNum, i, j
-			, writable = this
 			, pos = nextPos
 			, len = chunk.length
 			, last = needle.readUInt8(needle.length - 1)
