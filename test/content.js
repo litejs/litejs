@@ -395,7 +395,9 @@ describe("content", function() {
 			}) : null, expected.files || null)
 
 			if (files) {
-				fs.unlinkSync(files[0].tmp)
+				try {
+					fs.unlinkSync(files[0].tmp)
+				} catch(e) {}
 				files[0].tmp = null
 			}
 

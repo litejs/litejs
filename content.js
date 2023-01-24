@@ -57,7 +57,7 @@ function getContent(next, reqOpts) {
 	}
 
 	if (negod.type === "multipart") {
-		;req.res.on("close", function() {
+		req.res.on("close", function() {
 			if (req.files) for (var i = req.files.length; i--; ) {
 				if (req.files[i].tmp) fs.unlink(req.files[i].tmp, util.nop)
 			}
