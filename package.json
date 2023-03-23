@@ -1,6 +1,6 @@
 {
   "name": "litejs",
-  "version": "22.12.0",
+  "version": "23.3.0",
   "description": "Full-stack web framework in a tiny package",
   "license": "MIT",
   "author": "Lauri Rooden <lauri@rooden.ee>",
@@ -26,7 +26,7 @@
     "test": "TZ='Europe/Tallinn' c8 -r lcov -r text-summary --check-coverage --branches=70 --functions=70 --lines=70 --statements=70 lj test test/index.js --no-color --brief && jshint *.js"
   },
   "devDependencies": {
-    "@litejs/cli": "22.8.0"
+    "@litejs/cli": "23.3.3"
   },
   "litejs": {
     "build": false,
