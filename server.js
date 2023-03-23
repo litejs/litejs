@@ -388,7 +388,7 @@ function send(body, opts_) {
 		return res.sendStatus(406) // Not Acceptable
 	}
 
-	tmp = util.num(opts.cache && opts.filename && opts.cache[opts.filename], opts.maxAge)
+	tmp = util.num(opts.cache && opts.sendfile && opts.cache[opts.sendfile], opts.maxAge)
 	if (typeof tmp === "number") {
 		// max-age=N is relative to the time of the request
 		resHead["Cache-Control"] = tmp > 0 ? "public, max-age=" + (0|(tmp/1000)) : "no-cache, max-age=0"
