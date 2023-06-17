@@ -177,7 +177,7 @@ var defaultOpts = {
 , util = require("./util")
 , hasOwn = defaultOpts.hasOwnProperty
 , cookieRe = /[^!#-~]|[%,;\\]/g
-, rangeRe = /^bytes=(\d*)-(\d*)^/
+, rangeRe = /^bytes=(\d*)-(\d*)$/
 , tmpDate = new Date()
 
 module.exports = createApp
