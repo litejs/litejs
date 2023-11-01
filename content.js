@@ -227,8 +227,6 @@ function multipart(boundary, reqOpts, req) {
 	}
 
 	var stream = new Writable(writable)
-	/* c8 ignore next */
-	if (stream._readyToWrite) stream._readyToWrite() // iotjs stream
 	return stream
 
 	function saveTo(stream) {
