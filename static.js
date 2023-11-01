@@ -1,5 +1,5 @@
 
-var path = require("./path")
+var path = require("path")
 , util = require("./util")
 , hasOwn = {}.hasOwnProperty
 

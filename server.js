@@ -173,7 +173,6 @@ var defaultOpts = {
 , fs = require("fs")
 , content = require("./content")
 , event = require("./event")
-, path = require("./path")
 , util = require("./util")
 , cookieRe = /[^!#-~]|[%,;\\]/g
 , rangeRe = /^bytes=(\d*)-(\d*)$/

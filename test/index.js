@@ -14,7 +14,6 @@ require("./i18n.js")
 require("./json.js")
 require("./event.js")
 require("./log.js")
-require("./path.js")
 require("./ratelimit.js")
 require("./util.js")
 
