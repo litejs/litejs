@@ -30,7 +30,6 @@ var defaultOpts = {
 			return require("./csv.js").encode(data, negod)
 		}
 	},
-	bodyRe: /^(?:PATCH|POST|PUT)$/i,
 	catch: sendError,
 	charset: "UTF-8",
 	compress: false,
@@ -202,7 +201,6 @@ function createApp(opts_) {
 	})
 
 	app.listen = listen
-	app.readBody = readBody
 	app.use = use
 
 	return app
@@ -303,14 +301,6 @@ function createApp(opts_) {
 			uses.push(method, path, arr[i++])
 		}
 		return app
-	}
-}
-
-function readBody(req, res, next, opts) {
-	if (req.body === void 0 && opts.bodyRe.test(req.method)) {
-		req.content(next)
-	} else {
-		next()
 	}
 }
 
