@@ -177,11 +177,11 @@ var defaultOpts = {
 , rangeRe = /^bytes=(\d*)-(\d*)$/
 , tmpDate = new Date()
 
-module.exports = createApp
-createApp.getCookie = getCookie
-createApp.setCookie = setCookie
+module.exports = createServer
+createServer.getCookie = getCookie
+createServer.setCookie = setCookie
 
-function createApp(opts_) {
+function createServer(opts_) {
 	var uses = []
 	, opts = util.deepAssign(app.opts = {defaults: defaultOpts}, defaultOpts, opts_)
 

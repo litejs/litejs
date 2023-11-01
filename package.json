@@ -23,28 +23,11 @@
     "/*.js"
   ],
   "scripts": {
-    "test": "TZ='Europe/Tallinn' c8 -r lcov -r text-summary --check-coverage --branches=70 --functions=70 --lines=70 --statements=70 lj test test/index.js --no-color --brief && jshint *.js"
+    "test": "lj test test/index.js --no-color --brief",
+    "coverage": "TZ='Europe/Tallinn' lj test test/index.js --no-color --brief --coverage --no-status && jshint --config=.github/jshint.json *.js"
   },
   "devDependencies": {
-    "@litejs/cli": "23.3.3"
-  },
-  "litejs": {
-    "build": false,
-    "global": "jshint c8",
-    "lint": false
-  },
-  "jshintConfig": {
-    "asi": true,
-    "esversion": 5,
-    "evil": true,
-    "latedef": "nofunc",
-    "laxcomma": true,
-    "maxdepth": 6,
-    "node": true,
-    "nonbsp": true,
-    "nonstandard": true,
-    "quotmark": "double",
-    "undef": true,
-    "unused": true
+    "@litejs/cli": "23.9.0",
+    "jshint": "2.13.6"
   }
 }

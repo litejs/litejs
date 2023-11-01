@@ -1,0 +1,14 @@
+{
+  "asi": true,
+  "esversion": 5,
+  "evil": true,
+  "latedef": "nofunc",
+  "laxcomma": true,
+  "maxdepth": 6,
+  "node": true,
+  "nonbsp": true,
+  "nonstandard": true,
+  "quotmark": "double",
+  "undef": true,
+  "unused": true
+}

@@ -1,6 +1,7 @@
 
 var fs = require("fs")
 
+/* ignore next */
 if (!Buffer.from) {
 	// Added in: v5.10.0
 	Buffer.from = Buffer.allocUnsafe = function(arg, enc, len) {
@@ -14,6 +15,7 @@ if (!Buffer.from) {
 	}
 }
 
+/* ignore next */
 if (!fs.copyFile) {
 	// Added in: v8.5.0
 	fs.copyFile = function(src, dest, mode, cb) {

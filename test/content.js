@@ -50,9 +50,9 @@ describe("content", function() {
 		assert.fakeReq({
 			headers: {
 				"content-type": "application/json",
-				"content-encoding": "deflate, identity, br"
+				"content-encoding": "deflate, identity, gzip"
 			},
-			body: zlib.brotliCompressSync(zlib.deflateSync('{"a":2}'))
+			body: zlib.gzipSync(zlib.deflateSync('{"a":2}'))
 		}, {body: {a:2}})
 
 	})

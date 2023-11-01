@@ -1,15 +1,25 @@
 name: Test
-on: [ push, pull_request ]
+on: [ push, pull_request, workflow_dispatch ]
 jobs:
-  Coverage:
-    runs-on: ubuntu-latest
+  Test:
+    strategy:
+      matrix:
+        include:
+          - { node: 8,      os: ubuntu-latest,  arch: x86, run: test }
+          - { node: latest, os: macos-latest,   arch: x64, run: coverage }
+    runs-on: ${{ matrix.os }}
+    name: Node ${{ matrix.node }} (${{ matrix.arch }}) on ${{ matrix.os }}
     steps:
+    - run: git config --global core.autocrlf false
     - uses: actions/checkout@v3
     - uses: actions/setup-node@v3
-    - run: npm install -g c8 jshint uglify-js
+      with:
+        node-version: ${{ matrix.node }}
+        architecture: ${{ matrix.arch }}
     - run: npm install
-    - run: npm test
+    - run: npm run ${{ matrix.run }}
     - uses: coverallsapp/github-action@master
+      if: ${{ matrix.run == 'coverage' }}
       name: Upload to coveralls.io
       with:
         github-token: ${{ github.token }}

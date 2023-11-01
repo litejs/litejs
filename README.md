@@ -1,32 +1,24 @@
 [LiteJS]: https://github.com/litejs/litejs
 [Quick-Start]: https://github.com/litejs/litejs/wiki/Quick-Start
-
-[size]: https://packagephobia.now.sh/badge?p=litejs
-[size-src]: https://packagephobia.now.sh/result?p=litejs
 [wiki]: https://github.com/litejs/litejs/wiki
 
-
-LiteJS &ndash; [![size][size]][size-src]
-======
-
-[LiteJS][] is a full-stack web framework in a tiny package.
-
-
-## Get Started
-
-Build your first [LiteJS][] app with in 5 minute [Quick Start Guide][Quick-Start].
-See [wiki][] for more.
+[1]: https://badgen.net/coveralls/c/github/litejs/litejs
+[2]: https://coveralls.io/r/litejs/litejs
+[3]: https://badgen.net/packagephobia/install/litejs
+[4]: https://packagephobia.now.sh/result?p=litejs
+[5]: https://badgen.net/badge/icon/Buy%20Me%20A%20Tea/orange?icon=kofi&label
+[6]: https://www.buymeacoffee.com/lauriro
 
 
-## External links
+# LiteJS &ndash; [![Coverage][1]][2] [![Size][3]][4] [![Buy Me A Tea][5]][6]
 
+[LiteJS][] is a full-stack web framework in a tiny package.  
+See [Quick Start Guide][Quick-Start] and [wiki][] for more.
+
+
+> Copyright (c) 2013-2023 Lauri Rooden &lt;lauri@rooden.ee&gt;  
+[MIT License](https://litejs.com/MIT-LICENSE.txt) |
 [GitHub repo](https://github.com/litejs/litejs) |
-[npm package](https://npmjs.org/package/litejs)
-
-
-## Licence
-
-Copyright (c) 2013-2021 Lauri Rooden &lt;lauri@rooden.ee&gt;  
-[The MIT License](http://lauri.rooden.ee/mit-license.txt)
-
+[npm package](https://npmjs.org/package/litejs) |
+[Buy Me A Tea][6]
 

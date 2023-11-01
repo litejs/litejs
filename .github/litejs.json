@@ -1,0 +1,5 @@
+{
+  "build": false,
+  "global": "jshint c8",
+  "lint": false
+}

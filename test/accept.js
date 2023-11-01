@@ -277,19 +277,15 @@ describe("accept", function() {
 		// .. or a reversed alphabetical order can be used
 		, nego4 = accept(list, '||m.q===l.q&&l.match<m.match')
 
-		assert
-		.equal(nego1("deflate, gzip, *;q=0.5"), deflate)
-		.equal(nego1("gzip, deflate, *;q=0.5"), gzip)
-
-		.equal(nego2("deflate, gzip, *;q=0.5"), gzip)
-		.equal(nego2("gzip, deflate, *;q=0.5"), deflate)
-
-		.equal(nego3("deflate, gzip, *;q=0.5"), deflate)
-		.equal(nego3("gzip, deflate, *;q=0.5"), deflate)
-
-		.equal(nego4("deflate, gzip, *;q=0.5"), gzip)
-		.equal(nego4("gzip, deflate, *;q=0.5"), gzip)
-		.end()
+		assert.equal(nego1("deflate, gzip, *;q=0.5"), deflate)
+		assert.equal(nego1("gzip, deflate, *;q=0.5"), gzip)
+		assert.equal(nego2("deflate, gzip, *;q=0.5"), gzip)
+		assert.equal(nego2("gzip, deflate, *;q=0.5"), deflate)
+		assert.equal(nego3("deflate, gzip, *;q=0.5"), deflate)
+		assert.equal(nego3("gzip, deflate, *;q=0.5"), deflate)
+		assert.equal(nego4("deflate, gzip, *;q=0.5"), gzip)
+		assert.equal(nego4("gzip, deflate, *;q=0.5"), gzip)
+		assert.end()
 	})
 
 	it("allows to define quality factor", function(assert) {
@@ -298,20 +294,19 @@ describe("accept", function() {
 		, nego2 = accept([])
 		, nego3 = accept({})
 
-		assert
-		.equal(nego("gzip, br").match, "br")
-		.equal(nego("br, gzip").match, "br")
-		.equal(nego("gzip").match, "gzip")
-		.equal(nego("br").match, "br")
-		.equal(nego("gzip;q=0.8,br").match, "br")
-		.notOk(nego().match)
-		.notOk(nego(1).match)
-		.notOk(nego("").match)
-		.notOk(nego1("gzip").match)
-		.notOk(nego1().match)
-		.notOk(nego2("gzip").match)
-		.notOk(nego3("gzip").match)
-		.end()
+		assert.equal(nego("gzip, br").match, "br")
+		assert.equal(nego("br, gzip").match, "br")
+		assert.equal(nego("gzip").match, "gzip")
+		assert.equal(nego("br").match, "br")
+		assert.equal(nego("gzip;q=0.8,br").match, "br")
+		assert.notOk(nego().match)
+		assert.notOk(nego(1).match)
+		assert.notOk(nego("").match)
+		assert.notOk(nego1("gzip").match)
+		assert.notOk(nego1().match)
+		assert.notOk(nego2("gzip").match)
+		assert.notOk(nego3("gzip").match)
+		assert.end()
 	})
 
 })
