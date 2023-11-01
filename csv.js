@@ -21,7 +21,6 @@
 	exports.encode = encode
 	exports.decode = decode
 
-	require("./json")
 	var re = /"((?:""|[^"])*)"|[^",\n\r]+|,|\r?\n/g
 
 	function encode(obj, _opts) {
@@ -34,7 +33,7 @@
 
 		arr = arr.map(function(obj) {
 			return keys.map(function(key) {
-				var value = JSON.get(obj, key)
+				var value = obj[key]
 				if (Array.isArray(value)) value = value.join(";")
 				return (
 					value == null ? opts.NULL : // jshint ignore:line

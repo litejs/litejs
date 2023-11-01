@@ -1,6 +1,4 @@
 
-require("./json")
-
 var fs = require("fs")
 , Writable = require("stream").Writable
 , accept = require("./accept.js").accept
@@ -23,6 +21,8 @@ var fs = require("fs")
 	gzip: "createUnzip",
 	deflate: "createUnzip"
 }
+, isArray = Array.isArray
+, keyRe = /\[(.*?)\]/g
 
 makeTable(rnrn)
 
@@ -102,10 +102,28 @@ function querystring(str) {
 		, l = arr.length
 		for (; i < l; ) {
 			step = arr[i++].replace(/\+/g, " ").split("=")
-			JSON.setForm(map, unescape(step[0]), unescape(step[1] || ""))
+			setForm(map, unescape(step[0]), unescape(step[1] || ""))
 		}
 	}
 	return map
+}
+
+function setForm(map, key_, val) {
+	for (var match, key = key_, step = map; (match = keyRe.exec(key_)); ) {
+		if (step === map) key = key.slice(0, match.index)
+		match = match[1]
+		step = step[key] || (
+			step[key] = match && +match != match ? {} : []
+		)
+		key = match
+	}
+	if (isArray(step)) {
+		step.push(val)
+	} else if (isArray(step[key])) {
+		step[key].push(val)
+	} else {
+		step[key] = step[key] != null ? [step[key], val] : val
+	}
 }
 
 function multipart(boundary, reqOpts, req) {
@@ -165,7 +183,7 @@ function multipart(boundary, reqOpts, req) {
 							if (negod.preamble) {
 								req.emit("preamble", req.preamble = buf.toString("utf8", 2))
 							} else {
-								JSON.setForm(req.body, negod.name, buf.toString())
+								setForm(req.body, negod.name, buf.toString())
 							}
 							negod = null
 						} else if (fileStream) {

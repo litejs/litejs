@@ -11,7 +11,6 @@ describe("server", function() {
 
 require("./csv.js")
 require("./i18n.js")
-require("./json.js")
 require("./event.js")
 require("./log.js")
 require("./ratelimit.js")
