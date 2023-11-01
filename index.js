@@ -33,6 +33,7 @@ if (!fs.copyFile) {
 
 exports.version = process.versions.litejs = require("./package.json").version
 exports.createServer = require("./server.js")
+exports.createStatic = require("./static.js")
 exports.log = require("./log.js")
 
 
