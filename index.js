@@ -31,10 +31,8 @@ if (!fs.copyFile) {
 	}
 }
 
-
-module.exports.version = process.versions.litejs = require("./package.json").version
-module.exports.server = require("./server")
-module.exports.log = require("./log")
-
+exports.version = process.versions.litejs = require("./package.json").version
+exports.createServer = require("./server.js")
+exports.log = require("./log.js")
 
 
