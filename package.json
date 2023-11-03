@@ -1,6 +1,6 @@
 {
   "name": "litejs",
-  "version": "23.3.0",
+  "version": "24.0.0-rc.1",
   "description": "Full-stack web framework in a tiny package",
   "license": "MIT",
   "author": "Lauri Rooden <lauri@rooden.ee>",
