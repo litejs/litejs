@@ -53,8 +53,13 @@ describe("content", function() {
 				"content-encoding": "deflate, identity, gzip"
 			},
 			body: zlib.gzipSync(zlib.deflateSync('{"a":2}'))
-		}, {body: {a:2}})
-
+		}, {body: {a:2}}, {
+			decompress: {
+				br: "createBrotliDecompress",
+				gzip: "createUnzip",
+				deflate: "createUnzip"
+			}
+		})
 	})
 
 	it("should accept text/csv", function(assert) {
@@ -362,10 +367,6 @@ describe("content", function() {
 		req.getContent = content
 		req.headers = req_.headers || {}
 		req.opts = util.deepAssign({
-			compress: true,
-			tmp: "/tmp/" + process.pid,
-			maxBodySize: 1000,
-			maxFiles: 2
 		}, req_)
 		req.res = {on: function(ev, fn) {
 			if (ev === "close") req.on("end", function() {
@@ -412,7 +413,10 @@ describe("content", function() {
 			}
 
 			assert.equal(body, expected.body)
-		}, reqOpts)
+		}, Object.assign({
+			maxBodySize: 1000,
+			maxFiles: 2
+		}, reqOpts))
 
 		junks.forEach(function(junk) {
 			if (junk) req.push(junk)

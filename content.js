@@ -1,17 +1,27 @@
 
-var fs = require("fs")
+var defaultReqOpts = {
+	accept: {
+		"application/json": function(str) {
+			return JSON.parse(str || "{}")
+		},
+		"application/x-www-form-urlencoded": querystring,
+		"multipart/*;boundary=": true,
+		"text/csv;br=\"\r\n\";delimiter=\",\";fields=;header=;NULL=;select=": require("./csv.js").decode
+	},
+	decompress: false,
+	maxBodySize:  1e6,
+	maxNameSize:  100,  // TODO:2023-11-03:lauri:Not implemented
+	maxFields:    1000,
+	maxFieldSize: 1000, // TODO:2023-11-03:lauri:Not implemented
+	maxFiles:     1000,
+	maxFileSize:  Infinity,
+	tmp: require("os").tmpdir() + "/up-" + process.pid + "-",
+}
+, fs = require("fs")
 , Writable = require("stream").Writable
 , accept = require("./accept.js").accept
 , util = require("./util")
 , rnrn = Buffer.from("\r\n\r\n")
-, negotiateContent = accept({
-	"application/json": function(str) {
-		return JSON.parse(str || "{}")
-	},
-	"application/x-www-form-urlencoded": querystring,
-	"multipart/*;boundary=": null,
-	"text/csv;br=\"\r\n\";delimiter=\",\";fields=;header=;NULL=;select=": require("./csv.js").decode
-})
 , negotiateDisposition = accept([
 	"form-data;name=;filename="
 ])
@@ -30,14 +40,18 @@ module.exports = getContent
 getContent.querystring = querystring
 
 function getContent(next, reqOpts) {
+	reqOpts = util.deepAssign({defaults: defaultReqOpts}, defaultReqOpts, reqOpts)
+
+	if (!reqOpts._accept) reqOpts._accept = accept(reqOpts.accept)
+
 	var i, tmp
 	, req = this
 	, head = req.headers
-	, negod = negotiateContent(head["content-type"] || head.accept)
+	, negod = reqOpts._accept(head["content-type"] || head.accept)
 	, stream = req
-	, maxBodySize = util.num(reqOpts && reqOpts.maxBodySize, req.opts.maxBodySize, 1e6)
+	, maxBodySize = util.num(reqOpts.maxBodySize, req.opts.maxBodySize, 1e6)
 
-	if (!negod.match) {
+	if (!negod.o) {
 		return handleEnd("Unsupported Media Type")
 	}
 
@@ -46,7 +60,7 @@ function getContent(next, reqOpts) {
 	if (head["content-encoding"]) {
 		tmp = head["content-encoding"].split(/\W+/)
 		for (i = tmp.length; i--; ) {
-			if (req.opts.compress && decompress[tmp[i]]) {
+			if ((reqOpts.decompress || req.opts.decompress) && decompress[tmp[i]]) {
 				stream = stream.pipe(require("zlib")[decompress[tmp[i]]]({
 					maxOutputLength: maxBodySize
 				}))
@@ -63,7 +77,7 @@ function getContent(next, reqOpts) {
 			}
 		})
 		stream = stream
-		.pipe(multipart(negod.boundary, reqOpts || {}, req))
+		.pipe(multipart(negod.boundary, reqOpts, req))
 		.on("finish", handleEnd)
 	} else {
 		tmp = ""
@@ -84,7 +98,7 @@ function getContent(next, reqOpts) {
 		if (next) {
 			if (err) next(err)
 			else try {
-				if (negod.o) req.body = negod.o(tmp, negod)
+				if (typeof negod.o === "function") req.body = negod.o(tmp, negod)
 				next(null, req.body, req.files, negod)
 			} catch (e) {
 				next(e)

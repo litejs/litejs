@@ -1,23 +1,12 @@
 
 var defaultOpts = {
-	maxBodySize:  1e6,
-	maxNameSize:  100,
-	maxFields:    1000,
-	maxFieldSize: 1000,
-	maxFiles:     1000,
-	maxFileSize:  Infinity,
-	maxURILength: 2000,
-	log: console,
-	exitTime: 5000,
 	accept: {
 		"application/json;filename=;select=;space=": function(data, negod) {
 			return JSON.stringify(
 				data,
 				negod.select ? negod.select.split(",") : null,
 				+negod.space || negod.space
-			// Line and Paragraph separator needing to be escaped in JavaScript but not in JSON,
-			// escape those so the JSON can be evaluated or directly utilized within JSONP.
-			).replace(/\u2028/g, "\\u2028").replace(/\u2029/g, "\\u2029")
+			)
 		},
 		// RFC 4180 optional parameters: charset, header
 		"text/csv;br=\"\r\n\";delimiter=\",\";fields=;filename=;header=;NULL=;select=": require("./csv.js").encode,
@@ -32,15 +21,17 @@ var defaultOpts = {
 	},
 	catch: sendError,
 	charset: "UTF-8",
-	compress: false,
-	encoding: {
+	compress: {
+		"br": "createBrotliCompress",
 		"deflate;q=0.1": "createDeflate",
-		"gzip;q=0.2": "createGzip",
-		"br": "createBrotliCompress"
+		"gzip;q=0.2": "createGzip"
 	},
 	error: {
 		"URIError": { code: 400 }
 	},
+	exitTime: 5000,
+	log: console,
+	maxURILength: 2000,
 	method: {
 		DELETE: "del",
 		GET: "get",
@@ -158,13 +149,6 @@ var defaultOpts = {
 		510: "Not Extended",
 		511: "Network Authentication Required"
 	},
-	tmp: (
-		process.env.TMPDIR ||
-		process.env.TEMP ||
-		process.env.TMP || (
-			process.platform === "win32" ? (process.env.SystemRoot || process.env.windir) + "\\temp" : "/tmp"
-		)
-	).replace(/([^:])[/\\]+$/, "$1") + "/up-" + process.pid + "-",
 	http: {
 		port: 8080
 	}
@@ -187,7 +171,7 @@ function createServer(opts_) {
 
 	event.asEmitter(app)
 	if (!opts._accept) opts._accept = require("./accept").accept(opts.accept)
-	if (!opts._encoding) opts._encoding = require("./accept").accept(opts.encoding)
+	if (!opts._compress) opts._compress = opts.compress && require("./accept").accept(opts.compress)
 
 	Object.keys(opts.method).forEach(function(method) {
 		app[opts.method[method]] = function() {
@@ -367,8 +351,8 @@ function send(body, opts_) {
 		)
 	}
 
-	negod = opts.compress && opts._encoding(reqHead["accept-encoding"])
-	if (negod.match) {
+	negod = opts._compress && opts._compress(reqHead["accept-encoding"])
+	if (negod && negod.match) {
 		// Server may choose not to compress the body, if:
 		//  - data is already compressed (some image format)
 		//  - server is overloaded and cannot afford the computational overhead.
