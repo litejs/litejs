@@ -1,6 +1,6 @@
 [LiteJS]: https://github.com/litejs/litejs
-[Quick-Start]: https://github.com/litejs/litejs/wiki/Quick-Start
-[wiki]: https://github.com/litejs/litejs/wiki
+[UI]: https://github.com/litejs/ui
+[CLI]: https://github.com/litejs/cli
 
 [1]: https://badgen.net/coveralls/c/github/litejs/litejs
 [2]: https://coveralls.io/r/litejs/litejs
@@ -12,8 +12,12 @@
 
 # LiteJS &ndash; [![Coverage][1]][2] [![Size][3]][4] [![Buy Me A Tea][5]][6]
 
-[LiteJS][] is a full-stack web framework in a tiny package.  
-See [Quick Start Guide][Quick-Start] and [wiki][] for more.
+[LiteJS][] is a full-stack web framework in a tiny package.
+
+It is split into three main packages: [litejs][LiteJS] server, [@litejs/ui][UI] and [@litejs/cli][CLI] command line tool.
+
+See [Quick Start Guide](https://github.com/litejs/litejs/wiki/Quick-Start)
+and [wiki](https://github.com/litejs/litejs/wiki) for more.
 
 
 > Copyright (c) 2013-2023 Lauri Rooden &lt;lauri@rooden.ee&gt;  
