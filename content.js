@@ -14,10 +14,10 @@ var defaultReqOpts = {
 	maxFields:    1000,
 	maxFieldSize: 1000, // TODO:2023-11-03:lauri:Not implemented
 	maxFiles:     1000,
-	maxFileSize:  Infinity,
-	tmp: require("os").tmpdir() + "/up-" + process.pid + "-",
+	maxFileSize:  Infinity
 }
 , fs = require("fs")
+, path = require("path")
 , Writable = require("stream").Writable
 , accept = require("./accept.js").accept
 , util = require("./util")
@@ -151,7 +151,7 @@ function multipart(boundary, reqOpts, req) {
 	, nextPos = needle.length - 3
 	, remainingFields = util.num(reqOpts.maxFields, req.opts.maxFields, 1000)
 	, remainingFiles = util.num(reqOpts.maxFiles, req.opts.maxFiles, 1000)
-	, savePath = (reqOpts.tmp || req.opts.tmp) + "-" + (seq++)
+	, savePath = path.join(reqOpts.tmp || req.opts.tmp || require("os").tmpdir(), "up-" + process.pid + "-" + (seq++))
 	, writable = {
 		write: function(chunk, enc, cb) {
 			var buf, bufNum, i, j
