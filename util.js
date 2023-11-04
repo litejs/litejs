@@ -1,6 +1,5 @@
 
 exports.deepAssign = deepAssign
-exports.lineEmitter = lineEmitter
 exports.nop = nop
 exports.num = num
 exports.rand = rand
@@ -43,46 +42,6 @@ function deepAssign(to) {
 		}
 	}
 	return to
-}
-
-// Usage:
-// var client = net.connect(soc)
-// .on("line", function(line) {})
-// lineEmitter(client)
-
-function lineEmitter(emitter, opts) {
-	opts = opts || {}
-
-	var leftover = ""
-	, separator = opts.separator || /\r?\n/
-	, emit = opts.emit || "line"
-	, listen = opts.listen || "data"
-	, end = opts.end || "end"
-
-	emitter
-	.on(listen, lineEmitterData)
-	.on(end,  lineEmitterEnd)
-
-	function lineEmitterData(data){
-		var lines = (leftover + data).split(separator)
-
-		// keep the last partial line buffered
-		leftover = lines.pop()
-
-		for (var i = 0, len = lines.length; i < len; ) {
-			this.emit(emit, lines[i++], len)
-		}
-	}
-	function lineEmitterEnd() {
-		if (leftover) {
-			this.emit(emit, leftover)
-		}
-		leftover = ""
-		emitter
-		.removeListener(listen, lineEmitterData)
-		.removeListener(end, lineEmitterEnd)
-	}
-	return emitter
 }
 
 function nop() {}

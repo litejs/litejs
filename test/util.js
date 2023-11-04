@@ -297,39 +297,6 @@ describe("util", function() {
 		.notOk(util.nop())
 		.end()
 	})
-	it("should have lineEmitter", function(assert) {
-		assert.plan(2)
-
-		testStream(
-			[ "abc\n"],
-			["abc"]
-		)
-
-		testStream(
-			[ "abc\n", "abc", "\n", "abc", "\nabc", "\nabc\nab", "c"],
-			["abc","abc","abc","abc","abc","abc"]
-		)
-
-		function testStream(input, output) {
-			var stream = require("stream")
-			, emitter = new stream.Readable()
-			, lines = []
-
-			util.lineEmitter(emitter)
-			.on("line", function(line) {
-				lines.push(line)
-			})
-			.on("end", function() {
-				assert.equal(lines, output)
-			})
-
-			input.forEach(function(i) {
-				emitter.push(i)
-			})
-
-			emitter.push(null)
-		}
-	})
 	it("should resolve numbers", function(assert) {
 		var X, arr = [
 			0, X, X, 0,
