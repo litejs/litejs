@@ -269,7 +269,6 @@ function send(body, opts_) {
 		resHead["Content-Length"] = opts.size
 		if (opts.size > opts.rangeSize) {
 			resHead["Accept-Ranges"] = "bytes"
-			resHead["Content-Length"] = opts.size
 
 			if ((tmp = reqHead.range && !reqHead["if-range"] && rangeRe.exec(reqHead.range))) {
 				opts.start = tmp[1] ? +tmp[1] : tmp[2] ? opts.size - tmp[2] - 1 : 0
@@ -344,9 +343,7 @@ function sendFile(file, opts_, next_) {
 function sendStatus(code, message) {
 	var res = this
 	res.statusCode = code
-	if (code === 204 || code === 205 || code === 304) {
-		res.setHeader("Content-Length", 0)
-	} else if (code > 199) {
+	if (code > 199 && code !== 204 && code !== 205 && code !== 304) {
 		message = (message || res.opts.status[code] || code) + "\n"
 		res.setHeader("Content-Length", message.length)
 		res.setHeader("Content-Type", "text/plain")

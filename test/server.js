@@ -24,7 +24,7 @@ describe("server", function() {
 		makeReq(assert, server, "POST", "/b", { headers: { accept: "text/csv" } }, { statusCode: 200, _body: '2' })
 
 		makeReq(assert, server, "GET", "/err/404", {}, { statusCode: 404 })
-		makeReq(assert, server, "PUT", "/c", {}, { statusCode: 204, headers: { "Content-Length": void 0 } })
+		makeReq(assert, server, "PUT", "/c", {}, { statusCode: 204, headers: { } })
 
 		assert.type(server, "function")
 	})
