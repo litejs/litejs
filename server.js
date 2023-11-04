@@ -416,17 +416,14 @@ function sendStatus(code, message) {
 }
 
 function sendError(e, req, res, opts) {
-	var message = typeof e === "string" ? e : e.message
-	, map = opts.error && (opts.error[message] || opts.error[e.name]) || {}
+	var map = typeof e === "string" ? opts.error[e] || { message: e } : typeof e === "number" ? { code: e } : e
 	, error = {
 		id: Math.random().toString(36).slice(2, 10),
 		time: req.date,
-		code: map.code || e.code || 500,
-		message: map.message || message
+		code: map.code || e.code || 500
 	}
 	res.statusCode = error.code
-	res.statusMessage = opts.status[error.code] || message
-
+	res.statusMessage = error.message = opts.status[error.code] || "Error " + error.code
 	res.send(error)
 
 	opts.log.error(

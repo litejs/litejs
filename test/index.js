@@ -7,6 +7,7 @@ describe("server", function() {
 	require("./accept.js")
 	require("./content.js")
 	require("./cookie.js")
+	require("./server.js")
 })
 
 require("./csv.js")
