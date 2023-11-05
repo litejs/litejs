@@ -309,7 +309,7 @@ function send(body, opts_) {
 		outStream.pipe(res)
 	}
 
-	if (opts.headers) Object.assign(resHead, opts.headers["*"], opts.headers[opts.sendfile || res.req.url])
+	if (opts.headers) Object.assign(resHead, opts.headers["*"], opts.headers[res.req.baseUrl])
 	res.writeHead(opts.statusCode || 200, resHead)
 
 	if (res.req.method === "HEAD") {
