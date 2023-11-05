@@ -140,12 +140,14 @@ function createServer(opts_) {
 		, tryCatch = true
 		, usePos = 0
 		, forwarded = req.headers[opts.ipHeader || "x-forwarded-for"]
+		, reqMethod = req.method === "HEAD" ? "GET" : req.method
 
 		if (!res.send) {
 			req.date = new Date()
 			req.ip = forwarded ? forwarded.split(/[\s,]+/)[0] : req.socket && req.socket.remoteAddress
 			req.opts = res.opts = opts
 			req.res = res
+			res.isHead = req.method === "HEAD"
 			res.req = req
 			res.send = send
 			res.sendStatus = sendStatus
@@ -176,7 +178,7 @@ function createServer(opts_) {
 			, path = uses[usePos + 1]
 			, pos = usePos += 3
 
-			if (method && method !== req.method || path && path !== req.url.slice(0, path.length)) {
+			if (method && method !== reqMethod || path && path !== req.url.slice(0, path.length)) {
 				next()
 			} else if (uses[pos - 1] === void 0) {
 				if (typeof _next === "function") {
@@ -312,7 +314,7 @@ function send(body, opts_) {
 	if (opts.headers) Object.assign(resHead, opts.headers["*"], opts.headers[res.req.baseUrl])
 	res.writeHead(opts.statusCode || 200, resHead)
 
-	if (res.req.method === "HEAD") {
+	if (res.isHead) {
 		return res.end()
 	}
 
@@ -351,7 +353,7 @@ function sendStatus(code, message) {
 		message = (message || res.opts.status[code] || code) + "\n"
 		res.setHeader("Content-Length", message.length)
 		res.setHeader("Content-Type", "text/plain")
-		if ("HEAD" !== res.req.method) {
+		if (!res.isHead) {
 			res.write(message)
 		}
 	}
