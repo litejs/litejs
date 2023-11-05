@@ -7,8 +7,8 @@ describe("server", function() {
 		assert.plan(1)
 		var server = createServer({
 			maxURILength: 25,
-			error: {
-				"I'm a Teapot": { code: 418 }
+			status: {
+				418: "I'm a Teapot"
 			}
 		})
 		, client = makeClient(assert, server)
