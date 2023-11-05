@@ -103,6 +103,10 @@ var defaultOpts = {
 , rangeRe = /^bytes=(\d*)-(\d*)$/
 , tmpDate = new Date()
 
+Object.keys(defaultOpts.status).forEach(function(code) {
+	if (code > 399) defaultOpts.error[defaultOpts.status[code]] = { code: +code }
+})
+
 module.exports = createServer
 createServer.getCookie = getCookie
 createServer.setCookie = setCookie

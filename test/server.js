@@ -5,7 +5,9 @@ describe("server", function() {
 
 	it ("handles middlewares", function(assert) {
 		assert.plan(1)
-		var server = createServer({})
+		var server = createServer({
+			maxURILength: 15
+		})
 		server.get("/a", function(req, res, next) {
 			res.send({a: 1})
 		})
@@ -24,6 +26,7 @@ describe("server", function() {
 		makeReq(assert, server, "POST", "/b", { headers: { accept: "text/csv" } }, { statusCode: 200, _body: '2' })
 
 		makeReq(assert, server, "GET", "/err/404", {}, { statusCode: 404 })
+		makeReq(assert, server, "GET", "/err/longer-than-maxURILength-url", {}, { statusCode: 414 })
 		makeReq(assert, server, "PUT", "/c", {}, { statusCode: 204, headers: { } })
 
 		assert.type(server, "function")
