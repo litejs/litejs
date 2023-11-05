@@ -144,7 +144,7 @@ function createServer(opts_) {
 
 		if (!res.send) {
 			req.date = new Date()
-			req.ip = forwarded ? forwarded.split(/[\s,]+/)[0] : req.socket && req.socket.remoteAddress
+			req.ip = forwarded ? forwarded.trim().split(/[\s,]+/)[0] : req.socket && req.socket.remoteAddress
 			req.opts = res.opts = opts
 			req.res = res
 			res.isHead = req.method === "HEAD"
@@ -376,7 +376,7 @@ function sendError(e, req, res, opts) {
 	)
 }
 
-function setLink(url, rel) {
+function setLink(rel, url) {
 	var res = this
 	, existing = res.getHeader("link") || []
 

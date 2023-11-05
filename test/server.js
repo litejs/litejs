@@ -6,7 +6,10 @@ describe("server", function() {
 	it ("handles middlewares", function(assert) {
 		assert.plan(1)
 		var server = createServer({
-			maxURILength: 25
+			maxURILength: 25,
+			error: {
+				"I'm a Teapot": { code: 418 }
+			}
 		})
 		, client = makeClient(assert, server)
 
@@ -70,10 +73,15 @@ describe("server", function() {
 			res.send("OK")
 		})
 
+		server.get("/link", function(req, res, next) {
+			res.link("preconnect", "https://example.com")
+			res.send("Linked")
+		})
 
 		client("GET", "/index.html", {}, { statusCode: 200, _body: "OK", headers: { "X-Content-Type-Options": "nosniff", "X-Custom": "bla" } })
 		client("HEAD", "/index.html", {}, { statusCode: 200, _body: null, headers: { "X-Content-Type-Options": "nosniff", "X-Custom": "bla" } })
 		client("GET", "/index.jpg", {}, { statusCode: 404, headers: { "X-Custom": "bla" } })
+		client("GET", "/link", {}, { statusCode: 200, _body: "Linked", headers: { "Link": '<https://example.com>; rel="preconnect"' } })
 
 		assert.type(server, "function")
 	})
