@@ -453,7 +453,7 @@ function listen() {
 		)
 		.listen(map.port, map.host || "0.0.0.0", function() {
 			var addr = this.address()
-			opts.log.info("Listening %s at %s:%s", proto, addr.address, addr.port)
+			opts.log.info("Listen %s at %s:%s", proto, addr.address, addr.port)
 			this.on("close", function() {
 				opts.log.info("Stop listening %s at %s:%s", proto, addr.address, addr.port)
 			})
@@ -514,9 +514,9 @@ function listen() {
 
 function setCookie(opts, value) {
 	var res = this
-	, existing = res.getHeader("set-cookie")
-	, cookie = (typeof opts === "string" ? (opts = { name: opts }) : opts).name +
-	("=" + value).replace(cookieRe, encodeURIComponent) +
+	, existing = res.getHeader("set-cookie") || ""
+	, name = (typeof opts === "string" ? (opts = { name: opts }) : opts).name
+	, cookie = (name + "=" + value).replace(cookieRe, encodeURIComponent) +
 	(opts.maxAge   ? "; Expires=" + (tmpDate.setTime(opts.maxAge < 1 ? 0 : Date.now() + util.num(opts.maxAge)), tmpDate).toUTCString() : "") +
 	(opts.path     ? "; Path=" + opts.path : "") +
 	(opts.domain   ? "; Domain=" + opts.domain : "") +
@@ -525,10 +525,15 @@ function setCookie(opts, value) {
 	(opts.sameSite ? "; SameSite=" + opts.sameSite : "")
 
 	if (Array.isArray(existing)) {
+		for (var i = existing.length; i--; ) if (overRideCookie(name, existing[i])) existing.splice(i, 1)
 		existing.push(cookie)
 	} else {
-		res.setHeader("Set-Cookie", existing ? [existing, cookie] : cookie)
+		res.setHeader("Set-Cookie", overRideCookie(name, existing) ? cookie : [ existing, cookie ])
 	}
+}
+
+function overRideCookie(name, cookie) {
+	return !cookie || cookie.slice(0, name.length + 1) === name + "="
 }
 
 function getCookie(opts) {

@@ -18,30 +18,22 @@ describe("cookie", function() {
 			[{
 				name:"foo",
 				domain:"www.example.com",
-				_setCookie: "foo=; Expires=Thu, 01 Jan 1970 00:00:00 GMT; foo=; Expires=Thu, 01 Jan 1970 00:00:00 GMT; Domain=www.example.com; foo=; Expires=Thu, 01 Jan 1970 00:00:00 GMT; Domain=*.example.com"
 			}, "", "foo=1; foo=2"],
 			[{
 				name:"foo",
 				domain:"example.com",
-				_setCookie: "foo=; Expires=Thu, 01 Jan 1970 00:00:00 GMT; foo=; Expires=Thu, 01 Jan 1970 00:00:00 GMT; Domain=example.com"
 			}, "", "foo=1; foo=2"],
 			[{
 				name:"foo",
-				_setCookie: "foo=; Expires=Thu, 01 Jan 1970 00:00:00 GMT"
 			}, "", "foo=1; foo=2"],
 		]
 		, i = 0
 
 		for (; test = tests[i++]; ) {
 			req = new Req()
-			req.res = new Req()
-			req.res.cookie = server.setCookie
 			for (j = test.length; --j > 1; ) {
 				req.headers.cookie = test[j]
 				assert.equal(req.cookie(test[0]), test[1])
-				if (test[0]._setCookie) {
-					assert.equal([].concat(req.res.getHeader("set-cookie")).join("; "), test[0]._setCookie)
-				}
 			}
 		}
 
@@ -54,6 +46,7 @@ describe("cookie", function() {
 		, tests = [
 			["a=1", "a", "1"],
 			["a=1; b=2", {name:"a"}, "1", "b", 2],
+			["a=; Expires=Thu, 01 Jan 1970 00:00:00 GMT; b=2", {name:"a", maxAge: -1}, "", "b", 2],
 			[
 				"a=1; Path=/; Domain=example.com; b=2; Expires=Tue, 17 Nov 2020 10:42:06 GMT; foo=bar; Secure; HttpOnly; SameSite=Lax",
 				{ name:"a", domain: "example.com", path: "/" }, "1",
@@ -75,15 +68,56 @@ describe("cookie", function() {
 		assert.end()
 	})
 
+	it ("should override cookies", function(assert, mock) {
+		var res = new Res()
+		res.cookie("a", "1")
+		assert.equal(res.headers["set-cookie"], "a=1")
+		res.cookie("a", "2")
+		assert.equal(res.headers["set-cookie"], "a=2")
+		res.cookie("foo", "bar")
+		assert.equal(res.headers["set-cookie"], [ "a=2", "foo=bar" ])
+		res.cookie("a", "3")
+		assert.equal(res.headers["set-cookie"], [ "foo=bar", "a=3" ])
+		assert.end()
+	})
+
+	it ("should detect cookie fixation", function(assert, mock) {
+		var req = new Req()
+		req.headers.cookie = "foo=; foo=a"
+		assert.equal(req.cookie("foo"), "")
+		assert.equal(req.res.headers["clear-site-data"], '"cookies"')
+		assert.end()
+	})
+
+	it ("should reject non-matching cookies", function(assert, mock) {
+		var req = new Req()
+		req.headers.cookie = "foo=aa; bar=123"
+		assert.equal(req.cookie("foo"), "aa")
+		assert.equal(req.cookie({name:"foo"}), "aa")
+		assert.equal(req.cookie({name:"foo", re: /^\d+$/ }), "")
+		assert.equal(req.cookie({name:"bar", re: /^\d+$/ }), "123")
+		assert.end()
+	})
+
 	function Req(opts) {
 		var req = this
+		req.res = new Res(req)
 		req.opts = {
 			log: { warn: function() {} }
 		}
 		req.cookie = server.getCookie
 		req.headers = Object.assign({}, opts && opts.headers)
 	}
-	Req.prototype = {
+	function Res(req, opts) {
+		var res = this
+		res.req = req || new Req()
+		res.opts = {
+			log: { warn: function() {} }
+		}
+		res.cookie = server.setCookie
+		res.headers = Object.assign({}, opts && opts.headers)
+	}
+	Req.prototype = Res.prototype = {
 		getHeader: function(name) {
 			return this.headers[name.toLowerCase()] || null
 		},
