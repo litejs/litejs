@@ -321,7 +321,7 @@ function send(body, opts_) {
 		outStream.pipe(res)
 	}
 
-	if (opts.headers) Object.assign(resHead, opts.headers["*"], opts.headers[res.req.baseUrl])
+	if (opts.headers) Object.assign(resHead, opts.headers["*"], opts.headers[res.req.originalUrl])
 	res.writeHead(opts.statusCode || 200, resHead)
 
 	if (res.isHead) {
