@@ -149,10 +149,10 @@ function createServer(opts_) {
 			req.date = new Date()
 			req.ip = forwarded ? forwarded.trim().split(/[\s,]+/)[0] : socket.remoteAddress
 			req.opts = res.opts = opts
-			req.protocol = forwarded && trustedProxy(req, socket.remoteAddress) ? req.headers.protoHeader : socket.encrypted ? "https" : "http"
-			req.secure = req.protocol === "https"
+			req.protocol = forwarded && trustedProxy(req, socket.remoteAddress) ? req.headers[opts.protoHeader] : socket.encrypted ? "https" : "http"
+			req.publicUrl = opts.publicUrl || req.protocol + "://" + req.headers.host
 			req.res = res
-			req.rootUrl = req.protocol + "://" + req.headers.host
+			req.secure = req.protocol === "https"
 			res.isHead = req.method === "HEAD"
 			res.req = req
 			res.send = send
