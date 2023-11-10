@@ -30,6 +30,8 @@ var defaultOpts = {
 		"URIError": { code: 400 }
 	},
 	exitTime: 5000,
+	ipHeader: "x-forwarded-for",
+	protoHeader: "x-forwarded-proto",
 	log: console,
 	maxURILength: 2000,
 	method: {
@@ -139,14 +141,18 @@ function createServer(opts_) {
 		var oldPath, oldUrl
 		, tryCatch = true
 		, usePos = 0
-		, forwarded = req.headers[opts.ipHeader || "x-forwarded-for"]
+		, forwarded = req.headers[opts.ipHeader]
 		, reqMethod = req.method === "HEAD" ? "GET" : req.method
+		, socket = req.socket || {}
 
 		if (!res.send) {
 			req.date = new Date()
-			req.ip = forwarded ? forwarded.trim().split(/[\s,]+/)[0] : req.socket && req.socket.remoteAddress
+			req.ip = forwarded ? forwarded.trim().split(/[\s,]+/)[0] : socket.remoteAddress
 			req.opts = res.opts = opts
+			req.protocol = forwarded && trustedProxy(req, socket.remoteAddress) ? req.headers.protoHeader : socket.encrypted ? "https" : "http"
+			req.secure = req.protocol === "https"
 			req.res = res
+			req.rootUrl = req.protocol + "://" + req.headers.host
 			res.isHead = req.method === "HEAD"
 			res.req = req
 			res.send = send
@@ -233,6 +239,10 @@ function createServer(opts_) {
 			uses.push(method, path, arr[i++])
 		}
 		return app
+	}
+
+	function trustedProxy(req, ip) {
+		return !Array.isArray(opts.trustProxy) || opts.trustProxy.some(util.ipInNet.bind(null, ))
 	}
 }
 
