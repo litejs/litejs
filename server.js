@@ -527,27 +527,11 @@ function getCookie(opts) {
 	, junks = ("; " + req.headers.cookie).split("; " + name + "=")
 
 	if (junks.length > 2) {
-		(opts.path || "").split("/").map(function(val, key, arr) {
-			var map = {
-				name: name,
-				maxAge: -1,
-				path: arr.slice(0, key + 1).join("/")
-			}
-			, domain = opts.domain
-			req.res.cookie(map, "")
-			if (domain) {
-				map.domain = domain
-				req.res.cookie(map, "")
-
-				if (domain !== (domain = domain.replace(/^[^.]+(?=\.(?=.+\.))/, "*"))) {
-					map.domain = domain
-					req.res.cookie(map, "")
-				}
-			}
-		})
-		req.opts.log.warn("Cookie fixation detected: %s", req.headers.cookie)
+		req.res.setHeader("Clear-Site-Data", '"cookies"')
+		req.opts.log.warn("%s %s %s Cookie fixation: %s", req.ip, req.method, req.originalUrl, req.headers.cookie)
 	} else try {
-		return decodeURIComponent((junks[1] || "").split(";")[0])
+		junks = decodeURIComponent((junks[1] || "").split(";")[0])
+		if (!opts.re || opts.re.test(junks)) return junks
 	} catch(e) {
 		req.opts.log.warn("Invalid cookie '%s' in: %s", name, req.headers.cookie)
 	}
