@@ -17,6 +17,7 @@ function decodeQ2(str) {
 	)
 }
 
+/*
 var encodedWordRe = /=\?([^\?]+?)\?(Q|B)\?([^\?]*?)\?=/gi
 function decode(str) {
 	return str.replace(encodedWordRe, function(_, charset, enc, txt) {
@@ -31,6 +32,7 @@ function decode(str) {
 function encode(str) {
 	return "=?utf-8?Q?" + encodeURIComponent(token.replace(/ /g, "_")).replace(/%/g, "=") + "?="
 }
+*/
 
 
 module.exports = {

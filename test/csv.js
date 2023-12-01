@@ -2,8 +2,7 @@
 
 
 describe.it("should encode and decode csv", function(assert) {
-	var row, tmp
-	, csv = require("../csv")
+	var csv = require("../csv")
 	, i = 0
 	, data = [
 		{ab:"cd", ef:'g"h', i: ","},

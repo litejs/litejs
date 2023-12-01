@@ -45,7 +45,7 @@ describe("ratelimit", function() {
 			ipLimit(req, res, function(err) {
 				var diff = Date.now() - now
 				assert.planned += 2
-				assert.equal(err, null)
+				assert.equal(err, undefined)
 				assert.equal(res.statusCode, 200)
 				headers.forEach(function(header, i) {
 					assert.planned++
@@ -144,7 +144,7 @@ describe("ratelimit", function() {
 				var diff = process.hrtime(now)
 				diff = diff[0]*1e3 + diff[1]/1e6 + 1
 				assert.planned += 2
-				assert.equal(err, null)
+				assert.equal(err, undefined)
 				assert.equal(res.statusCode, 200)
 				headers.forEach(function(header, i) {
 					assert.planned++

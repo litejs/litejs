@@ -251,7 +251,7 @@ function multipart(boundary, reqOpts, req) {
 		}
 	}
 
-	if (reqOpts && reqOpts.epilogue) {
+	if (reqOpts.epilogue) {
 		writable.final = function(cb) {
 			req.epilogue = Buffer.concat(bufs).toString("utf8", 4)
 			cb()

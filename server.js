@@ -149,7 +149,7 @@ function createServer(opts_) {
 			req.date = new Date()
 			req.ip = forwarded ? forwarded.trim().split(/[\s,]+/)[0] : socket.remoteAddress
 			req.opts = res.opts = opts
-			req.protocol = forwarded && trustedProxy(req, socket.remoteAddress) ? req.headers[opts.protoHeader] : socket.encrypted ? "https" : "http"
+			req.protocol = forwarded && trustedProxy(socket.remoteAddress) ? req.headers[opts.protoHeader] : socket.encrypted ? "https" : "http"
 			req.publicUrl = opts.publicUrl || req.protocol + "://" + req.headers.host
 			req.res = res
 			req.secure = req.protocol === "https"
@@ -241,8 +241,8 @@ function createServer(opts_) {
 		return app
 	}
 
-	function trustedProxy(req, ip) {
-		return !Array.isArray(opts.trustProxy) || opts.trustProxy.some(util.ipInNet.bind(null, ))
+	function trustedProxy(ip) {
+		return !Array.isArray(opts.trustProxy) || opts.trustProxy.some(util.ipInNet.bind(null, ip))
 	}
 }
 
@@ -443,10 +443,10 @@ function listen() {
 	return server
 
 	function createNet(proto) {
+		if (server["_" + proto]) server["_" + proto].close()
 		var map = opts[proto]
-		, net = server["_" + proto] && !server["_" + proto].close()
 		if (!map || !map.port) return
-		net = server["_" + proto] = (
+		var net = server["_" + proto] = (
 			proto === "http" ?
 			require(proto).createServer(map.redirect ? forceHttps : server) :
 			require(proto).createSecureServer(map, map.redirect ? forceHttps : server)
