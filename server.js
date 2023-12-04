@@ -542,7 +542,7 @@ function getCookie(opts) {
 	, junks = ("; " + req.headers.cookie).split("; " + name + "=")
 
 	if (junks.length > 2) {
-		req.res.setHeader("Clear-Site-Data", '"cookies"')
+		req.res.setHeader("Clear-Site-Data", "\"cookies\"")
 		req.opts.log.warn("%s %s %s Cookie fixation: %s", req.ip, req.method, req.originalUrl, req.headers.cookie)
 	} else try {
 		junks = decodeURIComponent((junks[1] || "").split(";")[0])

@@ -1,10 +1,32 @@
 
+var crypto = require("crypto")
+, numRe = /^(-?\d+(?:\.\d*)?) *([kMGTP]i?|sec|min|hr|day|week|month|year|).?$/
+, numMap = {
+	"": 1,
+	sec: 1e3, min: 6e4, hr: 36e5, day: 864e5, week: 6048e5, month: 2629742400, year: 31556908800,
+	k: 1e3, M: 1e6, G: 1e9, T: 1e12, P: 1e15,
+	ki: 1024,
+	Mi: 1048576,
+	Gi: 1073741824,
+	Ti: 1099511627776,
+	Pi: 1125899906842624
+}
+, hasOwn = numMap.hasOwnProperty
+, uuidNamespaces = {
+	dns:  uuid("6ba7b810-9dad-11d1-80b4-00c04fd430c8"),
+	url:  uuid("6ba7b811-9dad-11d1-80b4-00c04fd430c8"),
+	oid:  uuid("6ba7b812-9dad-11d1-80b4-00c04fd430c8"),
+	x500: uuid("6ba7b814-9dad-11d1-80b4-00c04fd430c8"),
+	null: uuid("00000000-0000-0000-0000-000000000000")
+}
+
 exports.deepAssign = deepAssign
 exports.nop = nop
 exports.num = num
 exports.rand = rand
 exports.round = round
 exports.uuid4 = uuid4
+exports.uuid5 = uuid5
 exports.wait = wait
 
 exports.urlRe = /^([-.\da-z]+:)?\/\/(([\da-z.]*)(?::(\d+))?)(\/.*?)(\?.*?)?(#.*)?$/
@@ -17,18 +39,6 @@ exports.ip2buf = ip2buf
 exports.ip2int = ip2int
 exports.ipInNet = ipInNet
 
-var numRe = /^(-?\d+(?:\.\d*)?) *([kMGTP]i?|sec|min|hr|day|week|month|year|).?$/
-, numMap = {
-	"": 1,
-	sec: 1e3, min: 6e4, hr: 36e5, day: 864e5, week: 6048e5, month: 2629742400, year: 31556908800,
-	k: 1e3, M: 1e6, G: 1e9, T: 1e12, P: 1e15,
-	ki: 1024,
-	Mi: 1048576,
-	Gi: 1073741824,
-	Ti: 1099511627776,
-	Pi: 1125899906842624
-}
-, hasOwn = numMap.hasOwnProperty
 
 function deepAssign(to) {
 	if (to !== Object.prototype) for (var key, from, a = arguments, i = 1, len = a.length; i < len; ) {
@@ -57,11 +67,42 @@ function num(a, b, c) {
 	)
 }
 
-function uuid4(a, b) {
-	for (a = b = ""; a++ < 36; ) {
-		b += a*51&52 ?  ( a^15 ? 8 ^ Math.random() * (a^20?16:4) : 4 ).toString(16) : "-";
+function uuid(data, ver) {
+	if (typeof data == "string") {
+		data = data.replace(/-/g, "")
+		for (var i = 16, arr = new Uint8Array(i); i--; ) {
+			arr[i] = parseInt(data.slice(i * 2, i * 2 + 2), 16)
+		}
+		data = arr
 	}
-	return b
+	if (ver) {
+		data[6] = (data[6] & 0x0f) | (ver << 4)
+		data[8] = (data[8] & 0x3f) | 0x80
+	}
+	data.toString = uuidToString
+	return data
+}
+function uuidToString() {
+	for (var arr = this, len = arr.length, out = new Array(len); len--; ) {
+		out[len] = (256 + arr[len]).toString(16).slice(1)
+	}
+	out[3] += "-"
+	out[5] += "-"
+	out[7] += "-"
+	out[9] += "-"
+	return out.join("")
+}
+function uuid4() {
+	return uuid(crypto.getRandomValues(new Uint8Array(16)), 4)
+}
+function uuid5(ns, name) {
+	name = unescape(encodeURIComponent(name))
+	var nameLen = name.length
+	, data = new Uint8Array(16 + nameLen)
+	for (data.set(uuidNamespaces[ns] || (uuidNamespaces[ns] = uuid(ns))); nameLen--; ) {
+		data[nameLen + 16] = name.charCodeAt(nameLen)
+	}
+	return uuid(crypto.createHash("sha1").update(data).digest().slice(0, 16), 5)
 }
 
 function rand(min, max) {

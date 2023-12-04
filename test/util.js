@@ -287,12 +287,20 @@ describe("util", function() {
 
 		assert.end()
 	})
-	it("should have uuid4/rand/round", function(assert, mock) {
+	it("should have uuid4", function(assert) {
+		assert.equal(util.uuid4().toString().length, 36).end()
+	})
+	it("should have uuid5", [
+		[ "dns", "www.example.com", "2ed6657d-e927-568b-95e1-2665a8aea6a2" ],
+		[ "6ba7b810-9dad-11d1-80b4-00c04fd430c8", "www.example.com", "2ed6657d-e927-568b-95e1-2665a8aea6a2" ],
+	], function(ns, name, expected, assert) {
+		assert.equal("" + util.uuid5(ns, name), expected).end()
+	})
+	it("should have rand/round", function(assert, mock) {
 		mock.rand(12345)
 		assert
-		.equal(util.uuid4().length, 36)
-		.equal(util.rand(15), "9zgvprzwauak3nm")
-		.equal(util.rand(-5, 5), -4.829521910247747)
+		.equal(util.rand(15), "hqq17vh0oplzdkw")
+		.equal(util.rand(-5, 5), 4.517854940965272)
 		.equal(util.round(1.005, 2), 1.01)
 		.notOk(util.nop())
 		.end()
