@@ -164,7 +164,7 @@ function int2ip(i) {
 function ipInNet(ip, cidr) {
 	var junks = cidr.split("/")
 	, bits = junks[1] || 8 * junks[0].split(".").length
-	, mask = bits < 31 ? (-1 << (32 - bits)) >>> 0 : ip2int(bits)
+	, mask = bits < 33 ? (-1 << (32 - bits)) >>> 0 : ip2int(bits)
 	//, netInt = (ip2int(cidr) & mask) >>> 0
 	//, size = 1 << (32 - bits)
 	//, last = netInt + size - 1

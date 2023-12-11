@@ -100,11 +100,17 @@ describe("util", function() {
 		.equal(util.ipInNet("192.168.103.255", "192.168.100.0/22"), true)
 		.equal(util.ipInNet("192.168.104.0", "192.168.100.0/22"), false)
 
+		.equal(util.ipInNet("1.2.3.4", "1.2.3.3/32"), false)
+		.equal(util.ipInNet("1.2.3.4", "1.2.3.4/32"), true)
+		.equal(util.ipInNet("1.2.3.4", "1.2.3.5/32"), false)
+
 		.equal(util.ipInNet("0.0.0.0", "0.0.0.0/255.255.255.252"), true)
 		.equal(util.ipInNet("0.0.0.1", "0.0.0.0/255.255.255.252"), true)
 		.equal(util.ipInNet("0.0.0.2", "0.0.0.0/255.255.255.252"), true)
 		.equal(util.ipInNet("0.0.0.3", "0.0.0.0/255.255.255.252"), true)
 		.equal(util.ipInNet("0.0.0.4", "0.0.0.0/255.255.255.252"), false)
+		.equal(util.ipInNet("1.2.3.4", ""), false)
+		.equal(util.ipInNet("1.2.3.4", "1.2.3.4"), true)
 		.end()
 	})
 
