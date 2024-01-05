@@ -162,6 +162,7 @@ function int2ip(i) {
 
 // var re = /^((\d|[1-9]\d|1\d\d|2[0-4]\d|25[0-5])(?:\.(?=.)|$)){4}$/
 function ipInNet(ip, cidr) {
+	if (ip === cidr) return true
 	var junks = cidr.split("/")
 	, bits = junks[1] || 8 * junks[0].split(".").length
 	, mask = bits < 33 ? (-1 << (32 - bits)) >>> 0 : ip2int(bits)
