@@ -1,6 +1,6 @@
 {
   "name": "litejs",
-  "version": "24.0.0-rc.6",
+  "version": "24.0.0-rc.7",
   "description": "Full-stack web framework in a tiny package",
   "license": "MIT",
   "author": "Lauri Rooden <lauri@rooden.ee>",
@@ -23,8 +23,9 @@
     "/*.js"
   ],
   "scripts": {
-    "test": "lj test test/index.js --no-color --brief",
-    "coverage": "TZ='Europe/Tallinn' lj test test/index.js --no-color --brief --coverage --no-status && jshint --config=.github/jshint.json *.js"
+    "lint": "jshint --config=.github/jshint.json *.js",
+    "test": "lj test test/index.js",
+    "coverage": "TZ='Europe/Tallinn' lj test test/index.js --no-color --brief --coverage --no-status"
   },
   "devDependencies": {
     "@litejs/cli": "23.9.0",
