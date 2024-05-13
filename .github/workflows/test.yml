@@ -6,8 +6,7 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - uses: actions/setup-node@v4
-    - run: npm install
-    - run: npm install -g c8
+    - run: npm install && npm i -g c8 jshint
     - run: c8 -r lcov npm test
     - run: npm run lint
     - uses: coverallsapp/github-action@v2

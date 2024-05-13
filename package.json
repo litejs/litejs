@@ -28,7 +28,6 @@
     "coverage": "TZ='Europe/Tallinn' lj test test/index.js --no-color --brief --coverage --no-status"
   },
   "devDependencies": {
-    "@litejs/cli": "23.9.0",
-    "jshint": "2.13.6"
+    "@litejs/cli": "23.12.0"
   }
 }
