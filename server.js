@@ -118,14 +118,7 @@ function createServer(opts_) {
 	if (!opts._compress) opts._compress = opts.compress && require("./accept").accept(opts.compress)
 
 	Object.keys(opts.method).forEach(function(method) {
-		app[opts.method[method]] = function() {
-			var arr = uses.slice.call(arguments)
-			if (typeof arr[0] === "function") {
-				arr.unshift(null)
-			}
-			arr.unshift(method)
-			return use.apply(app, arr)
-		}
+		app[opts.method[method]] = use.bind(app, method)
 	})
 
 	Object.keys(opts.status).forEach(function(code) {
@@ -133,7 +126,7 @@ function createServer(opts_) {
 	})
 
 	app.listen = listen
-	app.use = use
+	app.use = use.bind(app, null)
 
 	return app
 
@@ -226,12 +219,8 @@ function createServer(opts_) {
 		var arr = Array.from(arguments)
 		, len = arr.length
 		, i = 2
-		if (typeof method === "function") {
-			method = path = null
-			i = 0
-		} else if (typeof path === "function") {
-			path = method
-			method = null
+		if (typeof path === "function") {
+			path = null
 			i = 1
 		}
 		for (; i < len; ) {
