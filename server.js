@@ -109,9 +109,9 @@ module.exports = createServer
 createServer.getCookie = getCookie
 createServer.setCookie = setCookie
 
-function createServer(opts_) {
+function createServer(opts) {
+	opts = app.opts = util.deepAssign({defaults: defaultOpts}, defaultOpts, opts)
 	var uses = []
-	, opts = util.deepAssign(app.opts = {defaults: defaultOpts}, defaultOpts, opts_)
 
 	event.asEmitter(app)
 	if (!opts._accept) opts._accept = require("./accept").accept(opts.accept)
