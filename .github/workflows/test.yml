@@ -40,7 +40,7 @@ jobs:
       with:
         registry-url: https://registry.npmjs.org/
     - run: |
-        gh release create $TAG --title $TAG --notes "$(git tag -l --format='%(subject)%0a%0a%(body)' $TAG)"
+        gh release create $TAG --title $TAG --notes "$(git tag -l --format='%(subject)%0a%0a%(contents:body)' $TAG)"
         gh run list --json databaseId  -q '.[20:]|.[].databaseId' --limit 100 | xargs -I{} gh run delete "{}"
         [[ "$TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]] && echo "PUBLISH=latest" >> $GITHUB_ENV || echo "PUBLISH=next" >> $GITHUB_ENV
       env:
