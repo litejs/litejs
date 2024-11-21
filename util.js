@@ -39,14 +39,18 @@ exports.ip2buf = ip2buf
 exports.ip2int = ip2int
 exports.ipInNet = ipInNet
 
+exports.isFn = isFn
+exports.isNum = isNum
+exports.isObj = isObj
+exports.isStr = isStr
 
 function deepAssign(to) {
 	if (to !== Object.prototype) for (var key, from, a = arguments, i = 1, len = a.length; i < len; ) {
 		if ((from = a[i++])) for (key in from) if (hasOwn.call(from, key)) {
 			if (from[key] === null) delete to[key]
 			else to[key] = (
-				from[key] && from[key].constructor === Object ?
-				deepAssign(to[key] && to[key].constructor === Object ? to[key] : {}, from[key]) :
+				isObj(from[key]) ?
+				deepAssign(isObj(to[key]) ? to[key] : {}, from[key]) :
 				from[key]
 			)
 		}
@@ -59,16 +63,16 @@ function nop() {}
 function num(a, b, c) {
 	var tmp
 	return (
-		typeof a === "number" && a === a ? a :
-		typeof a === "string" && (tmp = numRe.exec(a)) ? tmp[1] * numMap[tmp[2]] :
-		typeof b === "number" && b === b ? b :
-		typeof b === "string" && (tmp = numRe.exec(b)) ? tmp[1] * numMap[tmp[2]] :
+		isNum(a) ? a :
+		isStr(a) && (tmp = numRe.exec(a)) ? tmp[1] * numMap[tmp[2]] :
+		isNum(b) ? b :
+		isStr(b) && (tmp = numRe.exec(b)) ? tmp[1] * numMap[tmp[2]] :
 		c
 	)
 }
 
 function uuid(data, ver) {
-	if (typeof data == "string") {
+	if (isStr(data)) {
 		data = data.replace(/-/g, "")
 		for (var i = 16, arr = new Uint8Array(i); i--; ) {
 			arr[i] = parseInt(data.slice(i * 2, i * 2 + 2), 16)
@@ -106,7 +110,7 @@ function uuid5(ns, name) {
 }
 
 function rand(min, max) {
-	if (typeof max === "number") return Math.random() * (max - min) + min
+	if (isNum(max)) return Math.random() * (max - min) + min
 	for (var out = ""; out.length < min; ) {
 		out += Math.random().toString(36).slice(2)
 	}
@@ -128,7 +132,7 @@ function wait(fn, _pending) {
 	var pending = _pending || 0
 	, result = [null]
 
-	if (typeof fn !== "function") throw TypeError("Not a function")
+	if (!isFn(fn)) throw TypeError("Not a function")
 
 	function resume() {
 		if (--pending === 0) {
@@ -191,5 +195,21 @@ function ip2buf(str) {
 
 function buf2ip(buf) {
 	return buf.length === 4 ? buf.join(".") : buf.toString("hex").replace(/.{4}(?=.)/g, "$&:")
+}
+
+function isFn(fn) {
+	return typeof fn === "function"
+}
+
+function isNum(num) {
+	return typeof num === "number" && num === num
+}
+
+function isObj(obj) {
+	return !!obj && obj.constructor === Object
+}
+
+function isStr(str) {
+	return typeof str === "string"
 }
 
