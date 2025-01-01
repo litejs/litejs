@@ -19,7 +19,7 @@ It is split into three main packages: [litejs][LiteJS] server, [@litejs/ui][UI] 
 See [Quick Start Guide](https://github.com/litejs/litejs/wiki/Quick-Start)
 and [wiki](https://github.com/litejs/litejs/wiki) for more.
 
-> Copyright (c) 2013-2023 Lauri Rooden &lt;lauri@rooden.ee&gt;  
+> Copyright (c) 2013-2025 Lauri Rooden &lt;lauri@rooden.ee&gt;  
 [MIT License](https://litejs.com/MIT-LICENSE.txt) |
 [GitHub repo](https://github.com/litejs/litejs) |
 [npm package](https://npmjs.org/package/litejs) |

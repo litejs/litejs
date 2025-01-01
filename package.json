@@ -17,17 +17,13 @@
   ],
   "homepage": "https://litejs.com",
   "repository": "github:litejs/litejs",
-  "bugs": "https://github.com/litejs/litejs/issues",
-  "main": "index.js",
   "files": [
-    "/*.js"
+    "*.js"
   ],
   "scripts": {
-    "lint": "jshint --config=.github/jshint.json *.js",
-    "test": "lj test test/index.js",
-    "coverage": "TZ='Europe/Tallinn' lj test test/index.js --no-color --brief --coverage --no-status"
+    "test": "lj t --no-color"
   },
   "devDependencies": {
-    "@litejs/cli": "23.12.0"
+    "@litejs/cli": "25.1.0"
   }
 }

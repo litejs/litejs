@@ -7,6 +7,7 @@
   "maxdepth": 6,
   "node": true,
   "nonbsp": true,
+  "nonew": true,
   "nonstandard": true,
   "quotmark": "double",
   "undef": true,

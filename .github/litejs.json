@@ -1,5 +1,17 @@
 {
   "build": false,
-  "global": "jshint c8",
-  "lint": false
+  "lint": {
+    "jshint": ".github/jshint.json",
+    "_": [
+      "*.json",
+      ".github/*.json",
+      "*.js"
+    ]
+  },
+  "test": {
+    "tz": "Europe/Tallinn",
+    "_": [
+      "test/index.js"
+    ]
+  }
 }
